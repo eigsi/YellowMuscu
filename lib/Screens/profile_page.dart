@@ -16,8 +16,8 @@ class _ProfilePageState extends State<ProfilePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   bool _isEditing = false;
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
@@ -54,27 +54,28 @@ class _ProfilePageState extends State<ProfilePage> {
         .get();
 
     if (userData.exists) {
+      Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
       setState(() {
-        _nameController.text = userData['name'] ?? '';
-        _surnameController.text = userData['surname'] ?? '';
-        _weightController.text = userData['weight'] ?? '';
-        _heightController.text = userData['height'] ?? '';
-        _birthdateController.text = userData['birthdate'] ?? '';
-        _selectedProfilePicture = userData['profilePicture'] ?? '';
-        _friends = userData['friends'] ?? [];
-        _sentRequests = userData['sentRequests'] ?? [];
+        _lastNameController.text = data['last_name'] ?? '';
+        _firstNameController.text = data['first_name'] ?? '';
+        _weightController.text = data['weight'] ?? '';
+        _heightController.text = data['height'] ?? '';
+        _birthdateController.text = data['birthdate'] ?? '';
+        _selectedProfilePicture = data['profilePicture'] ?? '';
+        _friends = data['friends'] ?? [];
+        _sentRequests = data['sentRequests'] ?? [];
       });
     }
   }
 
   void _sendFriendRequest(String friendId) async {
-    // Ajouter la demande à la collection 'friendRequests' de l'utilisateur cible
+    // Ajouter la demande à la collection 'notifications' de l'utilisateur cible
     await FirebaseFirestore.instance
         .collection('users')
         .doc(friendId)
-        .collection('friendRequests')
-        .doc(_user!.uid)
-        .set({
+        .collection('notifications')
+        .add({
+      'type': 'friendRequest',
       'fromUserId': _user!.uid,
       'timestamp': FieldValue.serverTimestamp(),
     });
@@ -90,21 +91,29 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _sentRequests.add(friendId);
     });
+
+    // Optionally, show a message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Demande d\'ami envoyée'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   void _saveProfile() async {
     // Validations
-    String name = _nameController.text.trim();
-    String surname = _surnameController.text.trim();
+    String lastName = _lastNameController.text.trim();
+    String firstName = _firstNameController.text.trim();
     int? weight = int.tryParse(_weightController.text.trim());
     int? height = int.tryParse(_heightController.text.trim());
 
-    if (name.length > 15) {
+    if (lastName.length > 15) {
       _showError('Le nom ne doit pas dépasser 15 caractères.');
       return;
     }
 
-    if (surname.length > 15) {
+    if (firstName.length > 15) {
       _showError('Le prénom ne doit pas dépasser 15 caractères.');
       return;
     }
@@ -121,8 +130,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (_user != null) {
       await FirebaseFirestore.instance.collection('users').doc(_user!.uid).set({
-        'name': name,
-        'surname': surname,
+        'last_name': lastName,
+        'first_name': firstName,
         'weight': weight.toString(),
         'height': height.toString(),
         'birthdate': _birthdateController.text,
@@ -134,6 +143,8 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _isEditing = false;
         });
+        // Fetch updated data
+        _fetchUserData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil modifié avec succès'),
@@ -191,17 +202,21 @@ class _ProfilePageState extends State<ProfilePage> {
             }
             List<DocumentSnapshot> usersDocs = snapshot.data!.docs;
             _allUsers = usersDocs
-                .map((doc) => {
-                      'uid': doc.id,
-                      'name': doc['name'] ?? '',
-                      'surname': doc['surname'] ?? '',
-                      'profilePicture': doc['profilePicture'] ?? '',
-                    })
+                .map((doc) {
+                  Map<String, dynamic> data =
+                      doc.data() as Map<String, dynamic>;
+                  return {
+                    'uid': doc.id,
+                    'last_name': data['last_name'] ?? '',
+                    'first_name': data['first_name'] ?? '',
+                    'profilePicture': data['profilePicture'] ?? '',
+                  };
+                })
                 .where((user) => user['uid'] != _user!.uid)
                 .toList();
 
             return SizedBox(
-              height: 300, // Définir une hauteur pour le scroll
+              height: 300, // Define a height for scrolling
               child: ListView.builder(
                 itemCount: _allUsers.length,
                 itemBuilder: (context, index) {
@@ -212,7 +227,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     leading: CircleAvatar(
                       backgroundImage: NetworkImage(user['profilePicture']),
                     ),
-                    title: Text('${user['name']} ${user['surname']}'),
+                    title: Text('${user['last_name']} ${user['first_name']}'),
                     trailing: isFriend
                         ? const Text('Ami')
                         : requestSent
@@ -227,41 +242,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             );
           },
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Background Gradient
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                const Color.fromRGBO(255, 204, 0, 1.0),
-                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-              ],
-            ),
-          ),
-        ),
-        Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: _isEditing
-              ? AppBar(
-                  title: const Text('Modifier le profil'),
-                )
-              : null,
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: _user == null ? _buildSignIn() : _buildProfile(),
-            ),
-          ),
         ),
       ],
     );
@@ -316,10 +296,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Nom : ${_nameController.text}',
+        Text('Nom : ${_lastNameController.text}',
             style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
-        Text('Prénom : ${_surnameController.text}',
+        Text('Prénom : ${_firstNameController.text}',
             style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
         Text('Poids : ${_weightController.text} kg',
@@ -344,13 +324,13 @@ class _ProfilePageState extends State<ProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
-          controller: _nameController,
+          controller: _lastNameController,
           decoration: const InputDecoration(labelText: 'Nom'),
           maxLength: 15,
         ),
         const SizedBox(height: 8),
         TextField(
-          controller: _surnameController,
+          controller: _firstNameController,
           decoration: const InputDecoration(labelText: 'Prénom'),
           maxLength: 15,
         ),
@@ -479,6 +459,41 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // Background Gradient
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color.fromRGBO(255, 204, 0, 1.0),
+                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+              ],
+            ),
+          ),
+        ),
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: _isEditing
+              ? AppBar(
+                  title: const Text('Modifier le profil'),
+                )
+              : null,
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _user == null ? _buildSignIn() : _buildProfile(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

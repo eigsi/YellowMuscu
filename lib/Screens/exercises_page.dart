@@ -452,6 +452,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
   void _addNewProgram(BuildContext context) {
     final TextEditingController programController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -492,17 +493,40 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   };
 
                   // Ajouter le nouveau programme dans Firestore
-                  await FirebaseFirestore.instance
+                  DocumentReference programRef = await FirebaseFirestore
+                      .instance
                       .collection('users')
                       .doc(_user!.uid)
                       .collection('programs')
                       .add(newProgram);
+
+                  // Enregistrer l'événement de création de programme dans Firestore
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(_user!.uid)
+                      .collection('events')
+                      .add({
+                    'description':
+                        'Création d\'un nouveau programme: ${programController.text}',
+                    'timestamp': FieldValue.serverTimestamp(),
+                    //'profileImage': _selectedProfilePicture ?? '', // Optionnel
+                    'programId': programRef.id, // Référence au programme créé
+                  });
 
                   // Mettre à jour la liste des programmes
                   _fetchPrograms();
 
                   // Fermer le pop-up après avoir ajouté le programme
                   Navigator.of(context).pop();
+
+                  // Afficher un message de succès
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Programme "${programController.text}" créé avec succès.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 }
               },
             ),

@@ -148,9 +148,12 @@ class _SessionPageState extends State<SessionPage> {
                           _startSession(program);
                         },
                         child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16.0),
+                            color: Colors.white,
+                          ),
                           margin: const EdgeInsets.all(8),
                           padding: const EdgeInsets.all(16),
-                          color: Colors.white,
                           child: ListTile(
                             title:
                                 Text(program['name'] ?? 'Programme sans nom'),

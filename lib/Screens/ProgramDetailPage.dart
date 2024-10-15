@@ -26,14 +26,13 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
     super.initState();
     exercises = List<Map<String, dynamic>>.from(widget.program['exercises']);
 
-    // Initialiser 'restBetweenExercises' et 'restTime' pour chaque exercice si non présent
+    // Initialize 'restBetweenExercises' and 'restTime' if not present
     for (var exercise in exercises) {
       if (!exercise.containsKey('restBetweenExercises')) {
-        exercise['restBetweenExercises'] =
-            60; // Temps de repos entre exercices par défaut
+        exercise['restBetweenExercises'] = 60;
       }
       if (!exercise.containsKey('restTime')) {
-        exercise['restTime'] = 60; // Temps de repos entre séries par défaut
+        exercise['restTime'] = 60;
       }
     }
   }
@@ -87,7 +86,7 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Repos entre séries: $restTime sec',
+                  'Repos entre séries: ${_formatDuration(restTime)}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 Row(
@@ -97,7 +96,7 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                       icon: const Icon(Icons.remove),
                       onPressed: () {
                         setState(() {
-                          restTime = (restTime - 10).clamp(0, 600);
+                          restTime = (restTime - 10).clamp(0, 3600);
                         });
                       },
                     ),
@@ -105,7 +104,7 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                       icon: const Icon(Icons.add),
                       onPressed: () {
                         setState(() {
-                          restTime = (restTime + 10).clamp(0, 600);
+                          restTime = (restTime + 10).clamp(0, 3600);
                         });
                       },
                     ),
@@ -141,8 +140,9 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
 
   void _changeRestBetweenExercises(int index, int change) {
     setState(() {
-      exercises[index]['restBetweenExercises'] =
-          (exercises[index]['restBetweenExercises'] + change).clamp(0, 600);
+      int newRest =
+          (exercises[index]['restBetweenExercises'] + change).clamp(0, 3600);
+      exercises[index]['restBetweenExercises'] = newRest;
     });
     _saveExercises();
   }
@@ -161,6 +161,18 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
     });
     if (!_isEditingOrder) {
       _saveExercises();
+    }
+  }
+
+  String _formatDuration(int totalSeconds) {
+    if (totalSeconds < 60) {
+      return '$totalSeconds sec';
+    } else {
+      int minutes = totalSeconds ~/ 60;
+      int seconds = totalSeconds % 60;
+      String minutesPart = '$minutes min${minutes > 1 ? 's' : ''}';
+      String secondsPart = seconds > 0 ? ' $seconds sec' : '';
+      return '$minutesPart$secondsPart';
     }
   }
 
@@ -236,30 +248,33 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                           ),
                           title: Text(exercise['name']),
                           subtitle: Text(
-                              '${exercise['sets']} séries x ${exercise['reps']} répétitions\nPoids: ${exercise['weight'] ?? 0} kg\nRepos entre séries: ${exercise['restTime'] ?? 60} sec'),
+                            '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
+                            'Poids: ${exercise['weight'] ?? 0} kg\n'
+                            'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                          ),
                           trailing: IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () => _editExercise(index),
                           ),
                         ),
-                        // Afficher le temps de repos entre exercices sauf pour le dernier exercice
+                        // Display rest time between exercises except for the last exercise
                         if (index < exercises.length - 1)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.remove),
-                                onPressed: () => _changeRestBetweenExercises(
-                                    index, -10), // Diminue de 10s
+                                onPressed: () =>
+                                    _changeRestBetweenExercises(index, -10),
                               ),
                               Text(
-                                'Repos entre exercices: ${exercises[index]['restBetweenExercises']} sec',
+                                'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'])}',
                                 style: const TextStyle(fontSize: 16),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.add),
-                                onPressed: () => _changeRestBetweenExercises(
-                                    index, 10), // Augmente de 10s
+                                onPressed: () =>
+                                    _changeRestBetweenExercises(index, 10),
                               ),
                             ],
                           ),

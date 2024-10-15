@@ -227,6 +227,7 @@ class _MainPageState extends State<MainPage> {
       'fromUserId': _userId,
       'eventId': eventId,
       'timestamp': FieldValue.serverTimestamp(),
+      'description': event['description'],
     });
 
     // Mettre à jour l'interface utilisateur
