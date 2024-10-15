@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "386458988687",
+    "firebase_url": "https://yellowmuscu-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "yellowmuscu",
+    "storage_bucket": "yellowmuscu.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386458988687:android:24f9b331e944b56379c0fa",
+        "android_client_info": {
+          "package_name": "com.example.yellowmuscu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvBqiPihZ_LRGyICVBJeWZ9XAWcuKCrm8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
