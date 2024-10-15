@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
+
   @override
   _SignUpPageState createState() => _SignUpPageState();
 }
@@ -62,7 +64,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Create Account')),
+      appBar: AppBar(title: const Text('Create Account')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -70,35 +72,35 @@ class _SignUpPageState extends State<SignUpPage> {
             children: [
               TextField(
                 controller: _firstNameController,
-                decoration: InputDecoration(labelText: 'First Name'),
+                decoration: const InputDecoration(labelText: 'First Name'),
               ),
               TextField(
                 controller: _lastNameController,
-                decoration: InputDecoration(labelText: 'Last Name'),
+                decoration: const InputDecoration(labelText: 'Last Name'),
               ),
               TextField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
               TextField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
               ),
               TextField(
                 controller: _weightController,
-                decoration: InputDecoration(labelText: 'Weight (kg)'),
+                decoration: const InputDecoration(labelText: 'Weight (kg)'),
                 keyboardType: TextInputType.number,
               ),
               TextField(
                 controller: _heightController,
-                decoration: InputDecoration(labelText: 'Height (cm)'),
+                decoration: const InputDecoration(labelText: 'Height (cm)'),
                 keyboardType: TextInputType.number,
               ),
               TextField(
                 controller: _dobController,
-                decoration:
-                    InputDecoration(labelText: 'Date of Birth (YYYY-MM-DD)'),
+                decoration: const InputDecoration(
+                    labelText: 'Date of Birth (YYYY-MM-DD)'),
               ),
               const SizedBox(height: 20),
 
@@ -142,7 +144,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signUp,
-                child: Text('Sign Up'),
+                child: const Text('Sign Up'),
               ),
             ],
           ),

@@ -7,10 +7,10 @@ class ProgramDetailModal extends StatelessWidget {
   final List<String> exercises;
 
   const ProgramDetailModal({
-    Key? key,
+    super.key,
     required this.programName,
     required this.exercises,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

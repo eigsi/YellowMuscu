@@ -9,11 +9,11 @@ class ExerciseSessionPage extends StatefulWidget {
   final VoidCallback onSessionComplete;
 
   const ExerciseSessionPage({
-    Key? key,
+    super.key,
     required this.program,
     required this.userId,
     required this.onSessionComplete,
-  }) : super(key: key);
+  });
 
   @override
   _ExerciseSessionPageState createState() => _ExerciseSessionPageState();

@@ -6,10 +6,10 @@ class ProgramList extends StatelessWidget {
   final Function(String) onProgramTap;
 
   const ProgramList({
-    Key? key,
+    super.key,
     required this.programs,
     required this.onProgramTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class ProgramList extends StatelessWidget {
       itemBuilder: (context, index) {
         final program = programs[index];
         return ListTile(
-          leading: Icon(Icons.fitness_center, color: Colors.black),
+          leading: const Icon(Icons.fitness_center, color: Colors.black),
           title: Text(program['name']),
           onTap: () => onProgramTap(program['name']),
         );

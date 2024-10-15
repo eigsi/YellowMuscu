@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class StreaksWidget extends StatefulWidget {
   final String userId;
 
-  const StreaksWidget({Key? key, required this.userId}) : super(key: key);
+  const StreaksWidget({super.key, required this.userId});
 
   @override
   _StreaksWidgetState createState() => _StreaksWidgetState();
@@ -51,15 +51,15 @@ class _StreaksWidgetState extends State<StreaksWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.local_fire_department,
                 color: Colors.red,
                 size: 30,
               ),
-              const SizedBox(width: 10),
-              const Text(
+              SizedBox(width: 10),
+              Text(
                 'Streaks',
                 style: TextStyle(
                   fontSize: 18,

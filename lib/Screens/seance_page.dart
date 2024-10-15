@@ -12,6 +12,8 @@ class SeancePage extends StatelessWidget {
     'Program 7: Flexibility and Stretching',
   ];
 
+  SeancePage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,14 +41,14 @@ class SeancePage extends StatelessWidget {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: Text('Program Selected'),
+                            title: const Text('Program Selected'),
                             content: Text('You selected: ${_programs[index]}'),
                             actions: [
                               TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                 },
-                                child: Text('OK'),
+                                child: const Text('OK'),
                               ),
                             ],
                           ),

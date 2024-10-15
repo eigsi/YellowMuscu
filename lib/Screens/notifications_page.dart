@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({super.key});
 
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
@@ -112,7 +112,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     return ListTile(
                       title: Text(
                           'Demande d\'ami de ${notification['fromUserName']}'),
-                      subtitle: Text('Souhaitez-vous accepter cette demande ?'),
+                      subtitle:
+                          const Text('Souhaitez-vous accepter cette demande ?'),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

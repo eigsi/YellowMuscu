@@ -8,11 +8,11 @@ class ExerciseDetailModal extends StatelessWidget {
   final Function(String) onAddToProgram;
 
   const ExerciseDetailModal({
-    Key? key,
+    super.key,
     required this.category,
     required this.exercises,
     required this.onAddToProgram,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class ExerciseDetailModal extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.fitness_center, color: Colors.white),
+              const Icon(Icons.fitness_center, color: Colors.white),
               const SizedBox(width: 10),
               Text(
                 category,

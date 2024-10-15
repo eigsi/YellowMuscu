@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'ProgramDetailPage.dart'; // Import pour la page de détail du programme
 
 class ExercisesPage extends StatefulWidget {
-  const ExercisesPage({Key? key}) : super(key: key);
+  const ExercisesPage({super.key});
 
   @override
   _ExercisesPageState createState() => _ExercisesPageState();

@@ -8,11 +8,11 @@ class LikeItem extends StatelessWidget {
   final VoidCallback onLike;
 
   const LikeItem({
-    Key? key,
+    super.key,
     required this.profileImage,
     required this.description,
     required this.onLike,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

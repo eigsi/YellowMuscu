@@ -4,12 +4,12 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 class WeeklyChartWidget extends StatelessWidget {
   final List<ActivityData> data;
 
-  const WeeklyChartWidget({Key? key, required this.data}) : super(key: key);
+  const WeeklyChartWidget({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       height: 300,
       child: SfCartesianChart(
         primaryXAxis: CategoryAxis(),

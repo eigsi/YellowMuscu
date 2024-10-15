@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yellowmuscu/Session_page/ExerciseSessionPage.dart'; // Assurez-vous que le chemin est correct
 
 class SessionPage extends StatefulWidget {
-  const SessionPage({Key? key}) : super(key: key);
+  const SessionPage({super.key});
 
   @override
   _SessionPageState createState() => _SessionPageState();

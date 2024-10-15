@@ -7,11 +7,11 @@ class ProgramDetailPage extends StatefulWidget {
   final VoidCallback onUpdate;
 
   const ProgramDetailPage({
-    Key? key,
+    super.key,
     required this.program,
     required this.userId,
     required this.onUpdate,
-  }) : super(key: key);
+  });
 
   @override
   _ProgramDetailPageState createState() => _ProgramDetailPageState();
@@ -177,7 +177,7 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
         ],
       ),
       body: exercises.isEmpty
-          ? Center(
+          ? const Center(
               child: Text(
                 'Aucun exercice ajouté au programme',
                 style: TextStyle(fontSize: 18, color: Colors.black54),
