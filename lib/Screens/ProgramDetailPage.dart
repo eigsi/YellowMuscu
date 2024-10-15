@@ -1,5 +1,3 @@
-// program_detail_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -27,6 +25,17 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
   void initState() {
     super.initState();
     exercises = List<Map<String, dynamic>>.from(widget.program['exercises']);
+
+    // Initialiser 'restBetweenExercises' et 'restTime' pour chaque exercice si non présent
+    for (var exercise in exercises) {
+      if (!exercise.containsKey('restBetweenExercises')) {
+        exercise['restBetweenExercises'] =
+            60; // Temps de repos entre exercices par défaut
+      }
+      if (!exercise.containsKey('restTime')) {
+        exercise['restTime'] = 60; // Temps de repos entre séries par défaut
+      }
+    }
   }
 
   Future<void> _saveExercises() async {
@@ -46,52 +55,94 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
         TextEditingController(text: exercise['sets'].toString());
     final repsController =
         TextEditingController(text: exercise['reps'].toString());
+    final weightController =
+        TextEditingController(text: exercise['weight']?.toString() ?? '0');
+    int restTime = exercise['restTime'] ?? 60;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Modifier ${exercise['name']}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: setsController,
-              decoration: const InputDecoration(labelText: 'Nombre de séries'),
-              keyboardType: TextInputType.number,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text('Modifier ${exercise['name']}'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: setsController,
+                  decoration:
+                      const InputDecoration(labelText: 'Nombre de séries'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: repsController,
+                  decoration:
+                      const InputDecoration(labelText: 'Nombre de répétitions'),
+                  keyboardType: TextInputType.number,
+                ),
+                TextField(
+                  controller: weightController,
+                  decoration: const InputDecoration(labelText: 'Poids (kg)'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Repos entre séries: $restTime sec',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove),
+                      onPressed: () {
+                        setState(() {
+                          restTime = (restTime - 10).clamp(0, 600);
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: () {
+                        setState(() {
+                          restTime = (restTime + 10).clamp(0, 600);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextField(
-              controller: repsController,
-              decoration:
-                  const InputDecoration(labelText: 'Nombre de répétitions'),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Annuler'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          TextButton(
-            child: const Text('Enregistrer'),
-            onPressed: () {
-              setState(() {
-                exercises[index]['sets'] = int.parse(setsController.text);
-                exercises[index]['reps'] = int.parse(repsController.text);
-              });
-              _saveExercises();
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
+            actions: [
+              TextButton(
+                child: const Text('Annuler'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              TextButton(
+                child: const Text('Enregistrer'),
+                onPressed: () {
+                  setState(() {
+                    exercises[index]['sets'] = int.parse(setsController.text);
+                    exercises[index]['reps'] = int.parse(repsController.text);
+                    exercises[index]['weight'] =
+                        double.parse(weightController.text);
+                    exercises[index]['restTime'] = restTime;
+                  });
+                  _saveExercises();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _changeRestTime(int index, int change) {
+  void _changeRestBetweenExercises(int index, int change) {
     setState(() {
-      exercises[index]['restTime'] =
-          (exercises[index]['restTime'] + change).clamp(0, 600);
+      exercises[index]['restBetweenExercises'] =
+          (exercises[index]['restBetweenExercises'] + change).clamp(0, 600);
     });
     _saveExercises();
   }
@@ -125,63 +176,97 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
           ),
         ],
       ),
-      body: _isEditingOrder
-          ? ReorderableListView(
-              onReorder: _reorderExercises,
-              children: [
-                for (int index = 0; index < exercises.length; index++)
-                  ListTile(
-                    key: ValueKey(exercises[index]),
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(exercises[index]['image']),
-                    ),
-                    title: Text(exercises[index]['name']),
-                    trailing: const Icon(Icons.drag_handle),
-                  ),
-              ],
+      body: exercises.isEmpty
+          ? Center(
+              child: Text(
+                'Aucun exercice ajouté au programme',
+                style: TextStyle(fontSize: 18, color: Colors.black54),
+              ),
             )
-          : ListView.builder(
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                return Column(
+          : _isEditingOrder
+              ? ReorderableListView(
+                  onReorder: _reorderExercises,
+                  buildDefaultDragHandles: false,
                   children: [
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: NetworkImage(exercise['image']),
-                      ),
-                      title: Text(exercise['name']),
-                      subtitle: Text(
-                          '${exercise['sets']} séries x ${exercise['reps']} répétitions'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _editExercise(index),
-                      ),
-                    ),
-                    if (index < exercises.length - 1)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: () =>
-                                _changeRestTime(index, -10), // Diminue de 10s
+                    for (int index = 0; index < exercises.length; index++)
+                      Dismissible(
+                        key: ValueKey(exercises[index]['id'] ?? index),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (direction) {
+                          setState(() {
+                            final removedItem = exercises.removeAt(index);
+                            _saveExercises();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('${removedItem['name']} supprimé'),
+                              ),
+                            );
+                          });
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage:
+                                NetworkImage(exercises[index]['image']),
                           ),
-                          Text(
-                            '${exercises[index]['restTime']} sec',
-                            style: const TextStyle(fontSize: 16),
+                          title: Text(exercises[index]['name']),
+                          trailing: ReorderableDragStartListener(
+                            index: index,
+                            child: const Icon(Icons.drag_handle),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () =>
-                                _changeRestTime(index, 10), // Augmente de 10s
-                          ),
-                        ],
+                        ),
                       ),
                   ],
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: exercises.length,
+                  itemBuilder: (context, index) {
+                    final exercise = exercises[index];
+                    return Column(
+                      children: [
+                        ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(exercise['image']),
+                          ),
+                          title: Text(exercise['name']),
+                          subtitle: Text(
+                              '${exercise['sets']} séries x ${exercise['reps']} répétitions\nPoids: ${exercise['weight'] ?? 0} kg\nRepos entre séries: ${exercise['restTime'] ?? 60} sec'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _editExercise(index),
+                          ),
+                        ),
+                        // Afficher le temps de repos entre exercices sauf pour le dernier exercice
+                        if (index < exercises.length - 1)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () => _changeRestBetweenExercises(
+                                    index, -10), // Diminue de 10s
+                              ),
+                              Text(
+                                'Repos entre exercices: ${exercises[index]['restBetweenExercises']} sec',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () => _changeRestBetweenExercises(
+                                    index, 10), // Augmente de 10s
+                              ),
+                            ],
+                          ),
+                      ],
+                    );
+                  },
+                ),
     );
   }
 }

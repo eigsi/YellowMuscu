@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yellowmuscu/Screens/sign_in_page.dart';
-import 'package:yellowmuscu/Screens/sign_up_page.dart'; // Import SignUpPage
+import 'package:yellowmuscu/authentification/sign_in_page.dart';
+import 'package:yellowmuscu/authentification/sign_up_page.dart'; // Import SignUpPage
 import 'package:yellowmuscu/Screens/main_page.dart';
 
 void main() async {

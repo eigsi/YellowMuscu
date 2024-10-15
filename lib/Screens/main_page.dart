@@ -1,13 +1,17 @@
+// main_page.dart
+
 import 'package:flutter/material.dart';
-import 'package:yellowmuscu/Screens/seance_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:yellowmuscu/Screens/session_page.dart';
 import 'package:yellowmuscu/widgets/weekly_chart_widget.dart';
 import 'package:yellowmuscu/main_page/streaks_widget.dart';
 import 'package:yellowmuscu/screens/profile_page.dart';
 import 'package:yellowmuscu/screens/statistics_page.dart';
 import 'package:yellowmuscu/screens/exercises_page.dart';
-import 'package:yellowmuscu/Screens/app_bar_widget.dart'; // Import your new AppBarWidget
-import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart'; // Import your new BottomNavBarWidget
-import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Import LikeItem widget
+import 'package:yellowmuscu/Screens/app_bar_widget.dart';
+import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart';
+import 'package:yellowmuscu/main_page/like_item_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -19,38 +23,108 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  final int _streakCount = 19;
+  String? _userId;
 
   late List<Widget> _widgetOptions;
+
+  List<Map<String, dynamic>> likesData = [];
 
   @override
   void initState() {
     super.initState();
+    _getCurrentUser();
     _widgetOptions = <Widget>[
-      SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            _buildChartSection(),
-            const SizedBox(height: 16),
-            StreaksWidget(streakCount: _streakCount),
-            const SizedBox(height: 16),
-            _buildLikesSection(),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-      ExercisesPage(),
+      _buildHomePage(), // Remplacez par une méthode pour faciliter l'ajustement
+      const ExercisesPage(),
       StatisticsPage(),
-      SeancePage(), // Add the SeancePage here
-      ProfilePage(),
+      const SessionPage(),
+      const ProfilePage(),
     ];
   }
 
-  void _onItemTapped(int index) {
+  void _getCurrentUser() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _userId = user.uid;
+        _fetchFriendsEvents();
+      });
+    }
+  }
+
+  void _fetchFriendsEvents() async {
+    if (_userId == null) return;
+
+    // Récupérer la liste des amis
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(_userId).get();
+    List<dynamic> friends = userDoc['friends'] ?? [];
+
+    // Récupérer les événements des amis
+    List<Map<String, dynamic>> events = [];
+    for (String friendId in friends) {
+      QuerySnapshot eventsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .collection('events')
+          .get();
+
+      for (var doc in eventsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        data['eventId'] = doc.id;
+        data['friendId'] = friendId;
+        events.add(data);
+      }
+    }
+
+    // Trier les événements par date décroissante
+    events.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+
     setState(() {
-      _selectedIndex = index;
+      likesData = events;
     });
+  }
+
+  // Méthode pour construire la page d'accueil avec le dégradé
+  Widget _buildHomePage() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          height: constraints
+              .maxHeight, // S'assure que le conteneur occupe toute la hauteur
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                const Color.fromRGBO(255, 204, 0, 1.0),
+                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+              ],
+            ),
+          ),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildChartSection(),
+                    const SizedBox(height: 16),
+                    if (_userId != null) StreaksWidget(userId: _userId!),
+                    const SizedBox(height: 16),
+                    _buildLikesSection(),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // Méthode pour construire la section des graphiques
@@ -103,7 +177,7 @@ class _MainPageState extends State<MainPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Your Likes',
+            'Activités de vos amis',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -111,63 +185,68 @@ class _MainPageState extends State<MainPage> {
             ),
           ),
           const SizedBox(height: 10),
-          Column(
-            children: List.generate(likesData.length, (index) {
-              return LikeItem(
-                profileImage: likesData[index]['profileImage'],
-                description: likesData[index]['description'],
-              );
-            }),
-          ),
+          likesData.isEmpty
+              ? const Text('Aucune activité récente.')
+              : Column(
+                  children: List.generate(likesData.length, (index) {
+                    return LikeItem(
+                      profileImage: likesData[index]['profileImage'],
+                      description: likesData[index]['description'],
+                      onLike: () => _likeEvent(likesData[index]),
+                    );
+                  }),
+                ),
         ],
       ),
     );
   }
 
-  // Exemple de données pour les likes
-  List<Map<String, dynamic>> likesData = [
-    {
-      'profileImage':
-          'https://cdn.pixabay.com/photo/2018/03/31/19/29/schnitzel-3279045_1280.jpg',
-      'description': '35kg at Squat!',
-    },
-    {
-      'profileImage':
-          'https://cdn.pixabay.com/photo/2018/03/31/19/29/schnitzel-3279045_1280.jpg',
-      'description': 'New best train!',
-    },
-    {
-      'profileImage':
-          'https://cdn.pixabay.com/photo/2018/03/31/19/29/schnitzel-3279045_1280.jpg',
-      'description': 'First session ever!',
-    },
-  ];
+  void _likeEvent(Map<String, dynamic> event) async {
+    if (_userId == null) return;
+
+    // Ajouter un like à l'événement
+    String friendId = event['friendId'];
+    String eventId = event['eventId'];
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(friendId)
+        .collection('events')
+        .doc(eventId)
+        .update({
+      'likes': FieldValue.arrayUnion([_userId])
+    });
+
+    // Ajouter une notification à l'ami
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(friendId)
+        .collection('notifications')
+        .add({
+      'type': 'like',
+      'fromUserId': _userId,
+      'eventId': eventId,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    // Mettre à jour l'interface utilisateur
+    _fetchFriendsEvents();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Utilisation d'un dégradé pour le fond du Scaffold
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              const Color.fromRGBO(255, 204, 0, 1.0),
-              const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-            ],
-          ),
-        ),
-        child: _widgetOptions.elementAt(_selectedIndex),
-      ),
-
-      appBar: AppBarWidget(), // Use the new AppBarWidget here
-
+      // Supprimer le dégradé du body ici
+      body: _widgetOptions.elementAt(_selectedIndex),
+      appBar: const AppBarWidget(),
       bottomNavigationBar: BottomNavBarWidget(
         selectedIndex: _selectedIndex,
         onItemTapped: (int index) {
           setState(() {
             _selectedIndex = index;
+            if (_selectedIndex == 0) {
+              _fetchFriendsEvents();
+            }
           });
         },
       ),

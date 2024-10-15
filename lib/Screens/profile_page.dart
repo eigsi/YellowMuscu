@@ -8,6 +8,7 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProfilePageState createState() => _ProfilePageState();
 }
 
@@ -21,6 +22,9 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
   String _selectedProfilePicture = '';
+  List<Map<String, dynamic>> _allUsers = [];
+  List<dynamic> _friends = [];
+  List<dynamic> _sentRequests = [];
 
   @override
   void initState() {
@@ -57,8 +61,35 @@ class _ProfilePageState extends State<ProfilePage> {
         _heightController.text = userData['height'] ?? '';
         _birthdateController.text = userData['birthdate'] ?? '';
         _selectedProfilePicture = userData['profilePicture'] ?? '';
+        _friends = userData['friends'] ?? [];
+        _sentRequests = userData['sentRequests'] ?? [];
       });
     }
+  }
+
+  void _sendFriendRequest(String friendId) async {
+    // Ajouter la demande à la collection 'friendRequests' de l'utilisateur cible
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(friendId)
+        .collection('friendRequests')
+        .doc(_user!.uid)
+        .set({
+      'fromUserId': _user!.uid,
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    // Mettre à jour la liste des demandes envoyées
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.uid)
+        .update({
+      'sentRequests': FieldValue.arrayUnion([friendId]),
+    });
+
+    setState(() {
+      _sentRequests.add(friendId);
+    });
   }
 
   void _saveProfile() async {
@@ -141,6 +172,66 @@ class _ProfilePageState extends State<ProfilePage> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
+  Widget _buildAddFriendsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(),
+        const SizedBox(height: 16),
+        const Text(
+          'Ajouter des amis',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        FutureBuilder<QuerySnapshot>(
+          future: FirebaseFirestore.instance.collection('users').get(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            List<DocumentSnapshot> usersDocs = snapshot.data!.docs;
+            _allUsers = usersDocs
+                .map((doc) => {
+                      'uid': doc.id,
+                      'name': doc['name'] ?? '',
+                      'surname': doc['surname'] ?? '',
+                      'profilePicture': doc['profilePicture'] ?? '',
+                    })
+                .where((user) => user['uid'] != _user!.uid)
+                .toList();
+
+            return SizedBox(
+              height: 300, // Définir une hauteur pour le scroll
+              child: ListView.builder(
+                itemCount: _allUsers.length,
+                itemBuilder: (context, index) {
+                  final user = _allUsers[index];
+                  bool isFriend = _friends.contains(user['uid']);
+                  bool requestSent = _sentRequests.contains(user['uid']);
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(user['profilePicture']),
+                    ),
+                    title: Text('${user['name']} ${user['surname']}'),
+                    trailing: isFriend
+                        ? const Text('Ami')
+                        : requestSent
+                            ? const Text('Demande envoyée')
+                            : ElevatedButton(
+                                onPressed: () =>
+                                    _sendFriendRequest(user['uid']),
+                                child: const Text('Ajouter'),
+                              ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -216,6 +307,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
           ],
         ),
+        if (!_isEditing) _buildAddFriendsSection(),
       ],
     );
   }

@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class StreaksWidget extends StatelessWidget {
-  final int streakCount;
+class StreaksWidget extends StatefulWidget {
+  final String userId;
 
-  const StreaksWidget({Key? key, required this.streakCount}) : super(key: key);
+  const StreaksWidget({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  _StreaksWidgetState createState() => _StreaksWidgetState();
+}
+
+class _StreaksWidgetState extends State<StreaksWidget> {
+  int _streakCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchStreakCount();
+  }
+
+  void _fetchStreakCount() async {
+    DocumentSnapshot snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .get();
+
+    if (snapshot.exists) {
+      setState(() {
+        _streakCount = snapshot['streakCount'] ?? 0;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +59,7 @@ class StreaksWidget extends StatelessWidget {
                 size: 30,
               ),
               const SizedBox(width: 10),
-              Text(
+              const Text(
                 'Streaks',
                 style: TextStyle(
                   fontSize: 18,
@@ -43,8 +70,8 @@ class StreaksWidget extends StatelessWidget {
             ],
           ),
           Text(
-            '$streakCount jours',
-            style: TextStyle(
+            '$_streakCount jours',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.black,
