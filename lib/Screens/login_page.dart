@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Screens/profile_page.dart'; // Import profile page
+import 'profile_page.dart'; // Import profile page
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

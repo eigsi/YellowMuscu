@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../Screens/profile_page.dart'; // Import your profile page
+import 'profile_page.dart'; // Import your profile page
 import 'login_page.dart'; // Import login page
 
 class AuthenticationWrapper extends StatelessWidget {

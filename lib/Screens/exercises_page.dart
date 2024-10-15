@@ -1,15 +1,15 @@
 // exercises_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:yellowmuscu/data/exercises_data.dart'; // Remplacez par l'import de vos données
-import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart'; // Remplacez par votre import réel
+import 'package:yellowmuscu/data/exercises_data.dart';
+import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'ProgramDetailPage.dart'; // Import pour la page de détail du programme
+import 'ProgramDetailPage.dart'; // Nouvelle page pour le détail du programme
 
 class ExercisesPage extends StatefulWidget {
-  const ExercisesPage({Key? key}) : super(key: key);
+  const ExercisesPage({super.key});
 
   @override
   _ExercisesPageState createState() => _ExercisesPageState();
@@ -17,15 +17,15 @@ class ExercisesPage extends StatefulWidget {
 
 class _ExercisesPageState extends State<ExercisesPage> {
   final List<Map<String, dynamic>> _categories = [
-    {'name': 'Chest', 'icon': Icons.fitness_center},
-    {'name': 'Back', 'icon': Icons.fitness_center},
-    {'name': 'Shoulders', 'icon': Icons.fitness_center},
-    {'name': 'Biceps', 'icon': Icons.fitness_center},
-    {'name': 'Triceps', 'icon': Icons.fitness_center},
-    {'name': 'Legs & Glutes', 'icon': Icons.fitness_center},
-    {'name': 'Calves', 'icon': Icons.fitness_center},
-    {'name': 'Abs', 'icon': Icons.fitness_center},
-    {'name': 'Stretching', 'icon': Icons.fitness_center},
+    {'name': 'Chest', 'icon': Icons.fitness_center}, // Pectoraux
+    {'name': 'Back', 'icon': Icons.fitness_center}, // Dorsaux
+    {'name': 'Shoulders', 'icon': Icons.fitness_center}, // Épaules
+    {'name': 'Biceps', 'icon': Icons.fitness_center}, // Biceps
+    {'name': 'Triceps', 'icon': Icons.fitness_center}, // Triceps
+    {'name': 'Legs & Glutes', 'icon': Icons.fitness_center}, // Cuisses Fessiers
+    {'name': 'Calves', 'icon': Icons.fitness_center}, // Mollets
+    {'name': 'Abs', 'icon': Icons.fitness_center}, // Abdominaux
+    {'name': 'Stretching', 'icon': Icons.fitness_center}, // Stretching
   ];
 
   List<Map<String, dynamic>> _programs = [];
@@ -42,7 +42,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  Future<void> _fetchPrograms() async {
+  void _fetchPrograms() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('users')
         .doc(_user!.uid)
@@ -53,24 +53,24 @@ class _ExercisesPageState extends State<ExercisesPage> {
       _programs = snapshot.docs.map((doc) {
         List<dynamic> exercisesData = doc['exercises'] ?? [];
 
+        // Gérer les cas où les exercices sont stockés en tant que List<String>
         List<Map<String, dynamic>> exercises = exercisesData
             .map((exercise) {
               if (exercise is String) {
-                // Convertir la chaîne en map avec des valeurs par défaut
+                // Si l'exercice est un String, le convertir en Map avec des valeurs par défaut
                 return {
                   'name': exercise,
-                  'image': '',
+                  'image':
+                      '', // Vous pouvez ajouter une image par défaut si nécessaire
                   'sets': 3,
                   'reps': 10,
                   'restTime': 60,
-                  'restBetweenExercises': 60,
-                  'weight': 0,
-                  'description': '',
-                  'goals': '',
                 };
               } else if (exercise is Map<String, dynamic>) {
+                // Si l'exercice est déjà un Map, le laisser tel quel
                 return Map<String, dynamic>.from(exercise);
               } else {
+                // Si le format est inconnu, ignorer l'exercice
                 return null;
               }
             })
@@ -79,21 +79,17 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
         return {
           'id': doc.id,
-          'name': doc['name'] ?? 'Programme sans nom',
-          'isFavorite': doc['isFavorite'] ?? false,
+          'name': doc['name'],
+          'isFavorite': doc['isFavorite'],
           'exercises': exercises,
         };
       }).toList();
-
-      // Ajout d'un print pour vérifier les données récupérées
-      print("Programmes récupérés: $_programs");
     });
   }
 
   void _showExercises(String category) {
     List<Map<String, String>> exercises;
 
-    // Remplacez par vos données réelles pour chaque catégorie
     if (category == 'Biceps') {
       exercises = ExercisesData.bicepsExercises;
     } else if (category == 'Abs') {
@@ -159,9 +155,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
                               exercise['image']!,
                               width: 40,
                               height: 40,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.image_not_supported);
-                              },
                             ),
                           ),
                         ),
@@ -216,9 +209,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   child: Image.network(
                     exercise['image']!,
                     fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.image_not_supported, size: 100);
-                    },
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -230,7 +220,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(exercise['description'] ?? ''),
+                Text(exercise['description']!),
                 const SizedBox(height: 16),
                 const Text(
                   'Objectifs',
@@ -240,7 +230,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(exercise['goals'] ?? ''),
+                Text(exercise['goals']!),
               ],
             ),
           ),
@@ -298,8 +288,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
                             style: const TextStyle(color: Colors.white),
                           ),
                           onTap: () {
+                            _addExerciseToProgram(index, exercise);
                             Navigator.of(context).pop();
-                            _showRestTimePopup(exercise, index);
                           },
                         );
                       },
@@ -311,70 +301,16 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  void _showRestTimePopup(Map<String, String> exercise, int programIndex) {
-    int restBetweenExercises = 60; // Valeur par défaut
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Temps de repos entre exercices'),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed: () {
-                      if (restBetweenExercises > 10) {
-                        setState(() {
-                          restBetweenExercises -= 10;
-                        });
-                      }
-                    },
-                  ),
-                  Text('$restBetweenExercises s'),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      setState(() {
-                        restBetweenExercises += 10;
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Ajouter'),
-              onPressed: () {
-                _addExerciseToProgram(
-                    programIndex, exercise, restBetweenExercises);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _addExerciseToProgram(int programIndex, Map<String, String> exercise,
-      int restBetweenExercises) async {
+  void _addExerciseToProgram(
+      int programIndex, Map<String, String> exercise) async {
     if (_user != null) {
       final program = _programs[programIndex];
       program['exercises'].add({
         'name': exercise['name'],
         'image': exercise['image'],
-        'sets': 3,
-        'reps': 10,
-        'restTime': 60, // Temps de repos entre séries par défaut
-        'restBetweenExercises': restBetweenExercises,
-        'weight': 0,
-        'description': exercise['description'] ?? '',
-        'goals': exercise['goals'] ?? '',
+        'sets': 3, // Valeur par défaut
+        'reps': 10, // Valeur par défaut
+        'restTime': 60, // Valeur par défaut en secondes
       });
 
       await FirebaseFirestore.instance
@@ -453,7 +389,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     final TextEditingController programController = TextEditingController();
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
+      builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Ajouter un nouveau programme'),
           content: TextField(
@@ -466,45 +402,26 @@ class _ExercisesPageState extends State<ExercisesPage> {
             TextButton(
               child: const Text('Annuler'),
               onPressed: () {
-                Navigator.of(dialogContext)
-                    .pop(); // Ferme le pop-up quand "Annuler" est pressé
+                Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Ajouter'), // Le bouton "Ajouter"
+              child: const Text('Ajouter'),
               onPressed: () async {
-                // Vérifier que le champ de texte n'est pas vide
-                if (programController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Veuillez entrer un nom de programme.'),
-                    ),
-                  );
-                  return; // Arrêter si le nom est vide
-                }
-
                 if (_user != null) {
                   final newProgram = {
                     'name': programController.text,
                     'isFavorite': false,
                     'exercises': [],
                   };
-
-                  // Ajouter le nouveau programme dans Firestore
                   await FirebaseFirestore.instance
                       .collection('users')
                       .doc(_user!.uid)
                       .collection('programs')
                       .add(newProgram);
-
-                  // Mettre à jour la liste des programmes
-                  await _fetchPrograms();
-
-                  // Fermer le pop-up après avoir ajouté le programme
-                  if (mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
+                  _fetchPrograms(); // Rafraîchir la liste des programmes
                 }
+                Navigator.of(context).pop();
               },
             ),
           ],
@@ -549,7 +466,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Dégradé de fond
+        // Background Gradient
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -590,9 +507,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Utilisation d'un SizedBox pour contrôler la hauteur du widget
-                      SizedBox(
-                        height: 150, // Ajustez la hauteur selon vos besoins
+                      Expanded(
                         child: Card(
                           elevation: 4.0,
                           shape: RoundedRectangleBorder(
@@ -605,7 +520,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Ligne pour 'Mes Programmes' et le bouton '+'
+                      // Row for 'My Programs' and the '+' button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -620,13 +535,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           IconButton(
                             icon: const Icon(Icons.add, color: Colors.black),
                             onPressed: () {
-                              _addNewProgram(context);
+                              _addNewProgram(
+                                  context); // Call the method to add a new program
                             },
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Utilisation de Expanded pour la liste des programmes
                       Expanded(
                         child: ListView.builder(
                           itemCount: _programs.length,

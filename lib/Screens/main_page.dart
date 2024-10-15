@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yellowmuscu/Screens/session_page.dart';
+import 'package:yellowmuscu/Screens/seance_page.dart';
 import 'package:yellowmuscu/widgets/weekly_chart_widget.dart';
 import 'package:yellowmuscu/main_page/streaks_widget.dart';
 import 'package:yellowmuscu/screens/profile_page.dart';
@@ -20,14 +19,13 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
-  String? _userId; // Ajoutez cette variable pour stocker le userId
+  final int _streakCount = 19;
 
   late List<Widget> _widgetOptions;
 
   @override
   void initState() {
     super.initState();
-    _getCurrentUser();
     _widgetOptions = <Widget>[
       SingleChildScrollView(
         child: Column(
@@ -35,27 +33,24 @@ class _MainPageState extends State<MainPage> {
             const SizedBox(height: 16),
             _buildChartSection(),
             const SizedBox(height: 16),
-            if (_userId != null) StreaksWidget(userId: _userId!),
+            StreaksWidget(streakCount: _streakCount),
             const SizedBox(height: 16),
             _buildLikesSection(),
             const SizedBox(height: 16),
           ],
         ),
       ),
-      const ExercisesPage(),
+      ExercisesPage(),
       StatisticsPage(),
-      const SessionPage(),
-      const ProfilePage(),
+      SeancePage(), // Add the SeancePage here
+      ProfilePage(),
     ];
   }
 
-  void _getCurrentUser() {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        _userId = user.uid;
-      });
-    }
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   // Méthode pour construire la section des graphiques
@@ -166,7 +161,7 @@ class _MainPageState extends State<MainPage> {
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
 
-      appBar: const AppBarWidget(), // Use the new AppBarWidget here
+      appBar: AppBarWidget(), // Use the new AppBarWidget here
 
       bottomNavigationBar: BottomNavBarWidget(
         selectedIndex: _selectedIndex,
