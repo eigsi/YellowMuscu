@@ -156,7 +156,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         child: ClipOval(
                           child: FittedBox(
                             fit: BoxFit.contain,
-                            child: Image.network(
+                            child: Image.asset(
                               exercise['image']!,
                               width: 40,
                               height: 40,
@@ -214,7 +214,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 SizedBox(
                   width: double.infinity,
                   height: 200,
-                  child: Image.network(
+                  child: Image.asset(
                     exercise['image']!,
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) {
