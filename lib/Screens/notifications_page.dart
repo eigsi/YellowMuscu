@@ -22,126 +22,133 @@ class _NotificationsPageState extends State<NotificationsPage> {
     super.initState();
     _user = _auth.currentUser;
     if (_user != null) {
-      _fetchNotifications();
+      // Écouter les changements en temps réel dans les notifications
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('notifications')
+          .orderBy('timestamp', descending: true)
+          .snapshots()
+          .listen((snapshot) {
+        List<Map<String, dynamic>> friendRequests = [];
+        List<Map<String, dynamic>> likes = [];
+
+        for (var doc in snapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          data['notificationId'] = doc.id;
+
+          if (data['type'] == 'friendRequest') {
+            friendRequests.add(data);
+          } else if (data['type'] == 'like') {
+            likes.add(data);
+          }
+        }
+
+        setState(() {
+          _friendRequests = friendRequests;
+          _likes = likes;
+        });
+      });
     }
-  }
-
-  void _fetchNotifications() async {
-    if (_user == null) return;
-
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('notifications')
-        .orderBy('timestamp', descending: true)
-        .get();
-
-    List<Map<String, dynamic>> friendRequests = [];
-    List<Map<String, dynamic>> likes = [];
-
-    for (var doc in snapshot.docs) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      data['notificationId'] = doc.id;
-
-      if (data['type'] == 'friendRequest') {
-        friendRequests.add(data);
-      } else if (data['type'] == 'like') {
-        likes.add(data);
-      }
-    }
-
-    setState(() {
-      _friendRequests = friendRequests;
-      _likes = likes;
-    });
   }
 
   void _acceptFriendRequest(String fromUserId, String notificationId) async {
     if (_user == null) return;
 
-    // Ajouter chacun aux listes d'amis de l'autre
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .update({
-      'friends': FieldValue.arrayUnion([fromUserId]),
-    });
+    try {
+      // Ajouter chacun aux listes d'amis de l'autre
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .update({
+        'friends': FieldValue.arrayUnion([fromUserId]),
+      });
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(fromUserId)
-        .update({
-      'friends': FieldValue.arrayUnion([_user!.uid]),
-    });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(fromUserId)
+          .update({
+        'friends': FieldValue.arrayUnion([_user!.uid]),
+      });
 
-    // Supprimer la demande d'ami
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('notifications')
-        .doc(notificationId)
-        .delete();
+      // Supprimer la demande d'ami de la collection des notifications
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('notifications')
+          .doc(notificationId)
+          .delete();
 
-    // Supprimer la demande des demandes envoyées de l'expéditeur
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(fromUserId)
-        .update({
-      'sentRequests': FieldValue.arrayRemove([_user!.uid]),
-    });
+      // Supprimer la demande des demandes envoyées de l'expéditeur
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(fromUserId)
+          .update({
+        'sentRequests': FieldValue.arrayRemove([_user!.uid]),
+      });
 
-    // Afficher un message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Ami accepté'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    _fetchNotifications();
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ami accepté'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Gérer les erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _rejectFriendRequest(String fromUserId, String notificationId) async {
     if (_user == null) return;
 
-    // Supprimer la demande d'ami
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('notifications')
-        .doc(notificationId)
-        .delete();
+    try {
+      // Supprimer la demande d'ami de la collection des notifications
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('notifications')
+          .doc(notificationId)
+          .delete();
 
-    // Supprimer la demande des demandes envoyées de l'expéditeur
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(fromUserId)
-        .update({
-      'sentRequests': FieldValue.arrayRemove([_user!.uid]),
-    });
+      // Supprimer la demande des demandes envoyées de l'expéditeur
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(fromUserId)
+          .update({
+        'sentRequests': FieldValue.arrayRemove([_user!.uid]),
+      });
 
-    // Afficher un message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Demande d\'ami refusée'),
-        backgroundColor: Colors.red,
-      ),
-    );
-
-    _fetchNotifications();
-  }
-
-  Future<String> _getUserName(String userId) async {
-    DocumentSnapshot userDoc =
-        await FirebaseFirestore.instance.collection('users').doc(userId).get();
-    Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
-    String lastName = data['last_name'] ?? '';
-    String firstName = data['first_name'] ?? '';
-    return '$lastName $firstName';
+      // Afficher un message de refus
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Demande d\'ami refusée'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      // Gérer les erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_user == null) {
+      return const Center(child: Text('Utilisateur non connecté'));
+    }
+
     return AlertDialog(
       title: const Text('Notifications'),
       content: SizedBox(
@@ -160,44 +167,45 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ? const Text('Aucune demande d\'ami')
                   : Column(
                       children: _friendRequests.map((notification) {
-                        return FutureBuilder<String>(
-                          future: _getUserName(notification['fromUserId']),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const CircularProgressIndicator();
-                            }
-                            String friendName = snapshot.data!;
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: ListTile(
-                                title: Text(friendName),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.check,
-                                          color: Colors.green),
-                                      onPressed: () => _acceptFriendRequest(
-                                          notification['fromUserId'],
-                                          notification['notificationId']),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close,
-                                          color: Colors.red),
-                                      onPressed: () => _rejectFriendRequest(
-                                          notification['fromUserId'],
-                                          notification['notificationId']),
-                                    ),
-                                  ],
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: notification[
+                                              'fromUserProfilePicture'] !=
+                                          null &&
+                                      notification['fromUserProfilePicture']
+                                          .toString()
+                                          .isNotEmpty
+                                  ? NetworkImage(
+                                      notification['fromUserProfilePicture'])
+                                  : const NetworkImage(
+                                      'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
+                            ),
+                            title: Text(
+                                'Demande d\'ami de ${notification['fromUserName']}'),
+                            subtitle: const Text(
+                                'Souhaitez-vous accepter cette demande ?'),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.check,
+                                      color: Colors.green),
+                                  onPressed: () => _acceptFriendRequest(
+                                      notification['fromUserId'],
+                                      notification['notificationId']),
                                 ),
-                              ),
-                            );
-                          },
+                                IconButton(
+                                  icon: const Icon(Icons.close,
+                                      color: Colors.red),
+                                  onPressed: () => _rejectFriendRequest(
+                                      notification['fromUserId'],
+                                      notification['notificationId']),
+                                ),
+                              ],
+                            ),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -212,28 +220,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   ? const Text('Aucune notification')
                   : Column(
                       children: _likes.map((notification) {
-                        return FutureBuilder<String>(
-                          future: _getUserName(notification['fromUserId']),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const CircularProgressIndicator();
-                            }
-                            String friendName = snapshot.data!;
-                            String description =
-                                notification['description'] ?? 'votre exploit';
-
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 4.0),
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              child: ListTile(
-                                title: Text('$friendName a liké $description'),
-                              ),
-                            );
-                          },
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: notification[
+                                              'fromUserProfilePicture'] !=
+                                          null &&
+                                      notification['fromUserProfilePicture']
+                                          .toString()
+                                          .isNotEmpty
+                                  ? NetworkImage(
+                                      notification['fromUserProfilePicture'])
+                                  : const NetworkImage(
+                                      'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
+                            ),
+                            title: Text(
+                                '${notification['fromUserName']} a liké votre exploit'),
+                            subtitle: notification['exploitName'] != null &&
+                                    notification['exploitName']
+                                        .toString()
+                                        .isNotEmpty
+                                ? Text(
+                                    '${notification['fromUserName']} a liké "${notification['exploitName']}"')
+                                : Text(
+                                    '${notification['fromUserName']} a liké une de vos activités'),
+                          ),
                         );
                       }).toList(),
                     ),
@@ -250,5 +262,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ),
       ],
     );
+  }
+
+  /// Fonction pour obtenir l'URL de la photo de profil d'un utilisateur.
+  /// Si l'utilisateur n'a pas de photo de profil, retourne une image par défaut.
+  String _getProfilePicture(String userId) {
+    // Cette fonction suppose que vous avez une collection 'users' avec des documents utilisateur
+    // contenant un champ 'profilePicture'. Vous pouvez la modifier en fonction de votre structure Firestore.
+    // Pour simplifier, nous retournons une URL d'image par défaut ici.
+    // Vous devriez implémenter une méthode pour récupérer dynamiquement l'image de profil de l'utilisateur.
+    return 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg';
   }
 }

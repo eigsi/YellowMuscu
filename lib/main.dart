@@ -21,8 +21,9 @@ class MyApp extends StatelessWidget {
       home:
           const AuthWrapper(), // Show SignIn or MainPage based on authentication
       routes: {
-        '/signIn': (context) => SignInPage(),
-        '/signUp': (context) => SignUpPage(), // Register the SignUpPage route
+        '/signIn': (context) => const SignInPage(),
+        '/signUp': (context) =>
+            const SignUpPage(), // Register the SignUpPage route
         '/mainPage': (context) => const MainPage(),
       },
     );
@@ -41,7 +42,7 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           User? user = snapshot.data;
           if (user == null) {
-            return SignInPage(); // Show SignInPage if not authenticated
+            return const SignInPage(); // Show SignInPage if not authenticated
           } else {
             return const MainPage(); // Show MainPage if authenticated
           }

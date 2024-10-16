@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yellowmuscu/Screens/session_page.dart';
 import 'package:yellowmuscu/widgets/weekly_chart_widget.dart';
 import 'package:yellowmuscu/main_page/streaks_widget.dart';
@@ -11,7 +12,6 @@ import 'package:yellowmuscu/screens/exercises_page.dart';
 import 'package:yellowmuscu/Screens/app_bar_widget.dart';
 import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart';
 import 'package:yellowmuscu/main_page/like_item_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -34,9 +34,9 @@ class _MainPageState extends State<MainPage> {
     super.initState();
     _getCurrentUser();
     _widgetOptions = <Widget>[
-      _buildHomePage(), // Remplacez par une méthode pour faciliter l'ajustement
+      _buildHomePage(),
       const ExercisesPage(),
-      StatisticsPage(),
+      const StatisticsPage(),
       const SessionPage(),
       const ProfilePage(),
     ];
@@ -52,37 +52,113 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
+  /// Fonction pour récupérer le nom complet et la photo de profil d'un utilisateur
+  Future<Map<String, dynamic>> _getUserData(String userId) async {
+    DocumentSnapshot userDoc =
+        await FirebaseFirestore.instance.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+      return {
+        'last_name': data['last_name'] ?? 'Inconnu',
+        'first_name': data['first_name'] ?? 'Utilisateur',
+        'profilePicture': data['profilePicture'] ??
+            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg',
+      };
+    } else {
+      return {
+        'last_name': 'Inconnu',
+        'first_name': 'Utilisateur',
+        'profilePicture':
+            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg',
+      };
+    }
+  }
+
   void _fetchFriendsEvents() async {
     if (_userId == null) return;
 
-    // Récupérer la liste des amis
-    DocumentSnapshot userDoc =
-        await FirebaseFirestore.instance.collection('users').doc(_userId).get();
-    List<dynamic> friends = userDoc['friends'] ?? [];
-
-    // Récupérer les événements des amis
-    List<Map<String, dynamic>> events = [];
-    for (String friendId in friends) {
-      QuerySnapshot eventsSnapshot = await FirebaseFirestore.instance
+    try {
+      // Récupérer le document utilisateur
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(friendId)
-          .collection('events')
+          .doc(_userId)
           .get();
 
-      for (var doc in eventsSnapshot.docs) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        data['eventId'] = doc.id;
-        data['friendId'] = friendId;
-        events.add(data);
+      // Vérifier si le document existe
+      if (!userDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Utilisateur non trouvé.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
       }
+
+      // Vérifier si le champ 'friends' existe et est une liste
+      List<dynamic> friends = [];
+      if (userDoc.data() != null) {
+        Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
+        if (data.containsKey('friends') && data['friends'] is List) {
+          friends = data['friends'];
+        }
+      }
+
+      // Récupérer les données de chaque ami
+      Map<String, Map<String, dynamic>> friendsData = {};
+
+      for (String friendId in friends) {
+        Map<String, dynamic> friendData = await _getUserData(friendId);
+        friendsData[friendId] = friendData;
+      }
+
+      // Récupérer les événements de chaque ami
+      List<Map<String, dynamic>> events = [];
+
+      for (String friendId in friends) {
+        QuerySnapshot eventsSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(friendId)
+            .collection('events')
+            .get();
+
+        for (var doc in eventsSnapshot.docs) {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+          // S'assurer que les champs nécessaires existent
+          String profileImage = friendsData[friendId]?['profilePicture'] ??
+              'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg';
+          String description =
+              data['description']?.toString() ?? 'Description non disponible.';
+          Timestamp timestamp =
+              data['timestamp'] ?? Timestamp.fromDate(DateTime(1970));
+
+          events.add({
+            'eventId': doc.id,
+            'friendId': friendId,
+            'profileImage': profileImage,
+            'description': description,
+            'timestamp': timestamp,
+          });
+        }
+      }
+
+      // Trier les événements par date décroissante
+      events.sort((a, b) =>
+          (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
+
+      setState(() {
+        likesData = events;
+      });
+    } catch (e) {
+      // Gérer les erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la récupération des événements: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-
-    // Trier les événements par date décroissante
-    events.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
-
-    setState(() {
-      likesData = events;
-    });
   }
 
   // Méthode pour construire la page d'accueil avec le dégradé
@@ -190,8 +266,8 @@ class _MainPageState extends State<MainPage> {
               : Column(
                   children: List.generate(likesData.length, (index) {
                     return LikeItem(
-                      profileImage: likesData[index]['profileImage'],
-                      description: likesData[index]['description'],
+                      profileImage: likesData[index]['profileImage'] as String,
+                      description: likesData[index]['description'] as String,
                       onLike: () => _likeEvent(likesData[index]),
                     );
                   }),
@@ -204,34 +280,60 @@ class _MainPageState extends State<MainPage> {
   void _likeEvent(Map<String, dynamic> event) async {
     if (_userId == null) return;
 
-    // Ajouter un like à l'événement
-    String friendId = event['friendId'];
-    String eventId = event['eventId'];
+    try {
+      // Ajouter un like à l'événement
+      String friendId = event['friendId'] as String;
+      String eventId = event['eventId'] as String;
 
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(friendId)
-        .collection('events')
-        .doc(eventId)
-        .update({
-      'likes': FieldValue.arrayUnion([_userId])
-    });
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .collection('events')
+          .doc(eventId)
+          .update({
+        'likes': FieldValue.arrayUnion([_userId])
+      });
 
-    // Ajouter une notification à l'ami
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(friendId)
-        .collection('notifications')
-        .add({
-      'type': 'like',
-      'fromUserId': _userId,
-      'eventId': eventId,
-      'timestamp': FieldValue.serverTimestamp(),
-      'description': event['description'],
-    });
+      // Ajouter une notification à l'ami
+      Map<String, dynamic> currentUserData = await _getUserData(_userId!);
+      String fromUserName =
+          '${currentUserData['last_name']} ${currentUserData['first_name']}'
+              .trim();
+      String fromUserProfilePicture = currentUserData['profilePicture'];
 
-    // Mettre à jour l'interface utilisateur
-    _fetchFriendsEvents();
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(friendId)
+          .collection('notifications')
+          .add({
+        'type': 'like',
+        'fromUserId': _userId,
+        'fromUserName': fromUserName,
+        'fromUserProfilePicture': fromUserProfilePicture,
+        'eventId': eventId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'description': event['description'] ?? 'Aucune description disponible.',
+      });
+
+      // Mettre à jour l'interface utilisateur
+      _fetchFriendsEvents();
+
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vous avez liké une activité'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      // Gérer les erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override

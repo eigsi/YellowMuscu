@@ -21,10 +21,12 @@ class _ProfilePageState extends State<ProfilePage> {
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
+  DateTime? _selectedBirthdate;
   String _selectedProfilePicture = '';
   List<Map<String, dynamic>> _allUsers = [];
   List<dynamic> _friends = [];
   List<dynamic> _sentRequests = [];
+  List<String> _receivedRequests = [];
 
   @override
   void initState() {
@@ -32,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
     _user = _auth.currentUser;
     if (_user != null) {
       _fetchUserData();
+      _fetchReceivedFriendRequests();
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,15 +63,93 @@ class _ProfilePageState extends State<ProfilePage> {
         _firstNameController.text = data['first_name'] ?? '';
         _weightController.text = data['weight'] ?? '';
         _heightController.text = data['height'] ?? '';
-        _birthdateController.text = data['birthdate'] ?? '';
         _selectedProfilePicture = data['profilePicture'] ?? '';
+
+        if (data['birthdate'] != null &&
+            data['birthdate'].toString().isNotEmpty) {
+          _selectedBirthdate = DateTime.parse(data['birthdate']);
+          _birthdateController.text =
+              '${_selectedBirthdate!.day}/${_selectedBirthdate!.month}/${_selectedBirthdate!.year}';
+        } else {
+          _selectedBirthdate = null;
+          _birthdateController.text = '';
+        }
+
         _friends = data['friends'] ?? [];
         _sentRequests = data['sentRequests'] ?? [];
       });
     }
   }
 
+  void _fetchReceivedFriendRequests() async {
+    if (_user == null) return;
+
+    QuerySnapshot notificationsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('notifications')
+        .where('type', isEqualTo: 'friendRequest')
+        .get();
+
+    List<String> receivedRequests = notificationsSnapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return data['fromUserId'] as String;
+    }).toList();
+
+    setState(() {
+      _receivedRequests = receivedRequests;
+    });
+  }
+
+  Future<Map<String, dynamic>> _getCurrentUserData() async {
+    if (_user == null)
+      return {'last_name': '', 'first_name': '', 'profilePicture': ''};
+
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.uid)
+        .get();
+    if (userDoc.exists) {
+      return userDoc.data() as Map<String, dynamic>;
+    } else {
+      return {'last_name': '', 'first_name': '', 'profilePicture': ''};
+    }
+  }
+
   void _sendFriendRequest(String friendId) async {
+    if (_user == null) return;
+
+    // Récupérer le nom complet et la photo de profil de l'utilisateur actuel
+    Map<String, dynamic> currentUserData = await _getCurrentUserData();
+    String fromUserName =
+        '${currentUserData['last_name'] ?? ''} ${currentUserData['first_name'] ?? ''}'
+            .trim();
+    String fromUserProfilePicture = currentUserData['profilePicture'] ?? '';
+
+    // Vérifier si une demande a déjà été envoyée
+    if (_sentRequests.contains(friendId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Vous avez déjà envoyé une demande d\'ami à cet utilisateur.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Vérifier si une demande a été reçue de cet utilisateur
+    if (_receivedRequests.contains(friendId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Vous avez déjà une demande d\'ami en attente de cet utilisateur.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     // Ajouter la demande à la collection 'notifications' de l'utilisateur cible
     await FirebaseFirestore.instance
         .collection('users')
@@ -77,6 +158,8 @@ class _ProfilePageState extends State<ProfilePage> {
         .add({
       'type': 'friendRequest',
       'fromUserId': _user!.uid,
+      'fromUserName': fromUserName,
+      'fromUserProfilePicture': fromUserProfilePicture,
       'timestamp': FieldValue.serverTimestamp(),
     });
 
@@ -92,7 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _sentRequests.add(friendId);
     });
 
-    // Optionally, show a message
+    // Afficher un message de succès
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Demande d\'ami envoyée'),
@@ -134,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
         'first_name': firstName,
         'weight': weight.toString(),
         'height': height.toString(),
-        'birthdate': _birthdateController.text,
+        'birthdate': _selectedBirthdate?.toIso8601String() ?? '',
         'profilePicture': _selectedProfilePicture,
         'email': _user!.email,
       }, SetOptions(merge: true));
@@ -177,12 +260,6 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  String _formatDate(String dateStr) {
-    if (dateStr.isEmpty) return '';
-    DateTime date = DateTime.parse(dateStr);
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   Widget _buildAddFriendsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,13 +293,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 .toList();
 
             return SizedBox(
-              height: 300, // Define a height for scrolling
+              height: 300,
               child: ListView.builder(
                 itemCount: _allUsers.length,
                 itemBuilder: (context, index) {
                   final user = _allUsers[index];
                   bool isFriend = _friends.contains(user['uid']);
                   bool requestSent = _sentRequests.contains(user['uid']);
+                  bool requestReceived =
+                      _receivedRequests.contains(user['uid']);
+
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundImage: NetworkImage(user['profilePicture']),
@@ -232,11 +312,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         ? const Text('Ami')
                         : requestSent
                             ? const Text('Demande envoyée')
-                            : ElevatedButton(
-                                onPressed: () =>
-                                    _sendFriendRequest(user['uid']),
-                                child: const Text('Ajouter'),
-                              ),
+                            : requestReceived
+                                ? const Text('Demande reçue')
+                                : ElevatedButton(
+                                    onPressed: () =>
+                                        _sendFriendRequest(user['uid']),
+                                    child: const Text('Ajouter'),
+                                  ),
                   );
                 },
               ),
@@ -254,7 +336,7 @@ class _ProfilePageState extends State<ProfilePage> {
         CircleAvatar(
           backgroundImage: NetworkImage(_selectedProfilePicture.isNotEmpty
               ? _selectedProfilePicture
-              : 'https://example.com/default_profile_picture.png'),
+              : 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
           radius: 50,
         ),
         const SizedBox(height: 16),
@@ -309,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
             style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
         Text(
-          'Date de naissance : ${_formatDate(_birthdateController.text)}',
+          'Date de naissance : ${_birthdateController.text}',
           style: const TextStyle(fontSize: 18),
         ),
         const SizedBox(height: 8),
@@ -353,9 +435,10 @@ class _ProfilePageState extends State<ProfilePage> {
           readOnly: true,
           onTap: () async {
             FocusScope.of(context).requestFocus(FocusNode());
-            DateTime initialDate = DateTime.now();
-            if (_birthdateController.text.isNotEmpty) {
-              initialDate = DateTime.parse(_birthdateController.text);
+            DateTime initialDate =
+                DateTime.now().subtract(const Duration(days: 365 * 20));
+            if (_selectedBirthdate != null) {
+              initialDate = _selectedBirthdate!;
             }
             DateTime? pickedDate = await showDatePicker(
               context: context,
@@ -364,7 +447,9 @@ class _ProfilePageState extends State<ProfilePage> {
               lastDate: DateTime.now(),
             );
             if (pickedDate != null) {
-              _birthdateController.text = pickedDate.toIso8601String();
+              _selectedBirthdate = pickedDate;
+              _birthdateController.text =
+                  '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
             }
           },
         ),

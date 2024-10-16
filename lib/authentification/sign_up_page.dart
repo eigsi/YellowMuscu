@@ -1,3 +1,5 @@
+// sign_up_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,84 +34,147 @@ class _SignUpPageState extends State<SignUpPage> {
     'https://i.pinimg.com/736x/02/4a/5b/024a5b0df5d2c2462ff8c73bebb418f3.jpg',
   ];
 
+  DateTime? _selectedBirthdate;
+
   void _signUp() async {
+    // Validation des champs
+    if (_firstNameController.text.isEmpty ||
+        _lastNameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _weightController.text.isEmpty ||
+        _heightController.text.isEmpty ||
+        _dobController.text.isEmpty) {
+      _showError('Veuillez remplir tous les champs.');
+      return;
+    }
+
     try {
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
 
       String uid = userCredential.user!.uid;
 
-      // Store user data in Firestore including the selected profile image
+      // Stocker les données utilisateur dans Firestore
       await _firestore.collection('users').doc(uid).set({
-        'first_name': _firstNameController.text,
-        'last_name': _lastNameController.text,
-        'email': _emailController.text,
-        'weight': _weightController.text,
-        'height': _heightController.text,
-        'dob': _dobController.text,
-        'profile_image': _profileImages[
-            _selectedProfileImageIndex], // Selected profile image URL
-        'created_at': DateTime.now(),
+        'first_name': _firstNameController.text.trim(),
+        'last_name': _lastNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'weight': _weightController.text.trim(),
+        'height': _heightController.text.trim(),
+        'birthdate': _selectedBirthdate?.toIso8601String() ?? '',
+        'profilePicture': _profileImages[
+            _selectedProfileImageIndex], // URL de la photo de profil sélectionnée
+        'created_at': Timestamp.now(),
+        'friends': [], // Initialiser la liste des amis
+        'sentRequests': [], // Initialiser la liste des demandes envoyées
       });
 
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
       print("Error: $e");
+      _showError('Erreur lors de la création du compte. Veuillez réessayer.');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Future<void> _selectBirthdate(BuildContext context) async {
+    DateTime initialDate =
+        DateTime.now().subtract(const Duration(days: 365 * 20));
+    DateTime firstDate = DateTime(1900);
+    DateTime lastDate = DateTime.now();
+
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthdate ?? initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (pickedDate != null) {
+      setState(() {
+        _selectedBirthdate = pickedDate;
+        _dobController.text =
+            '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: const Text('Créer un Compte')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // Champ du prénom
               TextField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'First Name'),
+                decoration: const InputDecoration(labelText: 'Prénom'),
               ),
+              // Champ du nom
               TextField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Last Name'),
+                decoration: const InputDecoration(labelText: 'Nom'),
               ),
+              // Champ de l'email
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
               ),
+              // Champ du mot de passe
               TextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Mot de passe'),
                 obscureText: true,
               ),
+              // Champ du poids
               TextField(
                 controller: _weightController,
-                decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                decoration: const InputDecoration(labelText: 'Poids (kg)'),
                 keyboardType: TextInputType.number,
               ),
+              // Champ de la taille
               TextField(
                 controller: _heightController,
-                decoration: const InputDecoration(labelText: 'Height (cm)'),
+                decoration: const InputDecoration(labelText: 'Taille (cm)'),
                 keyboardType: TextInputType.number,
               ),
-              TextField(
-                controller: _dobController,
-                decoration: const InputDecoration(
-                    labelText: 'Date of Birth (YYYY-MM-DD)'),
+              // Champ de la date de naissance avec calendrier
+              GestureDetector(
+                onTap: () => _selectBirthdate(context),
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _dobController,
+                    decoration: const InputDecoration(
+                      labelText: 'Date de naissance',
+                      hintText: 'JJ/MM/AAAA',
+                    ),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
 
-              // Section to select a profile picture
-              const Text('Select a Profile Picture',
+              // Section de sélection de la photo de profil
+              const Text('Sélectionnez une photo de profil',
                   style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
 
-              // Make the row of images scrollable horizontally
+              // Images défilantes horizontalement
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -144,7 +209,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signUp,
-                child: const Text('Sign Up'),
+                child: const Text('Créer un Compte'),
               ),
             ],
           ),
