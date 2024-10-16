@@ -23,21 +23,38 @@ class _SessionPageState extends State<SessionPage> {
     _user = _auth.currentUser;
   }
 
-  void _toggleIsDone(int index, bool? value) async {
+  // Fonction pour marquer un programme comme complété
+  void _markProgramAsDone(String programId) async {
     if (_user != null) {
-      final program = _programs[index];
-      program['isDone'] = value ?? false;
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('programs')
+            .doc(programId)
+            .update({'isDone': true});
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('programs')
-          .doc(program['id'])
-          .update({'isDone': program['isDone']});
+        // Ajouter la date de complétion à 'completedSessions'
+        DateTime today = DateTime.now();
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .update({
+          'completedSessions':
+              FieldValue.arrayUnion([Timestamp.fromDate(today)])
+        });
 
-      setState(() {
-        _programs[index] = program;
-      });
+        // Rafraîchir les données
+        setState(() {});
+      } catch (e) {
+        // Gérer les erreurs
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -59,7 +76,8 @@ class _SessionPageState extends State<SessionPage> {
             program: program,
             userId: _user!.uid,
             onSessionComplete: () {
-              setState(() {});
+              // Marquer le programme comme complété après la session
+              _markProgramAsDone(program['id']);
             },
           ),
         ),
@@ -159,9 +177,8 @@ class _SessionPageState extends State<SessionPage> {
                                 Text(program['name'] ?? 'Programme sans nom'),
                             trailing: Checkbox(
                               value: program['isDone'] ?? false,
-                              onChanged: (value) {
-                                _toggleIsDone(index, value);
-                              },
+                              onChanged:
+                                  null, // Rendre le Checkbox non cliquable
                             ),
                           ),
                         ),

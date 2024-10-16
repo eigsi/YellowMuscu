@@ -139,6 +139,7 @@ class _MainPageState extends State<MainPage> {
             'profileImage': profileImage,
             'description': description,
             'timestamp': timestamp,
+            'likes': data['likes'] ?? [],
           });
         }
       }
@@ -265,10 +266,15 @@ class _MainPageState extends State<MainPage> {
               ? const Text('Aucune activité récente.')
               : Column(
                   children: List.generate(likesData.length, (index) {
+                    Map<String, dynamic> event = likesData[index];
+                    bool isLiked =
+                        (event['likes'] as List<dynamic>?)?.contains(_userId) ??
+                            false;
                     return LikeItem(
-                      profileImage: likesData[index]['profileImage'] as String,
-                      description: likesData[index]['description'] as String,
-                      onLike: () => _likeEvent(likesData[index]),
+                      profileImage: event['profileImage'] as String,
+                      description: event['description'] as String,
+                      onLike: () => _likeEvent(event),
+                      isLiked: isLiked,
                     );
                   }),
                 ),
@@ -284,6 +290,18 @@ class _MainPageState extends State<MainPage> {
       // Ajouter un like à l'événement
       String friendId = event['friendId'] as String;
       String eventId = event['eventId'] as String;
+
+      // Vérifier si l'utilisateur a déjà liké l'événement
+      List<dynamic> currentLikes = event['likes'] as List<dynamic>? ?? [];
+      if (currentLikes.contains(_userId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous avez déjà liké cet événement.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
 
       await FirebaseFirestore.instance
           .collection('users')

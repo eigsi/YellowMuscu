@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -71,6 +72,10 @@ class _SignUpPageState extends State<SignUpPage> {
         'created_at': Timestamp.now(),
         'friends': [], // Initialiser la liste des amis
         'sentRequests': [], // Initialiser la liste des demandes envoyées
+        'streakCount': 0, // Initialiser le streak count
+        'lastStreakDate': Timestamp.fromDate(
+            DateTime(1970)), // Initialiser la dernière date de streak
+        'completedSessions': [], // Initialiser la liste des séances complétées
       });
 
       Navigator.pushReplacementNamed(context, '/mainPage');
