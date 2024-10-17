@@ -14,6 +14,7 @@ class ExercisesPage extends StatefulWidget {
 }
 
 class _ExercisesPageState extends State<ExercisesPage> {
+  // Liste des catégories avec des icônes IconData (Peut être utilisé ailleurs)
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Chest', 'icon': Icons.fitness_center},
     {'name': 'Back', 'icon': Icons.fitness_center},
@@ -26,6 +27,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     {'name': 'Stretching', 'icon': Icons.fitness_center},
   ];
 
+  // Liste des programmes récupérés depuis Firestore
   List<Map<String, dynamic>> _programs = [];
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -40,6 +42,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
+  // Méthode pour récupérer les programmes depuis Firestore
   void _fetchPrograms() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -81,6 +84,10 @@ class _ExercisesPageState extends State<ExercisesPage> {
           return {
             'id': doc.id,
             'name': data['name'] ?? 'Programme sans nom',
+            'icon': data['icon'] ??
+                'lib/data/icon_images/chest_part.png', // Valeur par défaut en String
+            'iconName': data['iconName'] ?? 'Chest part', // Nom de l'icône
+            'day': data['day'] ?? '',
             'isFavorite': data['isFavorite'] ?? false,
             'exercises': exercises,
           };
@@ -91,6 +98,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
+  // Méthode pour afficher les exercices d'une catégorie
   void _showExercises(String category) {
     List<Map<String, String>> exercises;
 
@@ -123,9 +131,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      builder: (context) {
+      isScrollControlled: true, // Permet à la modal de s'étendre
+      builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
+          height: MediaQuery.of(context).size.height *
+              0.7, // Définir une hauteur maximale
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -200,6 +211,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
+  // Méthode pour afficher les informations d'un exercice
   void _showExerciseInfo(Map<String, String> exercise) {
     showDialog(
       context: context,
@@ -258,6 +270,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
+  // Méthode pour sélectionner un programme et ajouter un exercice
   void _showProgramSelection(Map<String, String> exercise) {
     showModalBottomSheet(
       context: context,
@@ -265,7 +278,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      builder: (context) {
+      builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: _user == null
@@ -288,23 +301,30 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _programs.length,
-                      itemBuilder: (context, index) {
-                        final program = _programs[index];
-                        return ListTile(
-                          title: Text(
-                            program['name'],
-                            style: const TextStyle(color: Colors.white),
+                    _programs.isEmpty
+                        ? const Text(
+                            'Aucun programme disponible. Ajoutez-en un nouveau.',
+                            style: TextStyle(color: Colors.white),
+                          )
+                        : Expanded(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: _programs.length,
+                              itemBuilder: (context, index) {
+                                final program = _programs[index];
+                                return ListTile(
+                                  title: Text(
+                                    program['name'],
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    _showRestTimePopup(exercise, index);
+                                  },
+                                );
+                              },
+                            ),
                           ),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            _showRestTimePopup(exercise, index);
-                          },
-                        );
-                      },
-                    ),
                   ],
                 ),
         );
@@ -312,15 +332,16 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
+  // Méthode pour afficher le popup de temps de repos
   void _showRestTimePopup(Map<String, String> exercise, int programIndex) {
     int restBetweenExercises = 60; // Valeur par défaut
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Temps de repos entre exercices'),
           content: StatefulBuilder(
-            builder: (context, setState) {
+            builder: (BuildContext context, StateSetter setState) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -350,10 +371,22 @@ class _ExercisesPageState extends State<ExercisesPage> {
           actions: [
             TextButton(
               child: const Text('Ajouter'),
-              onPressed: () {
-                _addExerciseToProgram(
-                    programIndex, exercise, restBetweenExercises);
-                Navigator.of(context).pop();
+              onPressed: () async {
+                print('Bouton "Ajouter" dans RestTimePopup pressé');
+                final messenger = ScaffoldMessenger.of(context);
+                try {
+                  await _addExerciseToProgram(
+                      programIndex, exercise, restBetweenExercises);
+                  print('Exercice ajouté avec succès');
+                  Navigator.of(context).pop(); // Ferme le popup après ajout
+                } catch (e) {
+                  print('Erreur lors de l\'ajout de l\'exercice: $e');
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('Erreur lors de l\'ajout de l\'exercice.'),
+                    ),
+                  );
+                }
               },
             ),
           ],
@@ -362,8 +395,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  void _addExerciseToProgram(int programIndex, Map<String, String> exercise,
-      int restBetweenExercises) async {
+  // Méthode pour ajouter un exercice à un programme
+  Future<void> _addExerciseToProgram(int programIndex,
+      Map<String, String> exercise, int restBetweenExercises) async {
     if (_user != null) {
       final program = _programs[programIndex];
       program['exercises'].add({
@@ -378,21 +412,29 @@ class _ExercisesPageState extends State<ExercisesPage> {
         'goals': exercise['goals'] ?? '',
       });
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('programs')
-          .doc(program['id'])
-          .update({
-        'exercises': program['exercises'],
-      });
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('programs')
+            .doc(program['id'])
+            .update({
+          'exercises': program['exercises'],
+        });
+        print('Mise à jour Firestore réussie');
+      } catch (e) {
+        print('Erreur lors de la mise à jour Firestore: $e');
+        throw e; // Propager l'erreur pour qu'elle soit capturée dans le caller
+      }
 
+      if (!mounted) return;
       setState(() {
         _programs[programIndex] = program;
       });
     }
   }
 
+  // Méthode pour afficher les détails d'un programme
   void _showProgramDetail(Map<String, dynamic> program) {
     Navigator.push(
       context,
@@ -406,20 +448,27 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
+  // Méthode pour basculer l'état favori d'un programme
   void _toggleFavorite(int index) async {
     if (_user != null) {
       final program = _programs[index];
       program['isFavorite'] = !program['isFavorite'];
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('programs')
-          .doc(program['id'])
-          .update({
-        'isFavorite': program['isFavorite'],
-      });
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('programs')
+            .doc(program['id'])
+            .update({
+          'isFavorite': program['isFavorite'],
+        });
+        print('Favori mis à jour pour ${program['name']}');
+      } catch (e) {
+        print('Erreur lors de la mise à jour du favori: $e');
+      }
 
+      if (!mounted) return;
       setState(() {
         _programs.sort((a, b) {
           if (a['isFavorite'] && !b['isFavorite']) {
@@ -434,99 +483,254 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
+  // Méthode pour supprimer un programme
   void _deleteProgram(int index) async {
     if (_user != null) {
       final programId = _programs[index]['id'];
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('programs')
-          .doc(programId)
-          .delete();
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('programs')
+            .doc(programId)
+            .delete();
+        print('Programme supprimé: ${_programs[index]['name']}');
+      } catch (e) {
+        print('Erreur lors de la suppression du programme: $e');
+      }
 
+      if (!mounted) return;
       setState(() {
         _programs.removeAt(index);
       });
     }
   }
 
+  // Méthode pour ajouter un nouveau programme
   void _addNewProgram(BuildContext context) {
     final TextEditingController programController = TextEditingController();
+    String? _selectedDay;
+    String? _selectedImage;
+    String? _selectedLabel;
+
+    final List<Map<String, dynamic>> imageOptions = [
+      {'name': 'Chest part', 'image': 'lib/data/icon_images/chest_part.png'},
+      {'name': 'Back part', 'image': 'lib/data/icon_images/back_part.png'},
+      {'name': 'Leg part', 'image': 'lib/data/icon_images/leg_part.png'},
+    ];
+
+    final List<String> daysOfWeek = [
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche'
+    ];
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Ajouter un nouveau programme'),
-          content: TextField(
-            controller: programController,
-            decoration: const InputDecoration(
-              labelText: 'Nom du programme',
-            ),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Champ pour le nom du programme
+                    TextField(
+                      controller: programController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom du programme',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Sélection de l'image avec texte
+                    const Text(
+                      'Sélectionner une catégorie',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Utilisation de Wrap avec images et textes
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: imageOptions.map((option) {
+                        final isSelected = _selectedImage == option['image'];
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _selectedImage = option['image'];
+                              _selectedLabel = option['name'];
+                            });
+                            print('Image sélectionnée: ${option['name']}');
+                          },
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: Colors.black, width: 3)
+                                      : null,
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    option['image'],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.image_not_supported,
+                                        size: 40,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                option['name'],
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.black.withOpacity(0.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    // Sélection du jour avec message si non sélectionné
+                    DropdownButtonFormField<String>(
+                      value: _selectedDay,
+                      decoration: InputDecoration(
+                        // Le texte change en fonction de la sélection
+                        labelText: _selectedDay == null
+                            ? 'Sélectionner un jour'
+                            : 'Jour sélectionné',
+                        labelStyle: TextStyle(
+                          color: _selectedDay == null
+                              ? Colors.red
+                              : Colors
+                                  .black, // Rouge si non sélectionné, noir sinon
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color:
+                                _selectedDay == null ? Colors.red : Colors.grey,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color:
+                                _selectedDay == null ? Colors.red : Colors.blue,
+                          ),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      hint: const Text(
+                        'Sélectionner un jour',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      dropdownColor: Colors.white,
+                      isExpanded: true,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedDay = newValue;
+                        });
+                        print('Jour sélectionné: $newValue');
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Sélectionner un jour';
+                        }
+                        return null;
+                      },
+                      items: daysOfWeek
+                          .map<DropdownMenuItem<String>>((String day) {
+                        return DropdownMenuItem<String>(
+                          value: day,
+                          child: Text(
+                            day,
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           actions: [
+            // Bouton Annuler
             TextButton(
               child: const Text('Annuler'),
               onPressed: () {
-                Navigator.of(context)
-                    .pop(); // Ferme le pop-up quand "Annuler" est pressé
+                Navigator.of(context).pop();
               },
             ),
+            // Bouton Ajouter
             TextButton(
-              child: const Text('Ajouter'), // Le bouton "Ajouter"
+              child: const Text('Ajouter'),
               onPressed: () async {
-                // Vérifier que le champ de texte n'est pas vide
-                if (programController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                print('Bouton "Ajouter" dans AddNewProgram pressé');
+                final messenger = ScaffoldMessenger.of(context);
+                if (programController.text.isEmpty ||
+                    _selectedImage == null ||
+                    _selectedDay == null) {
+                  print('Validation échouée: champs manquants');
+                  messenger.showSnackBar(
                     const SnackBar(
-                      content: Text('Veuillez entrer un nom de programme.'),
+                      content: Text('Veuillez remplir tous les champs.'),
                     ),
                   );
-                  return; // Arrêter si le nom est vide
+                  return;
                 }
 
                 if (_user != null) {
                   final newProgram = {
                     'name': programController.text,
+                    'icon':
+                        _selectedImage, // Stockage de l'image en tant que String
+                    'iconName': _selectedLabel, // Stockage du nom de l'image
+                    'day': _selectedDay,
                     'isFavorite': false,
                     'exercises': [],
                   };
 
-                  // Ajouter le nouveau programme dans Firestore
-                  DocumentReference programRef = await FirebaseFirestore
-                      .instance
-                      .collection('users')
-                      .doc(_user!.uid)
-                      .collection('programs')
-                      .add(newProgram);
-
-                  // Enregistrer l'événement de création de programme dans Firestore
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(_user!.uid)
-                      .collection('events')
-                      .add({
-                    'description':
-                        'Création d\'un nouveau programme: ${programController.text}',
-                    'timestamp': FieldValue.serverTimestamp(),
-                    //'profileImage': _selectedProfilePicture ?? '', // Optionnel
-                    'programId': programRef.id, // Référence au programme créé
-                  });
-
-                  // Mettre à jour la liste des programmes
-                  _fetchPrograms();
-
-                  // Fermer le pop-up après avoir ajouté le programme
-                  Navigator.of(context).pop();
-
-                  // Afficher un message de succès
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Programme "${programController.text}" créé avec succès.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  try {
+                    print('Ajout du nouveau programme à Firestore');
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(_user!.uid)
+                        .collection('programs')
+                        .add(newProgram);
+                    print('Programme ajouté avec succès');
+                    _fetchPrograms();
+                    Navigator.of(context).pop(); // Ferme le pop-up après ajout
+                  } catch (e) {
+                    print('Erreur lors de l\'ajout du programme: $e');
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Erreur lors de l\'ajout du programme.'),
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -536,8 +740,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  Widget _buildProgramItem(
-      String programName, bool isFavorite, VoidCallback onFavoriteToggle) {
+  // Méthode pour construire un widget de programme
+  Widget _buildProgramItem(String programName, String iconPath, String day,
+      bool isFavorite, VoidCallback onFavoriteToggle) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
@@ -548,14 +753,44 @@ class _ExercisesPageState extends State<ExercisesPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            programName,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+          // Informations du programme
+          Row(
+            children: [
+              // Affichage de l'image
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[300],
+                  image: DecorationImage(
+                    image: AssetImage(iconPath),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Affichage du nom et du jour
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    programName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    day,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ],
           ),
+          // Bouton favori
           IconButton(
             icon: Icon(
               isFavorite ? Icons.star : Icons.star_border,
@@ -613,7 +848,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Liste des catégories d'exercices
                       Expanded(
+                        flex: 1,
                         child: Card(
                           elevation: 4.0,
                           shape: RoundedRectangleBorder(
@@ -626,7 +863,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Ligne pour 'Mes Programmes' et le bouton '+'
+                      // Section "Mes Programmes" avec bouton d'ajout
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -647,43 +884,55 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         ],
                       ),
                       const SizedBox(height: 16),
+                      // Liste des programmes
                       Expanded(
-                        child: ListView.builder(
-                          itemCount: _programs.length,
-                          itemBuilder: (context, index) {
-                            final program = _programs[index];
-                            return Dismissible(
-                              key: UniqueKey(),
-                              direction: DismissDirection.startToEnd,
-                              onDismissed: (direction) {
-                                _deleteProgram(index);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        '${program['name']} a été supprimé'),
-                                  ),
-                                );
-                              },
-                              background: Container(
-                                padding: const EdgeInsets.only(left: 16),
-                                alignment: Alignment.centerLeft,
-                                color: Colors.red,
-                                child: const Icon(
-                                  Icons.delete,
-                                  color: Colors.white,
+                        flex: 1,
+                        child: _programs.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'Aucun programme disponible. Ajoutez-en un nouveau.',
+                                  style: TextStyle(color: Colors.black),
                                 ),
+                              )
+                            : ListView.builder(
+                                itemCount: _programs.length,
+                                itemBuilder: (context, index) {
+                                  final program = _programs[index];
+                                  return Dismissible(
+                                    key: UniqueKey(),
+                                    direction: DismissDirection.startToEnd,
+                                    onDismissed: (direction) {
+                                      _deleteProgram(index);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${program['name']} a été supprimé'),
+                                        ),
+                                      );
+                                    },
+                                    background: Container(
+                                      padding: const EdgeInsets.only(left: 16),
+                                      alignment: Alignment.centerLeft,
+                                      color: Colors.red,
+                                      child: const Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: () => _showProgramDetail(program),
+                                      child: _buildProgramItem(
+                                        program['name'],
+                                        program['icon'], // Chemin de l'image
+                                        program['day'] ?? '',
+                                        program['isFavorite'],
+                                        () => _toggleFavorite(index),
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                              child: GestureDetector(
-                                onTap: () => _showProgramDetail(program),
-                                child: _buildProgramItem(
-                                  program['name'],
-                                  program['isFavorite'],
-                                  () => _toggleFavorite(index),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
                       ),
                     ],
                   ),
