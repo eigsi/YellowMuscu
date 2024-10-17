@@ -133,9 +133,14 @@ class _MainPageState extends State<MainPage> {
           Timestamp timestamp =
               data['timestamp'] ?? Timestamp.fromDate(DateTime(1970));
 
+          String friendName =
+              '${friendsData[friendId]?['first_name'] ?? ''} ${friendsData[friendId]?['last_name'] ?? ''}'
+                  .trim();
+
           events.add({
             'eventId': doc.id,
             'friendId': friendId,
+            'friendName': friendName,
             'profileImage': profileImage,
             'description': description,
             'timestamp': timestamp,
@@ -264,19 +269,43 @@ class _MainPageState extends State<MainPage> {
           const SizedBox(height: 10),
           likesData.isEmpty
               ? const Text('Aucune activité récente.')
-              : Column(
-                  children: List.generate(likesData.length, (index) {
-                    Map<String, dynamic> event = likesData[index];
-                    bool isLiked =
-                        (event['likes'] as List<dynamic>?)?.contains(_userId) ??
-                            false;
-                    return LikeItem(
-                      profileImage: event['profileImage'] as String,
-                      description: event['description'] as String,
-                      onLike: () => _likeEvent(event),
-                      isLiked: isLiked,
-                    );
-                  }),
+              : SizedBox(
+                  height: 300, // Hauteur pour rendre la liste scrollable
+                  child: ListView.builder(
+                    itemCount: likesData.length,
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> event = likesData[index];
+                      bool isLiked = (event['likes'] as List<dynamic>?)
+                              ?.contains(_userId) ??
+                          false;
+                      String activityType = event['description'];
+                      String formattedDescription =
+                          '${event['friendName']} a publié : $activityType';
+
+                      return Dismissible(
+                        key: Key(event['eventId']),
+                        direction: DismissDirection.endToStart,
+                        onDismissed: (direction) {
+                          setState(() {
+                            likesData.removeAt(index);
+                          });
+                          // Optionnel : Supprimer de Firestore si nécessaire
+                        },
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        child: LikeItem(
+                          profileImage: event['profileImage'] as String,
+                          description: formattedDescription,
+                          onLike: () => _likeEvent(event),
+                          isLiked: isLiked,
+                        ),
+                      );
+                    },
+                  ),
                 ),
         ],
       ),
@@ -319,6 +348,11 @@ class _MainPageState extends State<MainPage> {
               .trim();
       String fromUserProfilePicture = currentUserData['profilePicture'];
 
+      String activityType = event['description'] ?? 'activité';
+
+      String notificationDescription =
+          '$fromUserName a liké votre activité: $activityType';
+
       await FirebaseFirestore.instance
           .collection('users')
           .doc(friendId)
@@ -330,7 +364,7 @@ class _MainPageState extends State<MainPage> {
         'fromUserProfilePicture': fromUserProfilePicture,
         'eventId': eventId,
         'timestamp': FieldValue.serverTimestamp(),
-        'description': event['description'] ?? 'Aucune description disponible.',
+        'description': notificationDescription,
       });
 
       // Mettre à jour l'interface utilisateur

@@ -90,6 +90,7 @@ class _LikeItemState extends State<LikeItem>
           child: Icon(
             _isLiked ? Icons.favorite : Icons.favorite_border,
             color: _isLiked ? Colors.red : Colors.grey,
+            size: 24, // Taille réduite de l'icône
           ),
         ),
       ),

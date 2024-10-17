@@ -1,3 +1,5 @@
+// sign_in_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -15,13 +17,19 @@ class _SignInPageState extends State<SignInPage> {
   Future<void> _signIn() async {
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
       // Navigate to the main app page after login
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
-      print(e); // handle error
+      // Afficher le message d'erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('mdp ou mail incorrect, veuillez ressayer'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

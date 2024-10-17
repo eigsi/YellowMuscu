@@ -149,128 +149,169 @@ class _NotificationsPageState extends State<NotificationsPage> {
       return const Center(child: Text('Utilisateur non connecté'));
     }
 
-    return AlertDialog(
-      title: const Text('Notifications'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Partie des demandes d'amis
-              const Text(
-                'Demandes d\'ami',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              _friendRequests.isEmpty
-                  ? const Text('Aucune demande d\'ami')
-                  : Column(
-                      children: _friendRequests.map((notification) {
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: notification[
-                                              'fromUserProfilePicture'] !=
-                                          null &&
-                                      notification['fromUserProfilePicture']
-                                          .toString()
-                                          .isNotEmpty
-                                  ? NetworkImage(
-                                      notification['fromUserProfilePicture'])
-                                  : const NetworkImage(
-                                      'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
-                            ),
-                            title: Text(
-                                'Demande d\'ami de ${notification['fromUserName']}'),
-                            subtitle: const Text(
-                                'Souhaitez-vous accepter cette demande ?'),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.check,
-                                      color: Colors.green),
-                                  onPressed: () => _acceptFriendRequest(
-                                      notification['fromUserId'],
-                                      notification['notificationId']),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.close,
-                                      color: Colors.red),
-                                  onPressed: () => _rejectFriendRequest(
-                                      notification['fromUserId'],
-                                      notification['notificationId']),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-              const SizedBox(height: 16),
-              // Partie des likes
-              const Text(
-                'Likes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              _likes.isEmpty
-                  ? const Text('Aucune notification')
-                  : Column(
-                      children: _likes.map((notification) {
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: notification[
-                                              'fromUserProfilePicture'] !=
-                                          null &&
-                                      notification['fromUserProfilePicture']
-                                          .toString()
-                                          .isNotEmpty
-                                  ? NetworkImage(
-                                      notification['fromUserProfilePicture'])
-                                  : const NetworkImage(
-                                      'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
-                            ),
-                            title: Text(
-                                '${notification['fromUserName']} a liké votre exploit'),
-                            subtitle: notification['exploitName'] != null &&
-                                    notification['exploitName']
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Notifications'),
+      ),
+      body: ListView(
+        children: [
+          // Partie des demandes d'amis
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Demandes d\'ami',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          _friendRequests.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text('Aucune demande d\'ami'),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _friendRequests.length,
+                  itemBuilder: (context, index) {
+                    Map<String, dynamic> notification = _friendRequests[index];
+                    return Dismissible(
+                      key: Key(notification['notificationId']),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (direction) {
+                        setState(() {
+                          _friendRequests.removeAt(index);
+                        });
+                        // Supprimer la notification de Firestore
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(_user!.uid)
+                            .collection('notifications')
+                            .doc(notification['notificationId'])
+                            .delete();
+                      },
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: notification[
+                                            'fromUserProfilePicture'] !=
+                                        null &&
+                                    notification['fromUserProfilePicture']
                                         .toString()
                                         .isNotEmpty
-                                ? Text(
-                                    '${notification['fromUserName']} a liké "${notification['exploitName']}"')
-                                : Text(
-                                    '${notification['fromUserName']} a liké une de vos activités'),
+                                ? NetworkImage(
+                                    notification['fromUserProfilePicture'])
+                                : const NetworkImage(
+                                    'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
                           ),
-                        );
-                      }).toList(),
-                    ),
-            ],
+                          title: Text(
+                              'Demande d\'ami de ${notification['fromUserName']}'),
+                          subtitle: const Text(
+                              'Souhaitez-vous accepter cette demande ?'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.check,
+                                    color: Colors.green),
+                                onPressed: () => _acceptFriendRequest(
+                                    notification['fromUserId'],
+                                    notification['notificationId']),
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.close, color: Colors.red),
+                                onPressed: () => _rejectFriendRequest(
+                                    notification['fromUserId'],
+                                    notification['notificationId']),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+          // Partie des likes
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'Likes',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
-        ),
+          _likes.isEmpty
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text('Aucune notification'),
+                )
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _likes.length,
+                  itemBuilder: (context, index) {
+                    Map<String, dynamic> notification = _likes[index];
+                    return Dismissible(
+                      key: Key(notification['notificationId']),
+                      direction: DismissDirection.endToStart,
+                      onDismissed: (direction) {
+                        setState(() {
+                          _likes.removeAt(index);
+                        });
+                        // Supprimer la notification de Firestore
+                        FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(_user!.uid)
+                            .collection('notifications')
+                            .doc(notification['notificationId'])
+                            .delete();
+                      },
+                      background: Container(
+                        color: Colors.red,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: notification[
+                                            'fromUserProfilePicture'] !=
+                                        null &&
+                                    notification['fromUserProfilePicture']
+                                        .toString()
+                                        .isNotEmpty
+                                ? NetworkImage(
+                                    notification['fromUserProfilePicture'])
+                                : const NetworkImage(
+                                    'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
+                          ),
+                          title: Text(
+                              '${notification['fromUserName']} a liké votre exploit'),
+                          subtitle: notification['exploitName'] != null &&
+                                  notification['exploitName']
+                                      .toString()
+                                      .isNotEmpty
+                              ? Text(
+                                  '${notification['fromUserName']} a liké "${notification['exploitName']}"')
+                              : Text(
+                                  '${notification['fromUserName']} a liké une de vos activités'),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ],
       ),
-      actions: [
-        TextButton(
-          child: const Text('Fermer'),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
     );
-  }
-
-  /// Fonction pour obtenir l'URL de la photo de profil d'un utilisateur.
-  /// Si l'utilisateur n'a pas de photo de profil, retourne une image par défaut.
-  String _getProfilePicture(String userId) {
-    // Cette fonction suppose que vous avez une collection 'users' avec des documents utilisateur
-    // contenant un champ 'profilePicture'. Vous pouvez la modifier en fonction de votre structure Firestore.
-    // Pour simplifier, nous retournons une URL d'image par défaut ici.
-    // Vous devriez implémenter une méthode pour récupérer dynamiquement l'image de profil de l'utilisateur.
-    return 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg';
   }
 }

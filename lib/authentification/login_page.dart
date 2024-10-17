@@ -1,4 +1,7 @@
+// login_page.dart
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../Screens/profile_page.dart'; // Import profile page
 
 class LoginPage extends StatefulWidget {
@@ -15,6 +18,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
       Navigator.pushReplacement(
         // ignore: use_build_context_synchronously
         context,
@@ -23,13 +30,20 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed: $e')),
+        const SnackBar(
+          content: Text('mdp ou mail incorrect, veuillez ressayer'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
 
   Future<void> _signUp() async {
     try {
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
       Navigator.pushReplacement(
         // ignore: use_build_context_synchronously
         context,
@@ -38,7 +52,10 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sign up failed: $e')),
+        const SnackBar(
+          content: Text('Inscription échouée, veuillez réessayer'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 
 class StreaksWidget extends StatefulWidget {
   final String userId;
@@ -17,11 +18,20 @@ class _StreaksWidgetState extends State<StreaksWidget> {
   int _streakCount = 0;
   DateTime _lastStreakDate = DateTime(1970);
   List<DateTime> _completedSessions = [];
+  Duration _timeUntilNextStreak = Duration.zero;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _fetchStreakData();
+    _startCountdownTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   void _fetchStreakData() async {
@@ -54,13 +64,17 @@ class _StreaksWidgetState extends State<StreaksWidget> {
     DateTime startOfWeek = _startOfWeek(today);
     DateTime endOfWeek = _endOfWeek(today);
 
-    // Vérifier si l'utilisateur a complété toutes les séances de la semaine
-    bool allSessionsCompleted =
-        _checkAllSessionsCompleted(startOfWeek, endOfWeek);
+    // Vérifier si la dernière vérification de streak était avant la semaine en cours
+    if (!_isSameWeek(_lastStreakDate, today)) {
+      // Vérifier si l'utilisateur a complété toutes les séances de la semaine précédente
+      DateTime lastWeekStart = startOfWeek.subtract(const Duration(days: 7));
+      DateTime lastWeekEnd = endOfWeek.subtract(const Duration(days: 7));
 
-    if (allSessionsCompleted) {
-      // Vérifier si le streak doit être incrémenté
-      if (!_isSameWeek(_lastStreakDate, today)) {
+      bool allSessionsCompleted =
+          _checkAllSessionsCompleted(lastWeekStart, lastWeekEnd);
+
+      if (allSessionsCompleted) {
+        // Incrémenter le streak
         setState(() {
           _streakCount += 1;
           _lastStreakDate = today;
@@ -73,23 +87,26 @@ class _StreaksWidgetState extends State<StreaksWidget> {
           'streakCount': _streakCount,
           'lastStreakDate': Timestamp.fromDate(today),
         });
-      }
-    } else {
-      // Réinitialiser le streak si une séance est manquée
-      if (_streakCount > 0) {
-        setState(() {
-          _streakCount = 0;
-          _lastStreakDate = today;
-        });
+      } else {
+        // Réinitialiser le streak
+        if (_streakCount > 0) {
+          setState(() {
+            _streakCount = 0;
+            _lastStreakDate = today;
+          });
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .update({
-          'streakCount': _streakCount,
-          'lastStreakDate': Timestamp.fromDate(today),
-        });
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.userId)
+              .update({
+            'streakCount': _streakCount,
+            'lastStreakDate': Timestamp.fromDate(today),
+          });
+        }
       }
+
+      // Réinitialiser les statuts des programmes
+      await _resetProgramStatuses();
     }
   }
 
@@ -145,6 +162,71 @@ class _StreaksWidgetState extends State<StreaksWidget> {
         .add(Duration(days: addDays));
   }
 
+  Future<void> _resetProgramStatuses() async {
+    try {
+      QuerySnapshot programsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('programs')
+          .get();
+
+      for (var doc in programsSnapshot.docs) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.userId)
+            .collection('programs')
+            .doc(doc.id)
+            .update({'isDone': false});
+      }
+
+      // Optionnel : Réinitialiser la liste des sessions complétées
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .update({'completedSessions': []});
+    } catch (e) {
+      // Gérer les erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Erreur lors de la réinitialisation des programmes: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  bool _checkAllSessionsCompletedNow() {
+    // Optionnel : Si vous souhaitez vérifier immédiatement
+    return _checkAllSessionsCompleted(
+        _startOfWeek(DateTime.now()), _endOfWeek(DateTime.now()));
+  }
+
+  void _startCountdownTimer() {
+    _updateCountdown();
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateCountdown();
+    });
+  }
+
+  void _updateCountdown() {
+    DateTime now = DateTime.now();
+    DateTime nextWeekStart = _startOfWeek(now).add(const Duration(days: 7));
+    Duration difference = nextWeekStart.difference(now);
+
+    setState(() {
+      _timeUntilNextStreak = difference;
+    });
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return '${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -161,20 +243,33 @@ class _StreaksWidgetState extends State<StreaksWidget> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(
-                Icons.local_fire_department,
-                color: Colors.red,
-                size: 30,
+              const Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Streaks',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: 10),
               Text(
-                'Streaks',
-                style: TextStyle(
+                '$_streakCount semaines',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -182,13 +277,10 @@ class _StreaksWidgetState extends State<StreaksWidget> {
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Text(
-            '$_streakCount jours',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+            'Temps avant la prochaine streak: ${_formatDuration(_timeUntilNextStreak)}',
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ],
       ),
