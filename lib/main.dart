@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -7,7 +8,22 @@ import 'package:yellowmuscu/Screens/main_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+
+  if (kIsWeb) {
+    Firebase.initializeApp(
+        options: const FirebaseOptions(
+            apiKey: "AIzaSyBbgSQPftDh6oqkCgU5ofIHZ-KI8W19n4c",
+            authDomain: "yellowmuscu.firebaseapp.com",
+            databaseURL:
+                "https://yellowmuscu-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "yellowmuscu",
+            storageBucket: "yellowmuscu.appspot.com",
+            messagingSenderId: "386458988687",
+            appId: "1:386458988687:web:7378609fc922cf5479c0fa"));
+  } else {
+    await Firebase.initializeApp();
+  }
+
   runApp(const MyApp());
 }
 
