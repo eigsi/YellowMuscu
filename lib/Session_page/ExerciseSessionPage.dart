@@ -122,7 +122,8 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   Future<void> _showProgressScreen() async {
     await showDialog(
       context: context,
-      barrierDismissible: false, // L'utilisateur doit appuyer sur "Valider"
+      barrierDismissible:
+          false, // L'utilisateur doit appuyer sur "Valider" ou "Fermer"
       builder: (context) {
         return Dialog(
           child: Container(
@@ -209,26 +210,47 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () async {
-                        // Marquer le programme comme terminé
-                        await FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(widget.userId)
-                            .collection('programs')
-                            .doc(widget.program['id'])
-                            .update({'isDone': true});
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Marquer le programme comme terminé
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(widget.userId)
+                                .collection('programs')
+                                .doc(widget.program['id'])
+                                .update({'isDone': true});
 
-                        widget.onSessionComplete();
+                            widget.onSessionComplete();
 
-                        // Appeler la méthode pour mettre à jour le streak
-                        await _checkAndUpdateStreak();
+                            // Appeler la méthode pour mettre à jour le streak
+                            await _checkAndUpdateStreak();
 
-                        Navigator.of(context)
-                            .pop(); // Fermer l'écran "Des progrès ?"
-                        _showCongratulationDialog();
-                      },
-                      child: const Text('Valider'),
+                            Navigator.of(context)
+                                .pop(); // Fermer le popup "Des progrès ?"
+                            _showCongratulationDialog();
+                          },
+                          child: const Text('Valider'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Fermer le popup
+
+                            // Utiliser Future.delayed pour s'assurer que le popup est fermé avant de naviguer
+                            Future.delayed(Duration.zero, () {
+                              Navigator.of(context)
+                                  .pop(); // Retourner à la page ExercicePage
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors
+                                .grey, // Optionnel: changer la couleur du bouton
+                          ),
+                          child: const Text('Fermer'),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -387,7 +409,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
             children: [
               _currentExercise['image'] != null &&
                       _currentExercise['image'].isNotEmpty
-                  ? Image.network(
+                  ? Image.asset(
                       _currentExercise['image'],
                       height: 200,
                       errorBuilder: (context, error, stackTrace) {
