@@ -3,12 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SignUpPageState createState() => _SignUpPageState();
 }
 
@@ -78,6 +78,7 @@ class _SignUpPageState extends State<SignUpPage> {
         'completedSessions': [], // Initialiser la liste des séances complétées
       });
 
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
       print("Error: $e");

@@ -7,30 +7,22 @@ class SessionPage extends StatefulWidget {
   const SessionPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SessionPageState createState() => _SessionPageState();
 }
 
 class _SessionPageState extends State<SessionPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
-  String? _userId;
   List<Map<String, dynamic>> _programs = [];
-  int _selectedIndex = 3; // Par défaut, la page session est sélectionnée
-  List<Widget> _widgetOptions = []; // Initialisation des options de pages
+// Par défaut, la page session est sélectionnée
+// Initialisation des options de pages
 
   @override
   void initState() {
     super.initState();
     _user = _auth.currentUser;
-    _userId = _user?.uid;
     _fetchPrograms();
-    _widgetOptions = <Widget>[
-      const Text('Home Page'),
-      const Text('Exercises Page'),
-      const Text('Statistics Page'),
-      const Text('Session Page'),
-      const Text('Profile Page'),
-    ];
   }
 
   // Fonction pour marquer un programme comme complété
@@ -47,6 +39,7 @@ class _SessionPageState extends State<SessionPage> {
           .get();
 
       if (!programSnapshot.exists) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Programme non trouvé.'),
@@ -123,6 +116,7 @@ class _SessionPageState extends State<SessionPage> {
       _fetchPrograms();
 
       // Afficher un message de succès
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -132,6 +126,7 @@ class _SessionPageState extends State<SessionPage> {
       );
     } catch (e) {
       // Gérer les erreurs
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'),
@@ -142,8 +137,9 @@ class _SessionPageState extends State<SessionPage> {
   }
 
   Future<Map<String, dynamic>> _getCurrentUserData() async {
-    if (_user == null)
+    if (_user == null) {
       return {'first_name': '', 'last_name': '', 'profilePicture': ''};
+    }
 
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')
@@ -229,9 +225,8 @@ class _SessionPageState extends State<SessionPage> {
           };
         }).toList();
       });
-    } catch (e) {
-      print('Erreur lors de la récupération des programmes : $e');
-    }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   @override

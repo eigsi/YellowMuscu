@@ -120,6 +120,12 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   }
 
   Future<void> _showProgressScreen() async {
+    // Créer une copie locale des exercices pour gérer les poids dans le popup
+    List<Map<String, dynamic>> localExercises = widget.program['exercises']
+        .map<Map<String, dynamic>>(
+            (exercise) => Map<String, dynamic>.from(exercise))
+        .toList();
+
     await showDialog(
       context: context,
       barrierDismissible:
@@ -152,10 +158,10 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                         return ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: widget.program['exercises'].length,
+                          itemCount: localExercises.length,
                           itemBuilder: (context, index) {
                             Map<String, dynamic> exercise =
-                                widget.program['exercises'][index];
+                                localExercises[index];
                             if (exercise['weight'] == null) {
                               exercise['weight'] = 0;
                             }
@@ -179,25 +185,21 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                                     children: [
                                       IconButton(
                                         icon: const Icon(Icons.remove),
-                                        onPressed: () async {
+                                        onPressed: () {
                                           setState(() {
                                             if (exercise['weight'] > 0) {
                                               exercise['weight'] -= 1;
                                             }
                                           });
-                                          await _updateExerciseWeight(
-                                              index, exercise['weight']);
                                         },
                                       ),
                                       Text('${exercise['weight']} kg'),
                                       IconButton(
                                         icon: const Icon(Icons.add),
-                                        onPressed: () async {
+                                        onPressed: () {
                                           setState(() {
                                             exercise['weight'] += 1;
                                           });
-                                          await _updateExerciseWeight(
-                                              index, exercise['weight']);
                                         },
                                       ),
                                     ],
@@ -215,13 +217,22 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                       children: [
                         ElevatedButton(
                           onPressed: () async {
-                            // Marquer le programme comme terminé
+                            // Mettre à jour les poids dans le programme
+                            for (int i = 0; i < localExercises.length; i++) {
+                              widget.program['exercises'][i]['weight'] =
+                                  localExercises[i]['weight'];
+                            }
+
+                            // Mettre à jour la base de données avec les nouveaux poids
                             await FirebaseFirestore.instance
                                 .collection('users')
                                 .doc(widget.userId)
                                 .collection('programs')
                                 .doc(widget.program['id'])
-                                .update({'isDone': true});
+                                .update({
+                              'exercises': widget.program['exercises'],
+                              'isDone': true,
+                            });
 
                             widget.onSessionComplete();
 
@@ -237,7 +248,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                         ElevatedButton(
                           onPressed: () {
                             Navigator.of(context).pop(); // Fermer le popup
-
                             // Utiliser Future.delayed pour s'assurer que le popup est fermé avant de naviguer
                             Future.delayed(Duration.zero, () {
                               Navigator.of(context)
@@ -261,18 +271,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
         );
       },
     );
-  }
-
-  Future<void> _updateExerciseWeight(int index, int weight) async {
-    widget.program['exercises'][index]['weight'] = weight;
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .collection('programs')
-        .doc(widget.program['id'])
-        .update({
-      'exercises': widget.program['exercises'],
-    });
   }
 
   Future<void> _checkAndUpdateStreak() async {
