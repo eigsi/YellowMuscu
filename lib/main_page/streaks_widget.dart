@@ -119,7 +119,7 @@ class _StreaksWidgetState extends State<StreaksWidget> {
     DateTime current = startOfWeek;
     while (current.isBefore(endOfWeek) || current.isAtSameMomentAs(endOfWeek)) {
       weekDates.add(current);
-      current = current.add(const Duration(days: 1));
+      current = current.add(Duration(days: 1));
     }
 
     // Vérifier que chaque jour a une séance complétée
@@ -186,26 +186,22 @@ class _StreaksWidgetState extends State<StreaksWidget> {
           .update({'completedSessions': []});
     } catch (e) {
       // Gérer les erreurs
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text('Erreur lors de la réinitialisation des programmes: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Erreur lors de la réinitialisation des programmes: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-  }
-
-  bool _checkAllSessionsCompletedNow() {
-    // Optionnel : Si vous souhaitez vérifier immédiatement
-    return _checkAllSessionsCompleted(
-        _startOfWeek(DateTime.now()), _endOfWeek(DateTime.now()));
   }
 
   void _startCountdownTimer() {
     _updateCountdown();
 
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
       _updateCountdown();
     });
   }
