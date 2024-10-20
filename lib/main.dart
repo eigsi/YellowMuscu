@@ -1,38 +1,56 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yellowmuscu/authentification/sign_in_page.dart';
-import 'package:yellowmuscu/authentification/sign_up_page.dart'; // Import SignUpPage
+import 'package:yellowmuscu/authentification/sign_up_page.dart';
 import 'package:yellowmuscu/Screens/main_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import ThemeProvider
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // if (kIsWeb) {
-  //   Firebase.initializeApp(
-  //       options: const FirebaseOptions(
-  //           apiKey: "AIzaSyBbgSQPftDh6oqkCgU5ofIHZ-KI8W19n4c",
-  //           authDomain: "yellowmuscu.firebaseapp.com",
-  //           databaseURL:
-  //               "https://yellowmuscu-default-rtdb.europe-west1.firebasedatabase.app",
-  //           projectId: "yellowmuscu",
-  //           storageBucket: "yellowmuscu.appspot.com",
-  //           messagingSenderId: "386458988687",
-  //           appId: "1:386458988687:web:7378609fc922cf5479c0fa"));
-  // } else {
+  // Initialiser Firebase
   await Firebase.initializeApp();
-  // }
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      // Envelopper l'application avec ProviderScope
+      child: MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
+  // Convertir MyApp en ConsumerWidget
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return MaterialApp(
       title: 'YellowMuscu',
+      theme: ThemeData(
+        brightness: isDarkMode ? Brightness.dark : Brightness.light,
+        primaryColor: isDarkMode
+            ? Colors.grey[900]
+            : const Color.fromRGBO(255, 204, 0, 1.0),
+        scaffoldBackgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+        appBarTheme: AppBarTheme(
+          backgroundColor: isDarkMode ? appBarDarkColor : appBarLightColor,
+          titleTextStyle: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+          iconTheme: IconThemeData(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
       home:
           const AuthWrapper(), // Show SignIn or MainPage based on authentication
       routes: {
@@ -45,11 +63,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends ConsumerWidget {
+  // Convertir AuthWrapper en ConsumerWidget
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {

@@ -1,75 +1,11 @@
-// import 'package:flutter/material.dart';
-
-// class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
-//   const AppBarWidget({super.key});
-
-//   @override
-//   Size get preferredSize =>
-//       const Size.fromHeight(kToolbarHeight); // Standard app bar height
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color.fromRGBO(
-//           255, 204, 0, 1.0), // Yellow background for the Scaffold
-//       appBar: AppBar(
-//         backgroundColor:
-//             Colors.black.withOpacity(0.3), // Overlay black with opacity
-//         shadowColor: Colors.black, // Shadow color
-//         elevation: 0, // No shadow
-//         centerTitle: true, // Center the title
-//         title: const Text(
-//           'YelloMuscu',
-//           style: TextStyle(
-//             fontSize: 22,
-//             fontWeight: FontWeight.bold,
-//             color: Colors.black, // Title color
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// // app_bar_widget.dart
-
-// import 'package:flutter/material.dart';
-// import 'package:yellowmuscu/Screens/notifications_page.dart';
-
-// class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
-//   const AppBarWidget({super.key});
-
-//   void _showNotifications(BuildContext context) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return NotificationsPage();
-//       },
-//     );
-//   }
-
-//   @override
-//   Size get preferredSize => Size.fromHeight(kToolbarHeight);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AppBar(
-//       leading: IconButton(
-//         icon: const Icon(Icons.person),
-//         onPressed: () {
-//           _showNotifications(context);
-//         },
-//       ),
-//       title: const Text('Votre Titre d\'Application'),
-//       centerTitle: true,
-//     );
-//   }
-// }
+// lib/Screens/app_bar_widget.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yellowmuscu/Screens/notifications_page.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Assurez-vous du chemin correct
 
-class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
+class AppBarWidget extends ConsumerWidget implements PreferredSizeWidget {
   const AppBarWidget({super.key});
 
   // Méthode pour afficher les notifications
@@ -82,37 +18,86 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  // Taille de l'AppBar
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromRGBO(255, 204, 0, 1.0), // Fond jaune
-      appBar: AppBar(
-        backgroundColor:
-            Colors.black.withOpacity(0.3), // Couleur noire avec opacité
-        shadowColor: Colors.black, // Couleur de l'ombre
-        elevation: 0, // Pas d'ombre
-        centerTitle: true, // Centrer le titre
-        title: const Text(
-          'YelloMuscu',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.black, // Couleur du titre
+  // Méthode pour afficher les réglages
+  void _showSettings(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Réglages'),
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Mode sombre'),
+              Consumer(
+                builder: (context, ref, child) {
+                  final isDarkMode = ref.watch(themeProvider);
+                  return Switch(
+                    value: isDarkMode,
+                    onChanged: (value) {
+                      ref.read(themeProvider.notifier).toggleTheme(value);
+                      // Fermer le pop-up après le changement
+                      Navigator.of(context).pop();
+                    },
+                  );
+                },
+              ),
+            ],
           ),
-        ),
-        // Icône 'profile' à gauche pour ouvrir la page de notifications
-        leading: IconButton(
-          icon: const Icon(Icons.person),
-          onPressed: () {
-            _showNotifications(context); // Ouvre la pop-up des notifications
-          },
-        ),
-      ),
-      body: Container(), // Contenu principal de la page (vous pouvez l'adapter)
+          actions: [
+            TextButton(
+              child: const Text('Fermer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Récupérer l'état actuel du thème
+    final isDarkMode = ref.watch(themeProvider);
+
+    return AppBar(
+      backgroundColor: isDarkMode ? appBarDarkColor : appBarLightColor,
+      shadowColor: Colors.black, // Shadow color remains noir
+      elevation: 0, // Pas d'ombre
+      centerTitle: true, // Centrer le titre
+      title: const Text(
+        'YelloMuscu',
+        style: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.black, // Le texte sera noir en mode clair
+        ),
+      ),
+      leading: IconButton(
+        icon: Icon(
+          Icons.person,
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+        onPressed: () {
+          _showNotifications(context);
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: Icon(
+            Icons.settings,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+          onPressed: () {
+            _showSettings(context, ref);
+          },
+        ),
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

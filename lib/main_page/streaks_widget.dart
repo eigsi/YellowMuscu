@@ -225,11 +225,14 @@ class _StreaksWidgetState extends State<StreaksWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Déterminer si le thème actuel est sombre
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.black54 : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
@@ -245,30 +248,30 @@ class _StreaksWidgetState extends State<StreaksWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(
                     Icons.local_fire_department,
-                    color: Colors.red,
+                    color: isDarkMode ? Colors.redAccent : Colors.red,
                     size: 30,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(
                     'Streaks',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
                 ],
               ),
               Text(
                 '$_streakCount semaines',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: isDarkMode ? Colors.white : Colors.black54,
                 ),
               ),
             ],
@@ -276,7 +279,10 @@ class _StreaksWidgetState extends State<StreaksWidget> {
           const SizedBox(height: 8),
           Text(
             'Temps avant la prochaine streak: ${_formatDuration(_timeUntilNextStreak)}',
-            style: const TextStyle(fontSize: 16, color: Colors.black54),
+            style: TextStyle(
+              fontSize: 16,
+              color: isDarkMode ? Colors.grey[300] : Colors.black54,
+            ),
           ),
         ],
       ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-class ProgramDetailPage extends StatefulWidget {
+class ProgramDetailPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> program;
   final String userId;
   final VoidCallback onUpdate;
@@ -17,7 +19,7 @@ class ProgramDetailPage extends StatefulWidget {
   _ProgramDetailPageState createState() => _ProgramDetailPageState();
 }
 
-class _ProgramDetailPageState extends State<ProgramDetailPage> {
+class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
   late List<Map<String, dynamic>> exercises;
   bool _isEditingOrder = false;
 
@@ -26,7 +28,6 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
     super.initState();
     exercises = List<Map<String, dynamic>>.from(widget.program['exercises']);
 
-    // Initialize 'restBetweenExercises' and 'restTime' if not present
     for (var exercise in exercises) {
       if (!exercise.containsKey('restBetweenExercises')) {
         exercise['restBetweenExercises'] = 60;
@@ -58,36 +59,54 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
         TextEditingController(text: exercise['weight']?.toString() ?? '0');
     int restTime = exercise['restTime'] ?? 60;
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text('Modifier ${exercise['name']}'),
+            backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+            title: Text(
+              'Modifier ${exercise['name']}',
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: setsController,
-                  decoration:
-                      const InputDecoration(labelText: 'Nombre de séries'),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de séries',
+                    labelStyle: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
                   keyboardType: TextInputType.number,
                 ),
                 TextField(
                   controller: repsController,
-                  decoration:
-                      const InputDecoration(labelText: 'Nombre de répétitions'),
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de répétitions',
+                    labelStyle: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
                   keyboardType: TextInputType.number,
                 ),
                 TextField(
                   controller: weightController,
-                  decoration: const InputDecoration(labelText: 'Poids (kg)'),
+                  decoration: InputDecoration(
+                    labelText: 'Poids (kg)',
+                    labelStyle: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Repos entre séries: ${_formatDuration(restTime)}',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white : Colors.black),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -178,8 +197,11 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.black54 : null,
         title: Text(widget.program['name']),
         actions: [
           IconButton(
@@ -189,10 +211,12 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
         ],
       ),
       body: exercises.isEmpty
-          ? const Center(
+          ? Center(
               child: Text(
                 'Aucun exercice ajouté au programme',
-                style: TextStyle(fontSize: 18, color: Colors.black54),
+                style: TextStyle(
+                    fontSize: 18,
+                    color: isDarkMode ? Colors.white70 : Colors.black54),
               ),
             )
           : _isEditingOrder
@@ -227,7 +251,12 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                             backgroundImage:
                                 NetworkImage(exercises[index]['image']),
                           ),
-                          title: Text(exercises[index]['name']),
+                          title: Text(
+                            exercises[index]['name'],
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
+                          ),
                           trailing: ReorderableDragStartListener(
                             index: index,
                             child: const Icon(Icons.drag_handle),
@@ -246,18 +275,26 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                           leading: CircleAvatar(
                             backgroundImage: NetworkImage(exercise['image']),
                           ),
-                          title: Text(exercise['name']),
+                          title: Text(
+                            exercise['name'],
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
+                          ),
                           subtitle: Text(
                             '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
                             'Poids: ${exercise['weight'] ?? 0} kg\n'
                             'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                            style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black87),
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.edit),
                             onPressed: () => _editExercise(index),
                           ),
                         ),
-                        // Display rest time between exercises except for the last exercise
                         if (index < exercises.length - 1)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -269,7 +306,11 @@ class _ProgramDetailPageState extends State<ProgramDetailPage> {
                               ),
                               Text(
                                 'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'])}',
-                                style: const TextStyle(fontSize: 16),
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.add),

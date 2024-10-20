@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yellowmuscu/Session_page/ExerciseSessionPage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-class SessionPage extends StatefulWidget {
+class SessionPage extends ConsumerStatefulWidget {
   const SessionPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _SessionPageState createState() => _SessionPageState();
 }
 
-class _SessionPageState extends State<SessionPage> {
+class _SessionPageState extends ConsumerState<SessionPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   List<Map<String, dynamic>> _programs = [];
@@ -25,12 +26,10 @@ class _SessionPageState extends State<SessionPage> {
     _fetchPrograms();
   }
 
-  // Fonction pour marquer un programme comme complété et enregistrer la séance terminée
   void _markProgramAsDone(String programId, DateTime sessionEndTime) async {
     if (_user == null) return;
 
     try {
-      // Récupérer le programme pour calculer le poids total
       DocumentSnapshot programSnapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
@@ -39,7 +38,6 @@ class _SessionPageState extends State<SessionPage> {
           .get();
 
       if (!programSnapshot.exists) {
-        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Programme non trouvé.'),
@@ -62,12 +60,10 @@ class _SessionPageState extends State<SessionPage> {
         totalWeight += weight * reps * sets;
       }
 
-      // Calculer la durée de la séance
       Duration sessionDuration = sessionEndTime.difference(sessionStartTime!);
       String durationFormatted =
           "${sessionDuration.inHours}:${sessionDuration.inMinutes.remainder(60)}:${sessionDuration.inSeconds.remainder(60)}";
 
-      // Enregistrer la séance terminée dans `completedSessions`
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
@@ -80,7 +76,6 @@ class _SessionPageState extends State<SessionPage> {
         'userId': _user!.uid,
       });
 
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -89,7 +84,6 @@ class _SessionPageState extends State<SessionPage> {
         ),
       );
     } catch (e) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'),
@@ -108,7 +102,7 @@ class _SessionPageState extends State<SessionPage> {
         ),
       );
     } else {
-      sessionStartTime = DateTime.now(); // Démarrage de la session
+      sessionStartTime = DateTime.now();
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -116,7 +110,7 @@ class _SessionPageState extends State<SessionPage> {
             program: program,
             userId: _user!.uid,
             onSessionComplete: () {
-              DateTime sessionEndTime = DateTime.now(); // Fin de la session
+              DateTime sessionEndTime = DateTime.now();
               _markProgramAsDone(program['id'], sessionEndTime);
             },
           ),
@@ -171,7 +165,6 @@ class _SessionPageState extends State<SessionPage> {
         }).toList();
       });
     } catch (e) {
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'),
@@ -183,17 +176,20 @@ class _SessionPageState extends State<SessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
       body: Container(
-        // Ajout du dégradé en arrière-plan
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: isDarkMode
+                ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                : [
+                    const Color.fromRGBO(255, 204, 0, 1.0),
+                    const Color.fromRGBO(255, 204, 0, 0.3),
+                  ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color.fromRGBO(255, 204, 0, 1.0), // Couleur en haut
-              Color.fromRGBO(255, 204, 0, 0.3), // Couleur en bas avec opacité
-            ],
           ),
         ),
         child: ListView.builder(
@@ -207,13 +203,16 @@ class _SessionPageState extends State<SessionPage> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16.0),
-                  color: Colors
-                      .white, // Vous pouvez ajuster ou rendre semi-transparent
+                  color: isDarkMode ? Colors.black54 : Colors.white,
                 ),
                 margin: const EdgeInsets.all(8),
                 padding: const EdgeInsets.all(16),
                 child: ListTile(
-                  title: Text(program['name'] ?? 'Programme sans nom'),
+                  title: Text(
+                    program['name'] ?? 'Programme sans nom',
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
                   trailing: Checkbox(
                     value: program['isDone'] ?? false,
                     onChanged: null,

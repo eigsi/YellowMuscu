@@ -1,15 +1,15 @@
-// lib/Exercise_Page_Widgets/ExerciseCategoryList.dart
-
 import 'package:flutter/material.dart';
 
 class ExerciseCategoryList extends StatelessWidget {
   final List<Map<String, dynamic>> categories;
   final Function(String) onCategoryTap;
+  final bool isDarkMode;
 
   const ExerciseCategoryList({
     super.key,
     required this.categories,
     required this.onCategoryTap,
+    required this.isDarkMode,
   });
 
   @override
@@ -19,8 +19,14 @@ class ExerciseCategoryList extends StatelessWidget {
       itemBuilder: (context, index) {
         final category = categories[index];
         return ListTile(
-          leading: Icon(category['icon'], color: Colors.black),
-          title: Text(category['name']),
+          leading: Icon(
+            category['icon'],
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+          title: Text(
+            category['name'],
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+          ),
           onTap: () => onCategoryTap(category['name']),
         );
       },

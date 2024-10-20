@@ -1,22 +1,21 @@
-// ExercisesPage.dart
-
 import 'package:flutter/material.dart';
-import 'package:yellowmuscu/data/exercises_data.dart'; // Remplacez par l'import de vos données
-import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart'; // Remplacez par votre import réel
+import 'package:yellowmuscu/data/exercises_data.dart';
+import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-import 'ProgramDetailPage.dart'; // Import pour la page de détail du programme
+import 'package:yellowmuscu/Screens/ProgramDetailPage.dart';
 
-class ExercisesPage extends StatefulWidget {
+class ExercisesPage extends ConsumerStatefulWidget {
   const ExercisesPage({super.key});
 
   @override
   _ExercisesPageState createState() => _ExercisesPageState();
 }
 
-class _ExercisesPageState extends State<ExercisesPage> {
-  // Liste des catégories avec des icônes IconData (Peut être utilisé ailleurs)
+class _ExercisesPageState extends ConsumerState<ExercisesPage> {
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Chest', 'icon': Icons.fitness_center},
     {'name': 'Back', 'icon': Icons.fitness_center},
@@ -29,7 +28,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     {'name': 'Stretching', 'icon': Icons.fitness_center},
   ];
 
-  // Liste des programmes récupérés depuis Firestore
   List<Map<String, dynamic>> _programs = [];
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -44,7 +42,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  // Méthode pour récupérer les programmes depuis Firestore
   void _fetchPrograms() async {
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -62,7 +59,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
           List<Map<String, dynamic>> exercises = exercisesData
               .map((exercise) {
                 if (exercise is String) {
-                  // Convertir la chaîne en map avec des valeurs par défaut
                   return {
                     'name': exercise,
                     'image': '',
@@ -86,9 +82,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
           return {
             'id': doc.id,
             'name': data['name'] ?? 'Programme sans nom',
-            'icon': data['icon'] ??
-                'lib/data/icon_images/chest_part.png', // Valeur par défaut en String
-            'iconName': data['iconName'] ?? 'Chest part', // Nom de l'icône
+            'icon': data['icon'] ?? 'lib/data/icon_images/chest_part.png',
+            'iconName': data['iconName'] ?? 'Chest part',
             'day': data['day'] ?? '',
             'isFavorite': data['isFavorite'] ?? false,
             'exercises': exercises,
@@ -96,7 +91,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
         }).toList();
       });
     } catch (e) {
-      // Gérer les erreurs si nécessaire
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la récupération des programmes: $e'),
@@ -106,11 +100,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  // Méthode pour afficher les exercices d'une catégorie
   void _showExercises(String category) {
     List<Map<String, String>> exercises;
 
-    // Remplacez par vos données réelles pour chaque catégorie
     if (category == 'Biceps') {
       exercises = ExercisesData.bicepsExercises;
     } else if (category == 'Abs') {
@@ -133,27 +125,28 @@ class _ExercisesPageState extends State<ExercisesPage> {
       exercises = [];
     }
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      isScrollControlled: true, // Permet à la modal de s'étendre
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(16.0),
-          height: MediaQuery.of(context).size.height *
-              0.7, // Définir une hauteur maximale
+          height: MediaQuery.of(context).size.height * 0.7,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 category,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 16),
@@ -188,20 +181,24 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       ),
                       title: Text(
                         exercise['name']!,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.info_outline,
-                                color: Colors.white),
+                            icon: Icon(Icons.info_outline,
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
                             onPressed: () {
                               _showExerciseInfo(exercise);
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.add, color: Colors.white),
+                            icon: Icon(Icons.add,
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
                             onPressed: () {
                               _showProgramSelection(exercise);
                             },
@@ -219,12 +216,14 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour afficher les informations d'un exercice
   void _showExerciseInfo(Map<String, String> exercise) {
+    final isDarkMode = ref.watch(themeProvider);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
           contentPadding: const EdgeInsets.all(16.0),
           content: SingleChildScrollView(
             child: Column(
@@ -243,25 +242,35 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Description',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(exercise['description'] ?? ''),
+                Text(
+                  exercise['description'] ?? '',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Objectifs',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(exercise['goals'] ?? ''),
+                Text(
+                  exercise['goals'] ?? '',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
               ],
             ),
           ),
@@ -278,11 +287,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour sélectionner un programme et ajouter un exercice
   void _showProgramSelection(Map<String, String> exercise) {
+    final isDarkMode = ref.watch(themeProvider);
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.grey[900],
+      backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
@@ -290,29 +300,32 @@ class _ExercisesPageState extends State<ExercisesPage> {
         return Padding(
           padding: const EdgeInsets.all(16.0),
           child: _user == null
-              ? const Center(
+              ? Center(
                   child: Text(
                     'Veuillez vous connecter pour ajouter des exercices aux programmes.',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
                   ),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Sélectionnez un programme',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 16),
                     _programs.isEmpty
-                        ? const Text(
+                        ? Text(
                             'Aucun programme disponible. Ajoutez-en un nouveau.',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
                           )
                         : Expanded(
                             child: ListView.builder(
@@ -323,7 +336,10 @@ class _ExercisesPageState extends State<ExercisesPage> {
                                 return ListTile(
                                   title: Text(
                                     program['name'],
-                                    style: const TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.black),
                                   ),
                                   onTap: () {
                                     Navigator.of(context).pop();
@@ -340,14 +356,18 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour afficher le popup de temps de repos
   void _showRestTimePopup(Map<String, String> exercise, int programIndex) {
-    int restBetweenExercises = 60; // Valeur par défaut
+    int restBetweenExercises = 60;
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final isDarkMode = ref.watch(themeProvider);
         return AlertDialog(
-          title: const Text('Temps de repos entre exercices'),
+          backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+          title: Text(
+            'Temps de repos entre exercices',
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+          ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Row(
@@ -363,7 +383,11 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       }
                     },
                   ),
-                  Text('$restBetweenExercises s'),
+                  Text(
+                    '$restBetweenExercises s',
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () {
@@ -384,8 +408,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 try {
                   await _addExerciseToProgram(
                       programIndex, exercise, restBetweenExercises);
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop(); // Ferme le popup après ajout
+                  Navigator.of(context).pop();
                 } catch (e) {
                   messenger.showSnackBar(
                     const SnackBar(
@@ -401,7 +424,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour ajouter un exercice à un programme
   Future<void> _addExerciseToProgram(int programIndex,
       Map<String, String> exercise, int restBetweenExercises) async {
     if (_user != null) {
@@ -411,7 +433,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
         'image': exercise['image'],
         'sets': 3,
         'reps': 10,
-        'restTime': 60, // Temps de repos entre séries par défaut
+        'restTime': 60,
         'restBetweenExercises': restBetweenExercises,
         'weight': 0,
         'description': exercise['description'] ?? '',
@@ -428,7 +450,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
           'exercises': program['exercises'],
         });
       } catch (e) {
-        rethrow; // Propager l'erreur pour qu'elle soit capturée dans le caller
+        rethrow;
       }
 
       if (!mounted) return;
@@ -438,7 +460,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  // Méthode pour afficher les détails d'un programme
   void _showProgramDetail(Map<String, dynamic> program) {
     Navigator.push(
       context,
@@ -452,7 +473,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour basculer l'état favori d'un programme
   void _toggleFavorite(int index) async {
     if (_user != null) {
       final program = _programs[index];
@@ -467,7 +487,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
             .update({
           'isFavorite': program['isFavorite'],
         });
-        // ignore: empty_catches
       } catch (e) {}
 
       if (!mounted) return;
@@ -485,7 +504,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  // Méthode pour supprimer un programme
   void _deleteProgram(int index) async {
     if (_user != null) {
       final programId = _programs[index]['id'];
@@ -496,7 +514,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
             .collection('programs')
             .doc(programId)
             .delete();
-        // ignore: empty_catches
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -520,7 +537,6 @@ class _ExercisesPageState extends State<ExercisesPage> {
     }
   }
 
-  // Méthode pour ajouter un nouveau programme
   void _addNewProgram(BuildContext context) {
     final TextEditingController programController = TextEditingController();
     String? selectedDay;
@@ -543,35 +559,41 @@ class _ExercisesPageState extends State<ExercisesPage> {
       'Dimanche'
     ];
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Ajouter un nouveau programme'),
+          backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+          title: Text(
+            'Ajouter un nouveau programme',
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+          ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Champ pour le nom du programme
                     TextField(
                       controller: programController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Nom du programme',
+                        labelStyle: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Sélection de l'image avec texte
-                    const Text(
+                    Text(
                       'Sélectionner une catégorie',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Utilisation de Wrap avec images et textes
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -626,24 +648,26 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       }).toList(),
                     ),
                     const SizedBox(height: 16),
-                    // Sélection du jour avec message si non sélectionné
                     DropdownButtonFormField<String>(
                       value: selectedDay,
                       decoration: InputDecoration(
-                        // Le texte change en fonction de la sélection
                         labelText: selectedDay == null
                             ? 'Sélectionner un jour'
                             : 'Jour sélectionné',
                         labelStyle: TextStyle(
                           color: selectedDay == null
                               ? Colors.red
-                              : Colors
-                                  .black, // Rouge si non sélectionné, noir sinon
+                              : isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color:
-                                selectedDay == null ? Colors.red : Colors.grey,
+                            color: selectedDay == null
+                                ? Colors.red
+                                : isDarkMode
+                                    ? Colors.white
+                                    : Colors.grey,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
@@ -655,11 +679,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                      hint: const Text(
+                      hint: Text(
                         'Sélectionner un jour',
-                        style: TextStyle(color: Colors.black),
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
                       ),
-                      dropdownColor: Colors.white,
+                      dropdownColor: isDarkMode ? Colors.black54 : Colors.white,
                       isExpanded: true,
                       onChanged: (String? newValue) {
                         setState(() {
@@ -678,7 +703,9 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           value: day,
                           child: Text(
                             day,
-                            style: const TextStyle(color: Colors.black),
+                            style: TextStyle(
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
                           ),
                         );
                       }).toList(),
@@ -689,14 +716,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
             },
           ),
           actions: [
-            // Bouton Annuler
             TextButton(
               child: const Text('Annuler'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            // Bouton Ajouter
             TextButton(
               child: const Text('Ajouter'),
               onPressed: () async {
@@ -715,9 +740,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 if (_user != null) {
                   final newProgram = {
                     'name': programController.text,
-                    'icon':
-                        selectedImage, // Stockage de l'image en tant que String
-                    'iconName': selectedLabel, // Stockage du nom de l'image
+                    'icon': selectedImage,
+                    'iconName': selectedLabel,
                     'day': selectedDay,
                     'isFavorite': false,
                     'exercises': [],
@@ -730,7 +754,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         .collection('programs')
                         .add(newProgram);
                     _fetchPrograms();
-                    Navigator.of(context).pop(); // Ferme le pop-up après ajout
+                    Navigator.of(context).pop();
                   } catch (e) {
                     messenger.showSnackBar(
                       const SnackBar(
@@ -747,20 +771,20 @@ class _ExercisesPageState extends State<ExercisesPage> {
     );
   }
 
-  // Méthode pour construire un widget de programme
   Widget _buildProgramItem(String programName, String iconPath, String day,
       bool isFavorite, VoidCallback onFavoriteToggle) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
         borderRadius: BorderRadius.circular(16.0),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Informations du programme
           Row(
             children: [
               // Affichage de l'image
@@ -769,7 +793,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 height: 50,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.grey[300],
+                  color: isDarkMode ? Colors.grey[700] : Colors.grey[300],
                   image: DecorationImage(
                     image: AssetImage(iconPath),
                     fit: BoxFit.cover,
@@ -783,15 +807,17 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 children: [
                   Text(
                     programName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
                   Text(
                     day,
-                    style: const TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white70 : Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -801,7 +827,11 @@ class _ExercisesPageState extends State<ExercisesPage> {
           IconButton(
             icon: Icon(
               isFavorite ? Icons.star : Icons.star_border,
-              color: isFavorite ? Colors.yellow[700] : Colors.black,
+              color: isFavorite
+                  ? Colors.yellow[700]
+                  : isDarkMode
+                      ? Colors.white
+                      : Colors.black,
             ),
             onPressed: onFavoriteToggle,
           ),
@@ -812,6 +842,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Stack(
       children: [
         // Dégradé de fond
@@ -820,10 +852,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                const Color.fromRGBO(255, 204, 0, 1.0),
-                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-              ],
+              colors: isDarkMode
+                  ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                  : [
+                      const Color.fromRGBO(255, 204, 0, 1.0),
+                      const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+                    ],
             ),
           ),
         ),
@@ -846,12 +880,12 @@ class _ExercisesPageState extends State<ExercisesPage> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Bibliothèque',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -859,6 +893,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       Expanded(
                         flex: 1,
                         child: Card(
+                          color: isDarkMode ? Colors.black54 : Colors.white,
                           elevation: 4.0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16.0),
@@ -866,6 +901,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                           child: ExerciseCategoryList(
                             categories: _categories,
                             onCategoryTap: _showExercises,
+                            isDarkMode: isDarkMode,
                           ),
                         ),
                       ),
@@ -874,16 +910,18 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Mes Programmes',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.add, color: Colors.black),
+                            icon: Icon(Icons.add,
+                                color:
+                                    isDarkMode ? Colors.white : Colors.black),
                             onPressed: () {
                               _addNewProgram(context);
                             },
@@ -895,10 +933,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       Expanded(
                         flex: 1,
                         child: _programs.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Text(
                                   'Aucun programme disponible. Ajoutez-en un nouveau.',
-                                  style: TextStyle(color: Colors.black),
+                                  style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black),
                                 ),
                               )
                             : ListView.builder(
@@ -931,7 +972,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                                       onTap: () => _showProgramDetail(program),
                                       child: _buildProgramItem(
                                         program['name'],
-                                        program['icon'], // Chemin de l'image
+                                        program['icon'],
                                         program['day'] ?? '',
                                         program['isFavorite'],
                                         () => _toggleFavorite(index),

@@ -556,8 +556,8 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
                 const Color.fromRGBO(255, 204, 0, 1.0),
                 const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),

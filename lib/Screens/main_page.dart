@@ -12,21 +12,19 @@ import 'package:yellowmuscu/Screens/app_bar_widget.dart';
 import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart';
 import 'package:yellowmuscu/main_page/like_item_widget.dart';
 import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _MainPageState createState() => _MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _MainPageState extends ConsumerState<MainPage> {
   int _selectedIndex = 0;
   String? _userId;
-
-  // Supprimez cette ligne :
-  // late List<Widget> _widgetOptions;
 
   List<Map<String, dynamic>> likesData = [];
 
@@ -45,7 +43,6 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     _getCurrentUser();
-    // Supprimez l'initialisation de _widgetOptions ici
   }
 
   void _getCurrentUser() {
@@ -348,15 +345,19 @@ class _MainPageState extends State<MainPage> {
 
   // Méthode pour construire la section des likes
   Widget _buildLikesSection() {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? Colors.black54
+            : Colors.white, // Fond noir54 en mode sombre
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.7),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -365,17 +366,22 @@ class _MainPageState extends State<MainPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Activités de vos amis',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
+              color: isDarkMode ? Colors.white : Colors.black54,
             ),
           ),
           const SizedBox(height: 10),
           likesData.isEmpty
-              ? const Text('Aucune activité récente.')
+              ? Text(
+                  'Aucune activité récente.',
+                  style: TextStyle(
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                  ),
+                )
               : SizedBox(
                   height: 300, // Hauteur pour rendre la liste scrollable
                   child: ListView.builder(
@@ -421,6 +427,8 @@ class _MainPageState extends State<MainPage> {
 
   // Méthode pour construire la page d'accueil avec le dégradé
   Widget _buildHomePage() {
+    final isDarkMode = ref.watch(themeProvider);
+
     return SizedBox.expand(
       child: Stack(
         children: [
@@ -428,12 +436,14 @@ class _MainPageState extends State<MainPage> {
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color.fromRGBO(255, 204, 0, 1.0),
-                  const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-                ],
+                colors: isDarkMode
+                    ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                    : [
+                        const Color.fromRGBO(255, 204, 0, 1.0),
+                        const Color.fromRGBO(255, 204, 0, 0.3),
+                      ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
           ),
@@ -482,9 +492,12 @@ class _MainPageState extends State<MainPage> {
         currentPage = _buildHomePage();
     }
 
+    final isDarkMode = ref.watch(themeProvider);
+
     return Scaffold(
-      backgroundColor:
-          Colors.white, // Assure que le Scaffold ne cache pas le dégradé
+      backgroundColor: isDarkMode
+          ? Colors.grey[900]
+          : Colors.white, // Fond en fonction du thème
       body: currentPage,
       appBar: const AppBarWidget(),
       bottomNavigationBar: BottomNavBarWidget(
@@ -503,21 +516,21 @@ class _MainPageState extends State<MainPage> {
 }
 
 /// Widget pour afficher le résumé du prochain programme avec compte à rebours
-class NextProgramSummary extends StatefulWidget {
+class NextProgramSummary extends ConsumerStatefulWidget {
   final Map<String, dynamic> program;
   final List<String> daysOfWeek;
 
   const NextProgramSummary({
-    Key? key,
+    super.key,
     required this.program,
     required this.daysOfWeek,
-  }) : super(key: key);
+  });
 
   @override
   _NextProgramSummaryState createState() => _NextProgramSummaryState();
 }
 
-class _NextProgramSummaryState extends State<NextProgramSummary> {
+class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   late DateTime _nextProgramDateTime;
   late Duration _timeRemaining;
   Timer? _timer;
@@ -601,6 +614,7 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
     String iconPath = widget.program['icon'] ??
         'lib/data/icon_images/chest_part.png'; // Chemin par défaut
     String programName = widget.program['name'] ?? 'Nom du Programme';
@@ -613,11 +627,13 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode
+            ? Colors.black54 // Utiliser Colors.black54 en mode sombre
+            : Colors.white, // Utiliser Colors.white en mode clair
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -629,9 +645,9 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
           // Compte à rebours en haut
           Text(
             'Prochain programme dans : $countdownText',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: Colors.red,
+              color: isDarkMode ? Colors.red[300] : Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -655,9 +671,10 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
                   const SizedBox(height: 8),
                   Text(
                     programName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
                 ],
@@ -666,7 +683,12 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
               // Liste des exercices
               Expanded(
                 child: exercises.isEmpty
-                    ? const Text('Aucun exercice disponible.')
+                    ? Text(
+                        'Aucun exercice disponible.',
+                        style: TextStyle(
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                        ),
+                      )
                     : ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -686,17 +708,22 @@ class _NextProgramSummaryState extends State<NextProgramSummary> {
                               children: [
                                 Text(
                                   exerciseName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: isDarkMode
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                 ),
                               ],

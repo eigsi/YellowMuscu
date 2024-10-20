@@ -2,29 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-class StatisticsPage extends StatefulWidget {
+class StatisticsPage extends ConsumerStatefulWidget {
   const StatisticsPage({super.key});
 
   @override
   _StatisticsPageState createState() => _StatisticsPageState();
 }
 
-class _StatisticsPageState extends State<StatisticsPage> {
+class _StatisticsPageState extends ConsumerState<StatisticsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Statistiques générales
   int totalSessions = 0;
   double totalWeight = 0.0;
   Map<String, int> sessionsPerCategory = {};
   Map<String, double> weightPerDay = {};
 
-  // Statistiques de la semaine
   int weeklySessions = 0;
   double weeklyWeight = 0.0;
-  Duration weeklyTimeSpent = Duration();
+  Duration weeklyTimeSpent = const Duration();
 
   @override
   void initState() {
@@ -76,7 +76,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     totalWeight = 0.0;
     weeklySessions = 0;
     weeklyWeight = 0.0;
-    weeklyTimeSpent = Duration();
+    weeklyTimeSpent = const Duration();
     weightPerDay = {
       'Lundi': 0.0,
       'Mardi': 0.0,
@@ -106,7 +106,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
         weeklySessions += 1;
         weeklyWeight += weight;
 
-        // Récupération et ajout de la durée de la séance
         String duration = doc.data()['duration'] ?? "0:0:0";
         List<String> parts = duration.split(':');
         int hours = int.parse(parts[0]);
@@ -127,17 +126,21 @@ class _StatisticsPageState extends State<StatisticsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
+
     return Stack(
       children: [
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
+              colors: isDarkMode
+                  ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                  : [
+                      const Color.fromRGBO(255, 204, 0, 1.0),
+                      const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+                    ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                const Color.fromRGBO(255, 204, 0, 1.0),
-                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-              ],
             ),
           ),
         ),
@@ -168,11 +171,12 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Statistiques Générales',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -181,6 +185,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         value: '$totalSessions',
                         icon: Icons.event_note,
                         color: Colors.green,
+                        isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
                       _buildGeneralStatCard(
@@ -188,13 +193,15 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         value: '${totalWeight.toStringAsFixed(1)} kg',
                         icon: Icons.fitness_center,
                         color: Colors.orange,
+                        isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         'Statistiques de la Semaine',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -203,6 +210,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         value: '$weeklySessions',
                         icon: Icons.check_circle,
                         color: Colors.purple,
+                        isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
                       _buildWeeklyStatCard(
@@ -210,6 +218,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
                         value: '${weeklyWeight.toStringAsFixed(1)} kg',
                         icon: Icons.fitness_center,
                         color: Colors.orange,
+                        isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
                       _buildWeeklyStatCard(
@@ -218,9 +227,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
                             '${weeklyTimeSpent.inHours}:${weeklyTimeSpent.inMinutes.remainder(60)}:${weeklyTimeSpent.inSeconds.remainder(60)}',
                         icon: Icons.access_time,
                         color: Colors.blue,
+                        isDarkMode: isDarkMode,
                       ),
                       const SizedBox(height: 16),
-                      _buildWeeklyChartCard(),
+                      _buildWeeklyChartCard(isDarkMode),
                     ],
                   ),
                 ),
@@ -237,15 +247,16 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required String value,
     required IconData icon,
     required Color color,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: isDarkMode ? Colors.black54 : Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -265,17 +276,19 @@ class _StatisticsPageState extends State<StatisticsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
               ],
@@ -291,64 +304,26 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required String value,
     required IconData icon,
     required Color color,
+    required bool isDarkMode,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(16.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: Colors.yellow[700],
-            child: Icon(icon, size: 30, color: color),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return _buildGeneralStatCard(
+      title: title,
+      value: value,
+      icon: icon,
+      color: color,
+      isDarkMode: isDarkMode,
     );
   }
 
-  Widget _buildWeeklyChartCard() {
+  Widget _buildWeeklyChartCard(bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: isDarkMode ? Colors.black54 : Colors.white.withOpacity(0.8),
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.05),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -357,19 +332,29 @@ class _StatisticsPageState extends State<StatisticsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Poids soulevé par jour',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
           const SizedBox(height: 16),
           SizedBox(
             height: 200,
             child: SfCartesianChart(
-              primaryXAxis: CategoryAxis(),
-              primaryYAxis: NumericAxis(),
+              backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+              primaryXAxis: CategoryAxis(
+                labelStyle: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+              primaryYAxis: NumericAxis(
+                labelStyle: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
               series: _createWeightSeries(),
             ),
           ),
