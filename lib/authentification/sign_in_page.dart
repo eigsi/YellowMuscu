@@ -7,6 +7,7 @@ class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SignInPageState createState() => _SignInPageState();
 }
 
@@ -21,9 +22,11 @@ class _SignInPageState extends State<SignInPage> {
         password: _passwordController.text.trim(),
       );
       // Navigate to the main app page after login
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
       // Afficher le message d'erreur
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('mdp ou mail incorrect, veuillez ressayer'),

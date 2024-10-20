@@ -102,8 +102,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<Map<String, dynamic>> _getCurrentUserData() async {
-    if (_user == null)
+    if (_user == null) {
       return {'last_name': '', 'first_name': '', 'profilePicture': ''};
+    }
 
     DocumentSnapshot userDoc = await FirebaseFirestore.instance
         .collection('users')

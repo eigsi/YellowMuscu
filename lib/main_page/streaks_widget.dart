@@ -119,7 +119,7 @@ class _StreaksWidgetState extends State<StreaksWidget> {
     DateTime current = startOfWeek;
     while (current.isBefore(endOfWeek) || current.isAtSameMomentAs(endOfWeek)) {
       weekDates.add(current);
-      current = current.add(Duration(days: 1));
+      current = current.add(const Duration(days: 1));
     }
 
     // Vérifier que chaque jour a une séance complétée

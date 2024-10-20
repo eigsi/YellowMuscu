@@ -9,12 +9,12 @@ class LikeItem extends StatefulWidget {
   final bool isLiked;
 
   const LikeItem({
-    Key? key,
+    super.key,
     required this.profileImage,
     required this.description,
     required this.onLike,
     required this.isLiked,
-  }) : super(key: key);
+  });
 
   @override
   _LikeItemState createState() => _LikeItemState();

@@ -34,7 +34,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         List<Map<String, dynamic>> likes = [];
 
         for (var doc in snapshot.docs) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          Map<String, dynamic> data = doc.data();
           data['notificationId'] = doc.id;
 
           if (data['type'] == 'friendRequest') {

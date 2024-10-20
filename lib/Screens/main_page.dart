@@ -11,6 +11,7 @@ import 'package:yellowmuscu/screens/exercises_page.dart';
 import 'package:yellowmuscu/Screens/app_bar_widget.dart';
 import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart';
 import 'package:yellowmuscu/main_page/like_item_widget.dart';
+import 'dart:async';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -24,21 +25,27 @@ class _MainPageState extends State<MainPage> {
   int _selectedIndex = 0;
   String? _userId;
 
-  late List<Widget> _widgetOptions;
+  // Supprimez cette ligne :
+  // late List<Widget> _widgetOptions;
 
   List<Map<String, dynamic>> likesData = [];
+
+  // Mapping des jours de la semaine en français
+  final List<String> _daysOfWeek = [
+    'Lundi',
+    'Mardi',
+    'Mercredi',
+    'Jeudi',
+    'Vendredi',
+    'Samedi',
+    'Dimanche'
+  ];
 
   @override
   void initState() {
     super.initState();
     _getCurrentUser();
-    _widgetOptions = <Widget>[
-      _buildHomePage(),
-      const ExercisesPage(),
-      const StatisticsPage(),
-      const SessionPage(),
-      const ProfilePage(),
-    ];
+    // Supprimez l'initialisation de _widgetOptions ici
   }
 
   void _getCurrentUser() {
@@ -48,25 +55,6 @@ class _MainPageState extends State<MainPage> {
         _userId = user.uid;
         _fetchFriendsEvents();
       });
-    }
-  }
-
-  /// Méthode pour récupérer le premier programme de l'utilisateur
-  Future<Map<String, dynamic>?> _getFirstProgram() async {
-    if (_userId == null) return null;
-    try {
-      QuerySnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
-          .instance
-          .collection('users')
-          .doc(_userId)
-          .collection('programs')
-          .limit(1)
-          .get();
-      if (snapshot.docs.isEmpty) return null;
-      return snapshot.docs.first.data();
-    } catch (e) {
-      print('Erreur lors de la récupération du programme: $e');
-      return null;
     }
   }
 
@@ -100,6 +88,8 @@ class _MainPageState extends State<MainPage> {
         }
       }
 
+      print('Nombre d\'amis trouvés: ${friends.length}');
+
       // Récupérer les données de chaque ami
       Map<String, Map<String, dynamic>> friendsData = {};
 
@@ -112,14 +102,18 @@ class _MainPageState extends State<MainPage> {
       List<Map<String, dynamic>> events = [];
 
       for (String friendId in friends) {
-        QuerySnapshot eventsSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(friendId)
-            .collection('events')
-            .get();
+        QuerySnapshot<Map<String, dynamic>> eventsSnapshot =
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(friendId)
+                .collection('events')
+                .get();
+
+        print(
+            'Nombre d\'événements pour l\'ami $friendId: ${eventsSnapshot.docs.length}');
 
         for (var doc in eventsSnapshot.docs) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          Map<String, dynamic> data = doc.data();
 
           // S'assurer que les champs nécessaires existent
           String profileImage = friendsData[friendId]?['profilePicture'] ??
@@ -149,6 +143,8 @@ class _MainPageState extends State<MainPage> {
       events.sort((a, b) =>
           (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
+      print('Nombre total d\'événements récupérés: ${events.length}');
+
       setState(() {
         likesData = events;
       });
@@ -160,6 +156,7 @@ class _MainPageState extends State<MainPage> {
           backgroundColor: Colors.red,
         ),
       );
+      print('Erreur dans _fetchFriendsEvents: $e');
     }
   }
 
@@ -265,112 +262,88 @@ class _MainPageState extends State<MainPage> {
 
   // Méthode pour construire la section de résumé du programme
   Widget _buildProgramSummarySection() {
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _getFirstProgram(),
+    if (_userId == null) {
+      return const Text('Veuillez vous connecter pour voir vos programmes.');
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .collection('programs')
+          .snapshots(),
       builder: (BuildContext context,
-          AsyncSnapshot<Map<String, dynamic>?> snapshot) {
+          AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
+        if (snapshot.hasError) {
+          return const Text('Erreur de chargement des programmes.');
+        }
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Text('Aucun programme disponible.');
         }
 
-        var programData = snapshot.data!;
+        // Convertir les documents en liste de maps
+        List<Map<String, dynamic>> programs = snapshot.data!.docs.map((doc) {
+          Map<String, dynamic> data = doc.data();
 
-        // Récupérer les informations du programme
-        String iconPath = programData['icon'] ??
-            'lib/data/icon_images/chest_part.png'; // Chemin par défaut
-        String programName = programData['name'] ?? 'Nom du Programme';
-        List<dynamic> exercises = programData['exercises'] ?? [];
+          return {
+            'id': doc.id,
+            'name': data['name'] ?? 'Programme sans nom',
+            'icon': data['icon'] ?? 'lib/data/icon_images/chest_part.png',
+            'iconName': data['iconName'] ?? 'Chest part',
+            'day': data['day'] ?? '',
+            'isFavorite': data['isFavorite'] ?? false,
+            'exercises': data['exercises'] ?? [],
+          };
+        }).toList();
 
-        return Container(
-          padding: const EdgeInsets.all(16.0),
-          margin: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section de gauche : Image de la catégorie et nom du programme
-              Column(
-                children: [
-                  Image.asset(
-                    iconPath,
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.image_not_supported, size: 80);
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    programName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              // Section de droite : Liste des exercices
-              Expanded(
-                child: exercises.isEmpty
-                    ? const Text('Aucun exercice disponible.')
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: exercises.length,
-                        itemBuilder: (context, index) {
-                          var exercise = exercises[index];
-                          String exerciseName = exercise['name'] ?? 'Exercice';
-                          int sets = exercise['sets'] ?? 0;
-                          int reps = exercise['reps'] ?? 0;
-                          double weight = (exercise['weight'] ?? 0).toDouble();
-                          int rest = exercise['restBetweenExercises'] ?? 0;
+        // Déterminer le prochain programme
+        Map<String, dynamic>? nextProgram = _getNextProgram(programs);
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  exerciseName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+        if (nextProgram == null) {
+          return const Text('Aucun programme programmé pour le moment.');
+        }
+
+        return NextProgramSummary(
+          program: nextProgram,
+          daysOfWeek: _daysOfWeek,
         );
       },
     );
+  }
+
+  /// Méthode pour trouver le prochain programme basé sur le jour actuel
+  Map<String, dynamic>? _getNextProgram(List<Map<String, dynamic>> programs) {
+    DateTime now = DateTime.now();
+    int currentWeekday = now.weekday; // 1 = Lundi, 7 = Dimanche
+
+    // Filtrer les programmes dont le jour est après le jour actuel
+    List<Map<String, dynamic>> futurePrograms = programs.where((program) {
+      int programDayIndex = _daysOfWeek.indexOf(program['day']) + 1; // 1-7
+      return programDayIndex > currentWeekday;
+    }).toList();
+
+    if (futurePrograms.isNotEmpty) {
+      // Trouver le programme avec le jour le plus proche après le jour actuel
+      futurePrograms.sort((a, b) {
+        int dayA = _daysOfWeek.indexOf(a['day']) + 1;
+        int dayB = _daysOfWeek.indexOf(b['day']) + 1;
+        return dayA.compareTo(dayB);
+      });
+      return futurePrograms.first;
+    } else if (programs.isNotEmpty) {
+      // Si aucun programme n'est après aujourd'hui, retourner le premier programme de la semaine suivante
+      return programs.first;
+    } else {
+      return null;
+    }
+  }
+
+  // Widget pour afficher le résumé du prochain programme avec compte à rebours
+  Widget _buildNextProgramSummary() {
+    return _buildProgramSummarySection();
   }
 
   // Méthode pour construire la section des likes
@@ -458,8 +431,6 @@ class _MainPageState extends State<MainPage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  //Colors.transparent,
-                  //Colors.transparent
                   const Color.fromRGBO(255, 204, 0, 1.0),
                   const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
                 ],
@@ -472,7 +443,7 @@ class _MainPageState extends State<MainPage> {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 children: [
-                  _buildProgramSummarySection(),
+                  _buildNextProgramSummary(),
                   const SizedBox(height: 16),
                   if (_userId != null) StreaksWidget(userId: _userId!),
                   const SizedBox(height: 16),
@@ -489,10 +460,32 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    Widget currentPage;
+
+    switch (_selectedIndex) {
+      case 0:
+        currentPage = _buildHomePage();
+        break;
+      case 1:
+        currentPage = const ExercisesPage();
+        break;
+      case 2:
+        currentPage = const StatisticsPage();
+        break;
+      case 3:
+        currentPage = const SessionPage();
+        break;
+      case 4:
+        currentPage = const ProfilePage();
+        break;
+      default:
+        currentPage = _buildHomePage();
+    }
+
     return Scaffold(
       backgroundColor:
           Colors.white, // Assure que le Scaffold ne cache pas le dégradé
-      body: _widgetOptions[_selectedIndex],
+      body: currentPage,
       appBar: const AppBarWidget(),
       bottomNavigationBar: BottomNavBarWidget(
         selectedIndex: _selectedIndex,
@@ -506,5 +499,226 @@ class _MainPageState extends State<MainPage> {
         },
       ),
     );
+  }
+}
+
+/// Widget pour afficher le résumé du prochain programme avec compte à rebours
+class NextProgramSummary extends StatefulWidget {
+  final Map<String, dynamic> program;
+  final List<String> daysOfWeek;
+
+  const NextProgramSummary({
+    Key? key,
+    required this.program,
+    required this.daysOfWeek,
+  }) : super(key: key);
+
+  @override
+  _NextProgramSummaryState createState() => _NextProgramSummaryState();
+}
+
+class _NextProgramSummaryState extends State<NextProgramSummary> {
+  late DateTime _nextProgramDateTime;
+  late Duration _timeRemaining;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _nextProgramDateTime = _calculateNextProgramDateTime();
+    _timeRemaining = _nextProgramDateTime.difference(DateTime.now());
+    _startCountdown();
+  }
+
+  @override
+  void didUpdateWidget(covariant NextProgramSummary oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.program['day'] != widget.program['day']) {
+      _nextProgramDateTime = _calculateNextProgramDateTime();
+      _timeRemaining = _nextProgramDateTime.difference(DateTime.now());
+      _timer?.cancel();
+      _startCountdown();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  /// Méthode pour calculer la prochaine DateTime du programme basé sur le jour
+  DateTime _calculateNextProgramDateTime() {
+    String programDay = widget.program['day'];
+    int programWeekday =
+        widget.daysOfWeek.indexOf(programDay) + 1; // 1 = Lundi, 7 = Dimanche
+
+    if (programWeekday == 0) {
+      // Si le jour n'est pas trouvé, retourner une date lointaine
+      return DateTime.now().add(const Duration(days: 365));
+    }
+
+    DateTime now = DateTime.now();
+    int currentWeekday = now.weekday; // 1 = Lundi, 7 = Dimanche
+    int daysUntilNext = programWeekday - currentWeekday;
+
+    if (daysUntilNext < 0 || (daysUntilNext == 0 && now.hour >= 0)) {
+      daysUntilNext += 7;
+    }
+
+    DateTime nextProgramDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(Duration(days: daysUntilNext));
+
+    // Définir une heure spécifique pour le début du programme (ex: 8h00)
+    nextProgramDate = DateTime(
+      nextProgramDate.year,
+      nextProgramDate.month,
+      nextProgramDate.day,
+      8,
+      0,
+      0,
+    );
+
+    return nextProgramDate;
+  }
+
+  /// Méthode pour démarrer le compte à rebours
+  void _startCountdown() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = DateTime.now();
+      setState(() {
+        _timeRemaining = _nextProgramDateTime.difference(now);
+        if (_timeRemaining.isNegative) {
+          _timeRemaining = Duration.zero;
+          _timer?.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String iconPath = widget.program['icon'] ??
+        'lib/data/icon_images/chest_part.png'; // Chemin par défaut
+    String programName = widget.program['name'] ?? 'Nom du Programme';
+    List<dynamic> exercises = widget.program['exercises'] ?? [];
+
+    // Format du compte à rebours
+    String countdownText = _formatDuration(_timeRemaining);
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Compte à rebours en haut
+          Text(
+            'Prochain programme dans : $countdownText',
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Image et informations du programme
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image de la catégorie
+              Column(
+                children: [
+                  Image.asset(
+                    iconPath,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.image_not_supported, size: 80);
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    programName,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 16),
+              // Liste des exercices
+              Expanded(
+                child: exercises.isEmpty
+                    ? const Text('Aucun exercice disponible.')
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: exercises.length,
+                        itemBuilder: (context, index) {
+                          var exercise = exercises[index];
+                          String exerciseName = exercise['name'] ?? 'Exercice';
+                          int sets = exercise['sets'] ?? 0;
+                          int reps = exercise['reps'] ?? 0;
+                          double weight = (exercise['weight'] ?? 0).toDouble();
+                          int rest = exercise['restBetweenExercises'] ?? 0;
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  exerciseName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Méthode pour formater la durée en jours, heures, minutes, secondes
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String days = duration.inDays > 0 ? '${duration.inDays}j ' : '';
+    String hours = twoDigits(duration.inHours.remainder(24));
+    String minutes = twoDigits(duration.inMinutes.remainder(60));
+    String seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$days$hours:$minutes:$seconds';
   }
 }

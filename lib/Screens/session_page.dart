@@ -15,8 +15,8 @@ class _SessionPageState extends State<SessionPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user;
   List<Map<String, dynamic>> _programs = [];
-// Par défaut, la page session est sélectionnée
-// Initialisation des options de pages
+
+  DateTime? sessionStartTime;
 
   @override
   void initState() {
@@ -25,8 +25,8 @@ class _SessionPageState extends State<SessionPage> {
     _fetchPrograms();
   }
 
-  // Fonction pour marquer un programme comme complété
-  void _markProgramAsDone(String programId) async {
+  // Fonction pour marquer un programme comme complété et enregistrer la séance terminée
+  void _markProgramAsDone(String programId, DateTime sessionEndTime) async {
     if (_user == null) return;
 
     try {
@@ -53,79 +53,42 @@ class _SessionPageState extends State<SessionPage> {
           programSnapshot.data() as Map<String, dynamic>;
 
       List<dynamic> exercises = programData['exercises'] ?? [];
-
-      // Calculer le poids total soulevé en une seule séance
       double totalWeight = 0.0;
       for (var exercise in exercises) {
-        double weight = 0.0;
-        int reps = 0;
-        int sets = 0;
-
-        if (exercise['weight'] != null) {
-          weight = double.tryParse(exercise['weight'].toString()) ?? 0.0;
-        }
-
-        if (exercise['reps'] != null) {
-          reps = int.tryParse(exercise['reps'].toString()) ?? 0;
-        }
-
-        if (exercise['sets'] != null) {
-          sets = int.tryParse(exercise['sets'].toString()) ?? 0;
-        }
+        double weight = double.tryParse(exercise['weight'].toString()) ?? 0.0;
+        int reps = int.tryParse(exercise['reps'].toString()) ?? 0;
+        int sets = int.tryParse(exercise['sets'].toString()) ?? 0;
 
         totalWeight += weight * reps * sets;
       }
 
-      // Mettre à jour le programme comme complété
+      // Calculer la durée de la séance
+      Duration sessionDuration = sessionEndTime.difference(sessionStartTime!);
+      String durationFormatted =
+          "${sessionDuration.inHours}:${sessionDuration.inMinutes.remainder(60)}:${sessionDuration.inSeconds.remainder(60)}";
+
+      // Enregistrer la séance terminée dans `completedSessions`
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
-          .collection('programs')
-          .doc(programId)
-          .update({'isDone': true});
-
-      // Ajouter la date de complétion à 'completedSessions'
-      DateTime today = DateTime.now();
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .update({
-        'completedSessions': FieldValue.arrayUnion([Timestamp.fromDate(today)])
-      });
-
-      // Créer un événement avec le poids total
-      Map<String, dynamic> currentUserData = await _getCurrentUserData();
-      String userName =
-          '${currentUserData['first_name']} ${currentUserData['last_name']}'
-              .trim();
-
-      String eventDescription =
-          '$userName a soulevé ${totalWeight.toStringAsFixed(2)} kg pendant la séance d\'aujourd\'hui.';
-
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_user!.uid)
-          .collection('events')
+          .collection('completedSessions')
           .add({
-        'description': eventDescription,
-        'timestamp': FieldValue.serverTimestamp(),
-        'activityType': 'poids soulevé',
+        'programName': programData['name'] ?? 'Programme sans nom',
+        'date': sessionEndTime,
+        'duration': durationFormatted,
+        'totalWeight': totalWeight,
+        'userId': _user!.uid,
       });
 
-      // Rafraîchir les données
-      _fetchPrograms();
-
-      // Afficher un message de succès
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Session terminée! Poids total soulevé: ${totalWeight.toStringAsFixed(2)} kg'),
+              'Session terminée! Durée: $durationFormatted, Poids total soulevé: ${totalWeight.toStringAsFixed(2)} kg'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      // Gérer les erreurs
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -136,25 +99,8 @@ class _SessionPageState extends State<SessionPage> {
     }
   }
 
-  Future<Map<String, dynamic>> _getCurrentUserData() async {
-    if (_user == null) {
-      return {'first_name': '', 'last_name': '', 'profilePicture': ''};
-    }
-
-    DocumentSnapshot userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .get();
-    if (userDoc.exists) {
-      return userDoc.data() as Map<String, dynamic>;
-    } else {
-      return {'first_name': '', 'last_name': '', 'profilePicture': ''};
-    }
-  }
-
   void _startSession(Map<String, dynamic> program) {
     if (program['exercises'].isEmpty) {
-      // Afficher un message si le programme est vide
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -162,7 +108,7 @@ class _SessionPageState extends State<SessionPage> {
         ),
       );
     } else {
-      // Démarrer la session si des exercices sont disponibles
+      sessionStartTime = DateTime.now(); // Démarrage de la session
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -170,8 +116,8 @@ class _SessionPageState extends State<SessionPage> {
             program: program,
             userId: _user!.uid,
             onSessionComplete: () {
-              // Marquer le programme comme complété après la session
-              _markProgramAsDone(program['id']);
+              DateTime sessionEndTime = DateTime.now(); // Fin de la session
+              _markProgramAsDone(program['id'], sessionEndTime);
             },
           ),
         ),
@@ -203,7 +149,6 @@ class _SessionPageState extends State<SessionPage> {
             };
           }
 
-          // Gestion des exercices
           List<dynamic> exercisesData = data['exercises'] ?? [];
           List<Map<String, dynamic>> exercises = exercisesData
               .map((exercise) {
@@ -225,38 +170,59 @@ class _SessionPageState extends State<SessionPage> {
           };
         }).toList();
       });
-      // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView.builder(
-        itemCount: _programs.length,
-        itemBuilder: (context, index) {
-          final program = _programs[index];
-          return GestureDetector(
-            onTap: () {
-              _startSession(program);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16.0),
-                color: Colors.white,
-              ),
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(16),
-              child: ListTile(
-                title: Text(program['name'] ?? 'Programme sans nom'),
-                trailing: Checkbox(
-                  value: program['isDone'] ?? false,
-                  onChanged: null, // Rendre le Checkbox non cliquable
+      body: Container(
+        // Ajout du dégradé en arrière-plan
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromRGBO(255, 204, 0, 1.0), // Couleur en haut
+              Color.fromRGBO(255, 204, 0, 0.3), // Couleur en bas avec opacité
+            ],
+          ),
+        ),
+        child: ListView.builder(
+          itemCount: _programs.length,
+          itemBuilder: (context, index) {
+            final program = _programs[index];
+            return GestureDetector(
+              onTap: () {
+                _startSession(program);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
+                  color: Colors
+                      .white, // Vous pouvez ajuster ou rendre semi-transparent
+                ),
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(16),
+                child: ListTile(
+                  title: Text(program['name'] ?? 'Programme sans nom'),
+                  trailing: Checkbox(
+                    value: program['isDone'] ?? false,
+                    onChanged: null,
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

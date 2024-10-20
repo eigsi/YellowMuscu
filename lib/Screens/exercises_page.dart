@@ -1,3 +1,5 @@
+// ExercisesPage.dart
+
 import 'package:flutter/material.dart';
 import 'package:yellowmuscu/data/exercises_data.dart'; // Remplacez par l'import de vos données
 import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart'; // Remplacez par votre import réel
@@ -94,7 +96,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
         }).toList();
       });
     } catch (e) {
-      print('Erreur lors de la récupération des programmes : $e');
+      // Gérer les erreurs si nécessaire
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la récupération des programmes: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -372,15 +380,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
             TextButton(
               child: const Text('Ajouter'),
               onPressed: () async {
-                print('Bouton "Ajouter" dans RestTimePopup pressé');
                 final messenger = ScaffoldMessenger.of(context);
                 try {
                   await _addExerciseToProgram(
                       programIndex, exercise, restBetweenExercises);
-                  print('Exercice ajouté avec succès');
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop(); // Ferme le popup après ajout
                 } catch (e) {
-                  print('Erreur lors de l\'ajout de l\'exercice: $e');
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Erreur lors de l\'ajout de l\'exercice.'),
@@ -421,10 +427,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
             .update({
           'exercises': program['exercises'],
         });
-        print('Mise à jour Firestore réussie');
       } catch (e) {
-        print('Erreur lors de la mise à jour Firestore: $e');
-        throw e; // Propager l'erreur pour qu'elle soit capturée dans le caller
+        rethrow; // Propager l'erreur pour qu'elle soit capturée dans le caller
       }
 
       if (!mounted) return;
@@ -463,10 +467,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
             .update({
           'isFavorite': program['isFavorite'],
         });
-        print('Favori mis à jour pour ${program['name']}');
-      } catch (e) {
-        print('Erreur lors de la mise à jour du favori: $e');
-      }
+        // ignore: empty_catches
+      } catch (e) {}
 
       if (!mounted) return;
       setState(() {
@@ -494,24 +496,36 @@ class _ExercisesPageState extends State<ExercisesPage> {
             .collection('programs')
             .doc(programId)
             .delete();
-        print('Programme supprimé: ${_programs[index]['name']}');
+        // ignore: empty_catches
       } catch (e) {
-        print('Erreur lors de la suppression du programme: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la suppression: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
 
       if (!mounted) return;
       setState(() {
         _programs.removeAt(index);
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content:
+              Text('Programme "${_programs[index]['name']}" a été supprimé'),
+        ),
+      );
     }
   }
 
   // Méthode pour ajouter un nouveau programme
   void _addNewProgram(BuildContext context) {
     final TextEditingController programController = TextEditingController();
-    String? _selectedDay;
-    String? _selectedImage;
-    String? _selectedLabel;
+    String? selectedDay;
+    String? selectedImage;
+    String? selectedLabel;
 
     final List<Map<String, dynamic>> imageOptions = [
       {'name': 'Chest part', 'image': 'lib/data/icon_images/chest_part.png'},
@@ -562,14 +576,13 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       spacing: 10,
                       runSpacing: 10,
                       children: imageOptions.map((option) {
-                        final isSelected = _selectedImage == option['image'];
+                        final isSelected = selectedImage == option['image'];
                         return GestureDetector(
                           onTap: () {
                             setState(() {
-                              _selectedImage = option['image'];
-                              _selectedLabel = option['name'];
+                              selectedImage = option['image'];
+                              selectedLabel = option['name'];
                             });
-                            print('Image sélectionnée: ${option['name']}');
                           },
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -615,14 +628,14 @@ class _ExercisesPageState extends State<ExercisesPage> {
                     const SizedBox(height: 16),
                     // Sélection du jour avec message si non sélectionné
                     DropdownButtonFormField<String>(
-                      value: _selectedDay,
+                      value: selectedDay,
                       decoration: InputDecoration(
                         // Le texte change en fonction de la sélection
-                        labelText: _selectedDay == null
+                        labelText: selectedDay == null
                             ? 'Sélectionner un jour'
                             : 'Jour sélectionné',
                         labelStyle: TextStyle(
-                          color: _selectedDay == null
+                          color: selectedDay == null
                               ? Colors.red
                               : Colors
                                   .black, // Rouge si non sélectionné, noir sinon
@@ -630,14 +643,14 @@ class _ExercisesPageState extends State<ExercisesPage> {
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                             color:
-                                _selectedDay == null ? Colors.red : Colors.grey,
+                                selectedDay == null ? Colors.red : Colors.grey,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
                             color:
-                                _selectedDay == null ? Colors.red : Colors.blue,
+                                selectedDay == null ? Colors.red : Colors.blue,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
@@ -650,9 +663,8 @@ class _ExercisesPageState extends State<ExercisesPage> {
                       isExpanded: true,
                       onChanged: (String? newValue) {
                         setState(() {
-                          _selectedDay = newValue;
+                          selectedDay = newValue;
                         });
-                        print('Jour sélectionné: $newValue');
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -688,12 +700,10 @@ class _ExercisesPageState extends State<ExercisesPage> {
             TextButton(
               child: const Text('Ajouter'),
               onPressed: () async {
-                print('Bouton "Ajouter" dans AddNewProgram pressé');
                 final messenger = ScaffoldMessenger.of(context);
                 if (programController.text.isEmpty ||
-                    _selectedImage == null ||
-                    _selectedDay == null) {
-                  print('Validation échouée: champs manquants');
+                    selectedImage == null ||
+                    selectedDay == null) {
                   messenger.showSnackBar(
                     const SnackBar(
                       content: Text('Veuillez remplir tous les champs.'),
@@ -706,25 +716,22 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   final newProgram = {
                     'name': programController.text,
                     'icon':
-                        _selectedImage, // Stockage de l'image en tant que String
-                    'iconName': _selectedLabel, // Stockage du nom de l'image
-                    'day': _selectedDay,
+                        selectedImage, // Stockage de l'image en tant que String
+                    'iconName': selectedLabel, // Stockage du nom de l'image
+                    'day': selectedDay,
                     'isFavorite': false,
                     'exercises': [],
                   };
 
                   try {
-                    print('Ajout du nouveau programme à Firestore');
                     await FirebaseFirestore.instance
                         .collection('users')
                         .doc(_user!.uid)
                         .collection('programs')
                         .add(newProgram);
-                    print('Programme ajouté avec succès');
                     _fetchPrograms();
                     Navigator.of(context).pop(); // Ferme le pop-up après ajout
                   } catch (e) {
-                    print('Erreur lors de l\'ajout du programme: $e');
                     messenger.showSnackBar(
                       const SnackBar(
                         content: Text('Erreur lors de l\'ajout du programme.'),
@@ -777,7 +784,7 @@ class _ExercisesPageState extends State<ExercisesPage> {
                   Text(
                     programName,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
