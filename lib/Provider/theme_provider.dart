@@ -14,7 +14,7 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {
 });
 
 class ThemeNotifier extends StateNotifier<bool> {
-  ThemeNotifier() : super(true);
+  ThemeNotifier() : super(false);
 
   void toggleTheme(bool isDarkMode) {
     state = isDarkMode;

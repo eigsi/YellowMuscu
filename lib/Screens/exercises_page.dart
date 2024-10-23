@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yellowmuscu/Provider/theme_provider.dart';
-
 import 'package:yellowmuscu/Screens/ProgramDetailPage.dart';
 
 class ExercisesPage extends ConsumerStatefulWidget {
@@ -460,50 +459,6 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
     }
   }
 
-  void _showProgramDetail(Map<String, dynamic> program) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProgramDetailPage(
-          program: program,
-          userId: _user!.uid,
-          onUpdate: _fetchPrograms,
-        ),
-      ),
-    );
-  }
-
-  void _toggleFavorite(int index) async {
-    if (_user != null) {
-      final program = _programs[index];
-      program['isFavorite'] = !program['isFavorite'];
-
-      try {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(_user!.uid)
-            .collection('programs')
-            .doc(program['id'])
-            .update({
-          'isFavorite': program['isFavorite'],
-        });
-      } catch (e) {}
-
-      if (!mounted) return;
-      setState(() {
-        _programs.sort((a, b) {
-          if (a['isFavorite'] && !b['isFavorite']) {
-            return -1;
-          } else if (!a['isFavorite'] && b['isFavorite']) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
-      });
-    }
-  }
-
   void _deleteProgram(int index) async {
     if (_user != null) {
       final programId = _programs[index]['id'];
@@ -838,6 +793,53 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
         ],
       ),
     );
+  }
+
+  void _toggleFavorite(int index) async {
+    if (_user != null) {
+      final program = _programs[index];
+      program['isFavorite'] = !program['isFavorite'];
+
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('programs')
+            .doc(program['id'])
+            .update({
+          'isFavorite': program['isFavorite'],
+        });
+      } catch (e) {}
+
+      if (!mounted) return;
+      setState(() {
+        _programs.sort((a, b) {
+          if (a['isFavorite'] && !b['isFavorite']) {
+            return -1;
+          } else if (!a['isFavorite'] && b['isFavorite']) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+      });
+    }
+  }
+
+  void _showProgramDetail(Map<String, dynamic> program) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProgramDetailPage(
+          program: program,
+          userId: _user!.uid,
+          onUpdate: () {},
+        ),
+      ),
+    );
+    if (result == true) {
+      _fetchPrograms(); // Rafraîchit les données si des changements ont été effectués
+    }
   }
 
   @override
