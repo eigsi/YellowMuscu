@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Définir les couleurs personnalisées pour l'AppBar
 const Color appBarLightColor = Color.fromRGBO(154, 123, 24, 1.0);
 
-Color appBarDarkColor = Color.fromRGBO(66, 53, 4, 1); // Gris foncé
+Color appBarDarkColor = const Color.fromRGBO(66, 53, 4, 1); // Gris foncé
 
 // Fournisseur d'état pour le thème
 final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {

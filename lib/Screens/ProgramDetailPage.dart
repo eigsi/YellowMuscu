@@ -351,9 +351,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       int seconds = totalSeconds % 60;
       String minutesPart = '$minutes min${minutes > 1 ? 's' : ''}';
       String secondsPart = seconds > 0 ? ' $seconds sec' : '';
-      return secondsPart.isNotEmpty
-          ? '$minutesPart $secondsPart'
-          : '$minutesPart';
+      return secondsPart.isNotEmpty ? '$minutesPart $secondsPart' : minutesPart;
     }
   }
 
