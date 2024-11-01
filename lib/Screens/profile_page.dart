@@ -1,42 +1,58 @@
 // profile_page.dart
 
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+// Importation des packages nécessaires pour Flutter et Firebase
+import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
+import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
+import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore
 
+// Définition de la classe ProfilePage, un StatefulWidget pour afficher et modifier le profil utilisateur
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
+  // Création de l'état associé à la classe ProfilePage
   _ProfilePageState createState() => _ProfilePageState();
 }
 
+// État associé à la classe ProfilePage
 class _ProfilePageState extends State<ProfilePage> {
+  // Instance de FirebaseAuth pour gérer l'authentification
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user;
-  bool _isEditing = false;
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _birthdateController = TextEditingController();
-  DateTime? _selectedBirthdate;
-  String _selectedProfilePicture = '';
-  List<Map<String, dynamic>> _allUsers = [];
-  List<dynamic> _friends = [];
-  List<dynamic> _sentRequests = [];
-  List<String> _receivedRequests = [];
+  User? _user; // Variable pour stocker l'utilisateur actuellement connecté
+  bool _isEditing = false; // Indique si le mode édition est activé
+
+  // Contrôleurs pour gérer les entrées de texte dans les TextFields
+  final TextEditingController _lastNameController =
+      TextEditingController(); // Contrôleur pour le nom de famille
+  final TextEditingController _firstNameController =
+      TextEditingController(); // Contrôleur pour le prénom
+  final TextEditingController _weightController =
+      TextEditingController(); // Contrôleur pour le poids
+  final TextEditingController _heightController =
+      TextEditingController(); // Contrôleur pour la taille
+  final TextEditingController _birthdateController =
+      TextEditingController(); // Contrôleur pour la date de naissance
+
+  DateTime?
+      _selectedBirthdate; // Variable pour stocker la date de naissance sélectionnée
+  String _selectedProfilePicture = ''; // URL de la photo de profil sélectionnée
+
+  // Listes pour stocker les données des utilisateurs, amis, et demandes d'amis
+  List<Map<String, dynamic>> _allUsers = []; // Liste de tous les utilisateurs
+  List<dynamic> _friends = []; // Liste des amis de l'utilisateur
+  List<dynamic> _sentRequests = []; // Liste des demandes d'amis envoyées
+  List<String> _receivedRequests = []; // Liste des demandes d'amis reçues
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser;
+    _user = _auth.currentUser; // Récupère l'utilisateur actuellement connecté
     if (_user != null) {
-      _fetchUserData();
-      _fetchReceivedFriendRequests();
+      _fetchUserData(); // Récupère les données de l'utilisateur depuis Firestore
+      _fetchReceivedFriendRequests(); // Récupère les demandes d'amis reçues
     }
 
+    // Affiche un message si passé en paramètre lors de la navigation vers cette page
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final message = ModalRoute.of(context)?.settings.arguments as String?;
       if (message != null) {
@@ -50,21 +66,24 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  // Méthode pour récupérer les données de l'utilisateur depuis Firestore
   void _fetchUserData() async {
     DocumentSnapshot userData = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .get();
+        .collection('users') // Accède à la collection 'users' dans Firestore
+        .doc(_user!.uid) // Récupère le document de l'utilisateur actuel
+        .get(); // Obtient les données du document
 
     if (userData.exists) {
       Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
       setState(() {
+        // Met à jour les contrôleurs avec les données récupérées
         _lastNameController.text = data['last_name'] ?? '';
         _firstNameController.text = data['first_name'] ?? '';
         _weightController.text = data['weight'] ?? '';
         _heightController.text = data['height'] ?? '';
         _selectedProfilePicture = data['profilePicture'] ?? '';
 
+        // Gère la date de naissance
         if (data['birthdate'] != null &&
             data['birthdate'].toString().isNotEmpty) {
           _selectedBirthdate = DateTime.parse(data['birthdate']);
@@ -75,12 +94,14 @@ class _ProfilePageState extends State<ProfilePage> {
           _birthdateController.text = '';
         }
 
+        // Récupère la liste des amis et des demandes envoyées
         _friends = data['friends'] ?? [];
         _sentRequests = data['sentRequests'] ?? [];
       });
     }
   }
 
+  // Méthode pour récupérer les demandes d'amis reçues
   void _fetchReceivedFriendRequests() async {
     if (_user == null) return;
 
@@ -101,6 +122,7 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  // Méthode pour obtenir les données de l'utilisateur actuel
   Future<Map<String, dynamic>> _getCurrentUserData() async {
     if (_user == null) {
       return {'last_name': '', 'first_name': '', 'profilePicture': ''};
@@ -117,17 +139,18 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Méthode pour envoyer une demande d'ami
   void _sendFriendRequest(String friendId) async {
     if (_user == null) return;
 
-    // Récupérer le nom complet et la photo de profil de l'utilisateur actuel
+    // Récupère les données de l'utilisateur actuel
     Map<String, dynamic> currentUserData = await _getCurrentUserData();
     String fromUserName =
         '${currentUserData['last_name'] ?? ''} ${currentUserData['first_name'] ?? ''}'
             .trim();
     String fromUserProfilePicture = currentUserData['profilePicture'] ?? '';
 
-    // Vérifier si une demande a déjà été envoyée
+    // Vérifie si une demande a déjà été envoyée
     if (_sentRequests.contains(friendId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -139,7 +162,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    // Vérifier si une demande a été reçue de cet utilisateur
+    // Vérifie si une demande a été reçue de cet utilisateur
     if (_receivedRequests.contains(friendId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -151,7 +174,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    // Ajouter la demande à la collection 'notifications' de l'utilisateur cible
+    // Ajoute la demande à la collection 'notifications' de l'utilisateur cible
     await FirebaseFirestore.instance
         .collection('users')
         .doc(friendId)
@@ -164,7 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // Mettre à jour la liste des demandes envoyées
+    // Met à jour la liste des demandes envoyées de l'utilisateur actuel
     await FirebaseFirestore.instance
         .collection('users')
         .doc(_user!.uid)
@@ -176,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _sentRequests.add(friendId);
     });
 
-    // Afficher un message de succès
+    // Affiche un message de succès
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Demande d\'ami envoyée'),
@@ -185,13 +208,15 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Méthode pour enregistrer les modifications du profil
   void _saveProfile() async {
-    // Validations
+    // Récupère et valide les valeurs des champs
     String lastName = _lastNameController.text.trim();
     String firstName = _firstNameController.text.trim();
     int? weight = int.tryParse(_weightController.text.trim());
     int? height = int.tryParse(_heightController.text.trim());
 
+    // Validations des champs
     if (lastName.length > 15) {
       _showError('Le nom ne doit pas dépasser 15 caractères.');
       return;
@@ -213,6 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     if (_user != null) {
+      // Met à jour les données de l'utilisateur dans Firestore
       await FirebaseFirestore.instance.collection('users').doc(_user!.uid).set({
         'last_name': lastName,
         'first_name': firstName,
@@ -225,9 +251,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (mounted) {
         setState(() {
-          _isEditing = false;
+          _isEditing = false; // Désactive le mode édition
         });
-        // Fetch updated data
+        // Rafraîchit les données de l'utilisateur
         _fetchUserData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -239,6 +265,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Méthode pour afficher un message d'erreur
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -248,6 +275,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Méthode pour déconnecter l'utilisateur
   void _signOut() async {
     await _auth.signOut();
     if (mounted) {
@@ -255,12 +283,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // Méthode pour basculer le mode édition
   void _toggleEditing() {
     setState(() {
       _isEditing = !_isEditing;
     });
   }
 
+  // Widget pour afficher la section "Ajouter des amis"
   Widget _buildAddFriendsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,10 +360,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Widget pour construire l'affichage du profil
   Widget _buildProfile() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Affichage de la photo de profil
         CircleAvatar(
           backgroundImage: NetworkImage(_selectedProfilePicture.isNotEmpty
               ? _selectedProfilePicture
@@ -341,8 +373,10 @@ class _ProfilePageState extends State<ProfilePage> {
           radius: 50,
         ),
         const SizedBox(height: 16),
+        // Affichage des champs du profil ou des champs éditables selon le mode
         _isEditing ? _buildEditableFields() : _buildDisplayFields(),
         const SizedBox(height: 16),
+        // Boutons pour modifier le profil, enregistrer ou se déconnecter
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -370,11 +404,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
           ],
         ),
+        // Affiche la section "Ajouter des amis" si le mode édition est désactivé
         if (!_isEditing) _buildAddFriendsSection(),
       ],
     );
   }
 
+  // Widget pour afficher les champs du profil en mode affichage
   Widget _buildDisplayFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,42 +438,49 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Widget pour afficher les champs du profil en mode édition
   Widget _buildEditableFields() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Champ pour le nom
         TextField(
           controller: _lastNameController,
           decoration: const InputDecoration(labelText: 'Nom'),
           maxLength: 15,
         ),
         const SizedBox(height: 8),
+        // Champ pour le prénom
         TextField(
           controller: _firstNameController,
           decoration: const InputDecoration(labelText: 'Prénom'),
           maxLength: 15,
         ),
         const SizedBox(height: 8),
+        // Champ pour le poids
         TextField(
           controller: _weightController,
           decoration: const InputDecoration(labelText: 'Poids (kg)'),
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 8),
+        // Champ pour la taille
         TextField(
           controller: _heightController,
           decoration: const InputDecoration(labelText: 'Taille (cm)'),
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 8),
+        // Champ pour la date de naissance avec un sélecteur de date
         TextField(
           controller: _birthdateController,
           decoration: const InputDecoration(labelText: 'Date de naissance'),
-          readOnly: true,
+          readOnly: true, // Rend le champ non modifiable manuellement
           onTap: () async {
+            // Ouvre un sélecteur de date lorsque le champ est tapé
             FocusScope.of(context).requestFocus(FocusNode());
-            DateTime initialDate =
-                DateTime.now().subtract(const Duration(days: 365 * 20));
+            DateTime initialDate = DateTime.now()
+                .subtract(const Duration(days: 365 * 20)); // Date par défaut
             if (_selectedBirthdate != null) {
               initialDate = _selectedBirthdate!;
             }
@@ -457,6 +500,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 16),
         const Text('Photo de profil :', style: TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
+        // Options pour sélectionner une photo de profil
         Stack(
           children: [
             SingleChildScrollView(
@@ -493,6 +537,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Widget pour afficher une option de photo de profil
   Widget _buildProfilePictureOption(String imageUrl) {
     return GestureDetector(
       onTap: () {
@@ -520,11 +565,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  // Widget pour afficher l'écran de connexion si l'utilisateur n'est pas connecté
   Widget _buildSignIn() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Bouton pour se connecter
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/signIn');
@@ -534,6 +581,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: const Text('Se connecter'),
           ),
+          // Bouton pour créer un compte
           ElevatedButton(
             onPressed: () {
               Navigator.pushNamed(context, '/signUp');
@@ -552,7 +600,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Background Gradient
+        // Dégradé de fond
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

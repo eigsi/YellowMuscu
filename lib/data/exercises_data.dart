@@ -51,7 +51,7 @@ class ExercisesData {
     {
       'name': 'Lying Cable Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/curl-allonge-a-la-poulie-biceps-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-allonge-a-la-poulie-biceps-musculation.gif',
       'description':
           'A variation of the classic curl, performed lying down to maintain strict form and maximize bicep activation.',
       'goals':
@@ -60,7 +60,7 @@ class ExercisesData {
     {
       'name': 'EZ Bar Preacher Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/curl-au-pupitre-barre-ez-larry-scott-musculation-biceps.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-au-pupitre-barre-ez-larry-scott-musculation-biceps.gif',
       'description':
           'Also known as the Larry Scott curl, this exercise isolates the biceps and ensures full contraction, targeting the lower part of the biceps.',
       'goals':
@@ -69,7 +69,7 @@ class ExercisesData {
     {
       'name': 'Concentration Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/curl-concentre-avec-halteres-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-concentre-avec-halteres-musculation.gif',
       'description':
           'This exercise isolates one arm at a time, allowing for a focused contraction and superior isolation of the bicep.',
       'goals':
@@ -78,7 +78,7 @@ class ExercisesData {
     {
       'name': 'Barbell Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/curl-biceps-a-la-barre-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-a-la-barre-musculation.gif',
       'description':
           'A fundamental biceps exercise, the barbell curl targets both heads of the biceps and allows for the use of heavier loads.',
       'goals':
@@ -87,7 +87,7 @@ class ExercisesData {
     {
       'name': 'Band Biceps Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/curl-biceps-avec-elastique-musculation-biceps.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-avec-elastique-musculation-biceps.gif',
       'description':
           'Using resistance bands, this exercise mimics the traditional curl while providing constant tension throughout the movement.',
       'goals':

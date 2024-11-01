@@ -1,20 +1,22 @@
 // main_page.dart
 
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:yellowmuscu/Screens/session_page.dart';
-import 'package:yellowmuscu/main_page/streaks_widget.dart';
-import 'package:yellowmuscu/screens/profile_page.dart';
-import 'package:yellowmuscu/screens/statistics_page.dart';
-import 'package:yellowmuscu/screens/exercises_page.dart';
-import 'package:yellowmuscu/Screens/app_bar_widget.dart';
-import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart';
-import 'package:yellowmuscu/main_page/like_item_widget.dart';
-import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yellowmuscu/Provider/theme_provider.dart';
+// Importation des packages nécessaires pour Flutter et Firebase
+import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
+import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
+import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore
+import 'package:yellowmuscu/Screens/session_page.dart'; // Page de session de l'application YellowMuscu
+import 'package:yellowmuscu/main_page/streaks_widget.dart'; // Widget personnalisé pour afficher les séries (streaks)
+import 'package:yellowmuscu/screens/profile_page.dart'; // Page de profil utilisateur
+import 'package:yellowmuscu/screens/statistics_page.dart'; // Page de statistiques utilisateur
+import 'package:yellowmuscu/screens/exercises_page.dart'; // Page des exercices
+import 'package:yellowmuscu/Screens/app_bar_widget.dart'; // Widget personnalisé pour la barre d'application
+import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart'; // Widget personnalisé pour la barre de navigation inférieure
+import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Widget personnalisé pour afficher les éléments likés
+import 'dart:async'; // Pour utiliser les objets Timer et gérer l'asynchronisme
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
 
+// Classe principale de la page, qui est un ConsumerStatefulWidget pour utiliser Riverpod
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
@@ -22,13 +24,15 @@ class MainPage extends ConsumerStatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
+// État associé à la classe MainPage
 class _MainPageState extends ConsumerState<MainPage> {
-  int _selectedIndex = 0;
-  String? _userId;
+  int _selectedIndex =
+      0; // Index de l'onglet sélectionné dans la barre de navigation
+  String? _userId; // Identifiant de l'utilisateur actuel
 
-  List<Map<String, dynamic>> likesData = [];
+  List<Map<String, dynamic>> likesData = []; // Liste des données des likes
 
-  // Mapping des jours de la semaine en français
+  // Liste des jours de la semaine en français
   final List<String> _daysOfWeek = [
     'Lundi',
     'Mardi',
@@ -42,24 +46,28 @@ class _MainPageState extends ConsumerState<MainPage> {
   @override
   void initState() {
     super.initState();
-    _getCurrentUser();
+    _getCurrentUser(); // Appel pour récupérer l'utilisateur actuel lors de l'initialisation
   }
 
+  // Méthode pour obtenir l'utilisateur actuel connecté via Firebase Auth
   void _getCurrentUser() {
-    User? user = FirebaseAuth.instance.currentUser;
+    User? user =
+        FirebaseAuth.instance.currentUser; // Récupère l'utilisateur courant
     if (user != null) {
       setState(() {
-        _userId = user.uid;
-        _fetchFriendsEvents();
+        _userId = user.uid; // Stocke l'ID de l'utilisateur
+        _fetchFriendsEvents(); // Récupère les événements des amis de l'utilisateur
       });
     }
   }
 
+  // Méthode pour récupérer les événements des amis de l'utilisateur
   void _fetchFriendsEvents() async {
-    if (_userId == null) return;
+    if (_userId == null)
+      return; // Si l'utilisateur n'est pas connecté, ne rien faire
 
     try {
-      // Récupérer le document utilisateur
+      // Récupérer le document de l'utilisateur actuel depuis Firestore
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_userId)
@@ -67,6 +75,7 @@ class _MainPageState extends ConsumerState<MainPage> {
 
       // Vérifier si le document existe
       if (!userDoc.exists) {
+        // Afficher un message d'erreur si l'utilisateur n'existe pas
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Utilisateur non trouvé.'),
@@ -76,12 +85,12 @@ class _MainPageState extends ConsumerState<MainPage> {
         return;
       }
 
-      // Vérifier si le champ 'friends' existe et est une liste
+      // Récupérer la liste des amis de l'utilisateur
       List<dynamic> friends = [];
       if (userDoc.data() != null) {
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
         if (data.containsKey('friends') && data['friends'] is List) {
-          friends = data['friends'];
+          friends = data['friends']; // Liste des IDs des amis
         }
       }
 
@@ -91,6 +100,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       Map<String, Map<String, dynamic>> friendsData = {};
 
       for (String friendId in friends) {
+        // Pour chaque ami, récupérer ses données
         Map<String, dynamic> friendData = await _getUserData(friendId);
         friendsData[friendId] = friendData;
       }
@@ -99,6 +109,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       List<Map<String, dynamic>> events = [];
 
       for (String friendId in friends) {
+        // Récupérer les événements de l'ami depuis sa collection 'events' dans Firestore
         QuerySnapshot<Map<String, dynamic>> eventsSnapshot =
             await FirebaseFirestore.instance
                 .collection('users')
@@ -136,17 +147,17 @@ class _MainPageState extends ConsumerState<MainPage> {
         }
       }
 
-      // Trier les événements par date décroissante
+      // Trier les événements par date décroissante (plus récents en premier)
       events.sort((a, b) =>
           (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
       print('Nombre total d\'événements récupérés: ${events.length}');
 
       setState(() {
-        likesData = events;
+        likesData = events; // Mettre à jour la liste des événements likés
       });
     } catch (e) {
-      // Gérer les erreurs
+      // Gérer les erreurs en affichant un message à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la récupération des événements: $e'),
@@ -157,7 +168,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  /// Fonction pour récupérer le nom complet et la photo de profil d'un utilisateur
+  /// Fonction pour récupérer les données d'un utilisateur (nom complet et photo de profil)
   Future<Map<String, dynamic>> _getUserData(String userId) async {
     DocumentSnapshot userDoc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -170,6 +181,7 @@ class _MainPageState extends ConsumerState<MainPage> {
             'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg',
       };
     } else {
+      // Si l'utilisateur n'existe pas, retourner des valeurs par défaut
       return {
         'last_name': 'Inconnu',
         'first_name': 'Utilisateur',
@@ -181,7 +193,8 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   // Méthode pour liker un événement
   void _likeEvent(Map<String, dynamic> event) async {
-    if (_userId == null) return;
+    if (_userId == null)
+      return; // Si l'utilisateur n'est pas connecté, ne rien faire
 
     try {
       // Récupérer les informations nécessaires de l'événement
@@ -210,7 +223,7 @@ class _MainPageState extends ConsumerState<MainPage> {
         'likes': FieldValue.arrayUnion([_userId])
       });
 
-      // Ajouter une notification à l'ami
+      // Ajouter une notification à l'ami pour l'informer du like
       Map<String, dynamic> currentUserData = await _getUserData(_userId!);
       String fromUserName =
           '${currentUserData['last_name']} ${currentUserData['first_name']}'
@@ -236,7 +249,7 @@ class _MainPageState extends ConsumerState<MainPage> {
         'description': notificationDescription,
       });
 
-      // Mettre à jour l'interface utilisateur
+      // Mettre à jour l'interface utilisateur en rafraîchissant les événements
       _fetchFriendsEvents();
 
       // Afficher un message de succès
@@ -247,7 +260,7 @@ class _MainPageState extends ConsumerState<MainPage> {
         ),
       );
     } catch (e) {
-      // Gérer les erreurs
+      // Gérer les erreurs en affichant un message à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur: $e'),
@@ -260,9 +273,11 @@ class _MainPageState extends ConsumerState<MainPage> {
   // Méthode pour construire la section de résumé du programme
   Widget _buildProgramSummarySection() {
     if (_userId == null) {
+      // Si l'utilisateur n'est pas connecté, afficher un message
       return const Text('Veuillez vous connecter pour voir vos programmes.');
     }
 
+    // Utilise un StreamBuilder pour écouter les changements dans la collection 'programs' de l'utilisateur
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -272,16 +287,19 @@ class _MainPageState extends ConsumerState<MainPage> {
       builder: (BuildContext context,
           AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          // Affiche un indicateur de progression pendant le chargement
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
+          // Affiche un message en cas d'erreur
           return const Text('Erreur de chargement des programmes.');
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          // Si aucun programme n'est disponible
           return const Text('Aucun programme disponible.');
         }
 
-        // Convertir les documents en liste de maps
+        // Convertir les documents en une liste de maps
         List<Map<String, dynamic>> programs = snapshot.data!.docs.map((doc) {
           Map<String, dynamic> data = doc.data();
 
@@ -296,13 +314,14 @@ class _MainPageState extends ConsumerState<MainPage> {
           };
         }).toList();
 
-        // Déterminer le prochain programme
+        // Déterminer le prochain programme à venir
         Map<String, dynamic>? nextProgram = _getNextProgram(programs);
 
         if (nextProgram == null) {
           return const Text('Aucun programme programmé pour le moment.');
         }
 
+        // Retourne le widget affichant le résumé du prochain programme
         return NextProgramSummary(
           program: nextProgram,
           daysOfWeek: _daysOfWeek,
@@ -319,7 +338,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     // Filtrer les programmes dont le jour est après le jour actuel
     List<Map<String, dynamic>> futurePrograms = programs.where((program) {
       int programDayIndex = _daysOfWeek.indexOf(program['day']) + 1; // 1-7
-      return programDayIndex > currentWeekday;
+      return programDayIndex >= currentWeekday;
     }).toList();
 
     if (futurePrograms.isNotEmpty) {
@@ -334,7 +353,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       // Si aucun programme n'est après aujourd'hui, retourner le premier programme de la semaine suivante
       return programs.first;
     } else {
-      return null;
+      return null; // Aucun programme disponible
     }
   }
 
@@ -345,7 +364,8 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   // Méthode pour construire la section des likes
   Widget _buildLikesSection() {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode =
+        ref.watch(themeProvider); // Vérifie si le thème sombre est activé
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -353,7 +373,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       decoration: BoxDecoration(
         color: isDarkMode
             ? Colors.black54
-            : Colors.white, // Fond noir54 en mode sombre
+            : Colors.white, // Couleur de fond en fonction du thème
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
@@ -366,6 +386,7 @@ class _MainPageState extends ConsumerState<MainPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Titre de la section
           Text(
             'Activités de vos amis',
             style: TextStyle(
@@ -375,6 +396,7 @@ class _MainPageState extends ConsumerState<MainPage> {
             ),
           ),
           const SizedBox(height: 10),
+          // Affichage des activités
           likesData.isEmpty
               ? Text(
                   'Aucune activité récente.',
@@ -453,11 +475,14 @@ class _MainPageState extends ConsumerState<MainPage> {
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 children: [
-                  _buildNextProgramSummary(),
+                  _buildNextProgramSummary(), // Affiche le prochain programme
                   const SizedBox(height: 16),
-                  if (_userId != null) StreaksWidget(userId: _userId!),
+                  if (_userId != null)
+                    StreaksWidget(
+                        userId:
+                            _userId!), // Affiche le widget des séries si l'utilisateur est connecté
                   const SizedBox(height: 16),
-                  _buildLikesSection(),
+                  _buildLikesSection(), // Affiche la section des likes
                   const SizedBox(height: 16),
                 ],
               ),
@@ -472,6 +497,7 @@ class _MainPageState extends ConsumerState<MainPage> {
   Widget build(BuildContext context) {
     Widget currentPage;
 
+    // Détermine quelle page afficher en fonction de l'index sélectionné
     switch (_selectedIndex) {
       case 0:
         currentPage = _buildHomePage();
@@ -497,16 +523,16 @@ class _MainPageState extends ConsumerState<MainPage> {
     return Scaffold(
       backgroundColor: isDarkMode
           ? Colors.grey[900]
-          : Colors.white, // Fond en fonction du thème
-      body: currentPage,
-      appBar: const AppBarWidget(),
+          : Colors.white, // Couleur de fond en fonction du thème
+      body: currentPage, // Affiche la page actuelle
+      appBar: const AppBarWidget(), // Barre d'application personnalisée
       bottomNavigationBar: BottomNavBarWidget(
         selectedIndex: _selectedIndex,
         onItemTapped: (int index) {
           setState(() {
             _selectedIndex = index;
             if (_selectedIndex == 0) {
-              _fetchFriendsEvents();
+              _fetchFriendsEvents(); // Rafraîchit les événements si l'onglet Accueil est sélectionné
             }
           });
         },
@@ -517,8 +543,8 @@ class _MainPageState extends ConsumerState<MainPage> {
 
 /// Widget pour afficher le résumé du prochain programme avec compte à rebours
 class NextProgramSummary extends ConsumerStatefulWidget {
-  final Map<String, dynamic> program;
-  final List<String> daysOfWeek;
+  final Map<String, dynamic> program; // Le programme à afficher
+  final List<String> daysOfWeek; // Liste des jours de la semaine
 
   const NextProgramSummary({
     super.key,
@@ -531,22 +557,25 @@ class NextProgramSummary extends ConsumerStatefulWidget {
 }
 
 class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
-  late DateTime _nextProgramDateTime;
-  late Duration _timeRemaining;
-  Timer? _timer;
+  late DateTime _nextProgramDateTime; // Date et heure du prochain programme
+  late Duration _timeRemaining; // Temps restant avant le programme
+  Timer? _timer; // Timer pour le compte à rebours
 
   @override
   void initState() {
     super.initState();
-    _nextProgramDateTime = _calculateNextProgramDateTime();
-    _timeRemaining = _nextProgramDateTime.difference(DateTime.now());
-    _startCountdown();
+    _nextProgramDateTime =
+        _calculateNextProgramDateTime(); // Calcule la date du prochain programme
+    _timeRemaining = _nextProgramDateTime
+        .difference(DateTime.now()); // Calcule le temps restant
+    _startCountdown(); // Démarre le compte à rebours
   }
 
   @override
   void didUpdateWidget(covariant NextProgramSummary oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.program['day'] != widget.program['day']) {
+      // Si le jour du programme a changé, recalculer les dates
       _nextProgramDateTime = _calculateNextProgramDateTime();
       _timeRemaining = _nextProgramDateTime.difference(DateTime.now());
       _timer?.cancel();
@@ -556,7 +585,7 @@ class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _timer?.cancel(); // Annule le timer lors de la destruction du widget
     super.dispose();
   }
 
@@ -628,8 +657,8 @@ class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: isDarkMode
-            ? Colors.black54 // Utiliser Colors.black54 en mode sombre
-            : Colors.white, // Utiliser Colors.white en mode clair
+            ? Colors.black54 // Couleur de fond en mode sombre
+            : Colors.white, // Couleur de fond en mode clair
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
