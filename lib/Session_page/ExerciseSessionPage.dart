@@ -226,6 +226,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: isSaving
+                              // ignore: dead_code
                               ? null // Désactive le bouton si l'enregistrement est en cours
                               : () async {
                                   setStateLocal(() {
