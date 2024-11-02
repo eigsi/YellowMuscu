@@ -1,7 +1,8 @@
-// ExerciseSessionPage.dart
+// exercise_session_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 
 class ExerciseSessionPage extends StatefulWidget {
   final Map<String, dynamic> program;
@@ -9,11 +10,11 @@ class ExerciseSessionPage extends StatefulWidget {
   final VoidCallback onSessionComplete;
 
   const ExerciseSessionPage({
-    super.key,
+    Key? key,
     required this.program,
     required this.userId,
     required this.onSessionComplete,
-  });
+  }) : super(key: key); // Utilisation correcte de super.key
 
   @override
   _ExerciseSessionPageState createState() => _ExerciseSessionPageState();
@@ -34,14 +35,16 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   void initState() {
     super.initState();
     _currentExercise = widget.program['exercises'][_currentExerciseIndex];
-    _restTimeBetweenExercises = _currentExercise['restBetweenExercises'] ?? 60;
-    _restTimeBetweenSets = _currentExercise['restTime'] ?? 60;
+    _restTimeBetweenExercises =
+        (_currentExercise['restBetweenExercises'] as int?) ?? 60;
+    _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
     _timerSeconds = _restTimeBetweenSets;
   }
 
   void _startTimer() {
     if (_isResting && _isTimerRunning) {
       Future.delayed(const Duration(seconds: 1), () {
+        if (!mounted) return; // Vérifie si le widget est toujours monté
         if (_isTimerRunning && _timerSeconds > 0) {
           setState(() {
             _timerSeconds--;
@@ -80,7 +83,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   }
 
   void _completeSet() {
-    if (_currentSet < _currentExercise['sets'] - 1) {
+    if (_currentSet < (_currentExercise['sets']?.toInt() ?? 3) - 1) {
       setState(() {
         _currentSet++;
         _isResting = true;
@@ -89,7 +92,8 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
       });
       _startTimer();
     } else {
-      if (_currentExerciseIndex < widget.program['exercises'].length - 1) {
+      if (_currentExerciseIndex <
+          (widget.program['exercises']?.length ?? 0) - 1) {
         setState(() {
           _currentSet = 0;
           _isResting = true;
@@ -110,8 +114,8 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
       _currentExerciseIndex++;
       _currentExercise = widget.program['exercises'][_currentExerciseIndex];
       _restTimeBetweenExercises =
-          _currentExercise['restBetweenExercises'] ?? 60;
-      _restTimeBetweenSets = _currentExercise['restTime'] ?? 60;
+          (_currentExercise['restBetweenExercises'] as int?) ?? 60;
+      _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
       _currentSet = 0;
       _isResting = false;
       _isBetweenExercises = false;
@@ -129,33 +133,36 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
     await showDialog(
       context: context,
       barrierDismissible:
-          false, // L'utilisateur doit appuyer sur "Valider" ou "Fermer"
+          false, // L'utilisateur doit appuyer sur "Enregistrer" pour fermer
       builder: (context) {
-        return Dialog(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.yellow.shade200, Colors.yellow.shade600],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Des progrès ?',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    StatefulBuilder(
-                      builder: (context, setState) {
-                        return ListView.builder(
+        return StatefulBuilder(
+          builder: (context, setStateLocal) {
+            bool isSaving =
+                false; // Indicateur pour empêcher les clics multiples
+
+            return Dialog(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.yellow.shade200, Colors.yellow.shade600],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Des progrès ?',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 16),
+                        ListView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: localExercises.length,
@@ -163,7 +170,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                             Map<String, dynamic> exercise =
                                 localExercises[index];
                             if (exercise['weight'] == null) {
-                              exercise['weight'] = 0;
+                              exercise['weight'] = 0.0;
                             }
                             return Container(
                               decoration: BoxDecoration(
@@ -179,152 +186,245 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
-                                    child: Text(exercise['name'] ?? ''),
+                                    child: Text(
+                                      exercise['name'] ?? '',
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500),
+                                    ),
                                   ),
                                   Row(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.remove),
+                                        icon: const Icon(Icons.edit),
                                         onPressed: () {
-                                          setState(() {
-                                            if (exercise['weight'] > 0) {
-                                              exercise['weight'] -= 1;
-                                            }
-                                          });
+                                          _showDecimalInputPicker(
+                                            context,
+                                            'Poids (kg)',
+                                            exercise['weight'].toDouble(),
+                                            0.0,
+                                            500.0,
+                                            0.5,
+                                            (newWeight) {
+                                              setStateLocal(() {
+                                                localExercises[index]
+                                                    ['weight'] = newWeight;
+                                              });
+                                            },
+                                          );
                                         },
                                       ),
-                                      Text('${exercise['weight']} kg'),
-                                      IconButton(
-                                        icon: const Icon(Icons.add),
-                                        onPressed: () {
-                                          setState(() {
-                                            exercise['weight'] += 1;
-                                          });
-                                        },
-                                      ),
+                                      Text(
+                                          '${exercise['weight'].toStringAsFixed(1)} kg'),
                                     ],
                                   ),
                                 ],
                               ),
                             );
                           },
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            // Mettre à jour les poids dans le programme
-                            for (int i = 0; i < localExercises.length; i++) {
-                              widget.program['exercises'][i]['weight'] =
-                                  localExercises[i]['weight'];
-                            }
-
-                            // Mettre à jour la base de données avec les nouveaux poids
-                            await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(widget.userId)
-                                .collection('programs')
-                                .doc(widget.program['id'])
-                                .update({
-                              'exercises': widget.program['exercises'],
-                              'isDone': true,
-                            });
-
-                            widget.onSessionComplete();
-
-                            // Appeler la méthode pour mettre à jour le streak
-                            await _checkAndUpdateStreak();
-
-                            Navigator.of(context)
-                                .pop(); // Fermer le popup "Des progrès ?"
-                            _showCongratulationDialog();
-                          },
-                          child: const Text('Valider'),
                         ),
+                        const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Fermer le popup
-                            // Utiliser Future.delayed pour s'assurer que le popup est fermé avant de naviguer
-                            Future.delayed(Duration.zero, () {
-                              Navigator.of(context)
-                                  .pop(); // Retourner à la page ExercicePage
-                            });
-                          },
+                          onPressed: isSaving
+                              ? null // Désactive le bouton si l'enregistrement est en cours
+                              : () async {
+                                  setStateLocal(() {
+                                    isSaving =
+                                        true; // Indique que l'enregistrement a commencé
+                                  });
+
+                                  // Mettre à jour les poids dans le programme
+                                  for (int i = 0;
+                                      i < localExercises.length;
+                                      i++) {
+                                    widget.program['exercises'][i]['weight'] =
+                                        localExercises[i]['weight'];
+                                  }
+
+                                  bool success = false; // Indicateur de succès
+
+                                  try {
+                                    // Mettre à jour la base de données avec les nouveaux poids
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(widget.userId)
+                                        .collection('programs')
+                                        .doc(widget.program['id'])
+                                        .update({
+                                      'exercises': widget.program['exercises'],
+                                      'isDone': true,
+                                    });
+
+                                    // Appeler la méthode pour mettre à jour le streak
+                                    await _checkAndUpdateStreak();
+
+                                    success = true; // Opération réussie
+                                  } catch (e) {
+                                    // Gérer les erreurs de mise à jour
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('Erreur: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setStateLocal(() {
+                                        isSaving =
+                                            false; // Réinitialise l'indicateur
+                                      });
+                                    }
+                                  }
+
+                                  if (success && mounted) {
+                                    // Fermer le popup "Des progrès ?"
+                                    Navigator.of(context)
+                                        .pop(); // Fermer le popup
+
+                                    // Naviguer vers l'écran "session de base"
+                                    Navigator.of(context)
+                                        .pop(); // Fermer ExerciseSessionPage
+
+                                    // Afficher un message de succès
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Séance terminée, félicitations!'),
+                                      ),
+                                    );
+
+                                    // Appeler la fonction de rappel pour notifier que la session est complétée
+                                    widget.onSessionComplete();
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors
-                                .grey, // Optionnel: changer la couleur du bouton
+                            minimumSize:
+                                const Size.fromHeight(50), // Hauteur du bouton
                           ),
-                          child: const Text('Fermer'),
+                          child: isSaving
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Enregistrer',
+                                  style: TextStyle(fontSize: 18),
+                                ),
                         ),
+                        const SizedBox(height: 16),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
   }
 
+  // Définir la méthode _checkAndUpdateStreak avant son utilisation
   Future<void> _checkAndUpdateStreak() async {
-    // Vérifier si toutes les séances de la semaine sont terminées
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .collection('programs')
-        .get();
-
-    bool allProgramsDone = snapshot.docs.every((doc) => doc['isDone'] == true);
-
-    if (allProgramsDone) {
-      // Récupérer la dernière date de streak
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+    try {
+      // Vérifier si toutes les séances de la semaine sont terminées
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
+          .collection('programs')
           .get();
 
-      DateTime lastStreakDate =
-          userDoc['lastStreakDate']?.toDate() ?? DateTime.now();
+      bool allProgramsDone =
+          snapshot.docs.every((doc) => doc['isDone'] == true);
 
-      // Si le dernier streak date d'hier, incrémenter le compteur
-      if (DateTime.now().difference(lastStreakDate).inDays == 1) {
-        await FirebaseFirestore.instance
+      if (allProgramsDone) {
+        // Récupérer la dernière date de streak
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(widget.userId)
-            .update({
-          'streakCount': FieldValue.increment(1),
-          'lastStreakDate': Timestamp.now(),
-        });
-      } else if (DateTime.now().difference(lastStreakDate).inDays > 1) {
-        // Réinitialiser le compteur si plus d'un jour est passé
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .update({
-          'streakCount': 1,
-          'lastStreakDate': Timestamp.now(),
-        });
+            .get();
+
+        DateTime lastStreakDate;
+        if (userDoc.exists &&
+            userDoc.data() != null &&
+            (userDoc.data() as Map<String, dynamic>)
+                .containsKey('lastStreakDate') &&
+            (userDoc.data() as Map<String, dynamic>)['lastStreakDate'] !=
+                null) {
+          Timestamp lastStreakTimestamp =
+              (userDoc.data() as Map<String, dynamic>)['lastStreakDate'];
+          lastStreakDate = lastStreakTimestamp.toDate();
+        } else {
+          // Si 'lastStreakDate' n'existe pas, initialiser
+          lastStreakDate = DateTime.now();
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.userId)
+              .update({
+            'streakCount': 1,
+            'lastStreakDate': Timestamp.now(),
+          });
+          return; // Sortir tôt car streak est initialisé
+        }
+
+        // Obtenir la date actuelle sans l'heure
+        DateTime today = DateTime.now();
+        DateTime todayDate = DateTime(today.year, today.month, today.day);
+
+        // Obtenir la date de la dernière streak sans l'heure
+        DateTime lastStreakDateOnly = DateTime(
+            lastStreakDate.year, lastStreakDate.month, lastStreakDate.day);
+
+        // Calculer la différence en jours
+        int difference = todayDate.difference(lastStreakDateOnly).inDays;
+
+        if (difference == 1) {
+          // Si le dernier streak date d'hier, incrémenter le compteur
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.userId)
+              .update({
+            'streakCount': FieldValue.increment(1),
+            'lastStreakDate': Timestamp.now(),
+          });
+        } else if (difference > 1) {
+          // Réinitialiser le compteur si plus d'un jour est passé
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(widget.userId)
+              .update({
+            'streakCount': 1,
+            'lastStreakDate': Timestamp.now(),
+          });
+        }
+        // Si difference == 0, ne rien faire
       }
+    } catch (e) {
+      // Gérer les exceptions et les loguer si nécessaire
+      print('Erreur dans _checkAndUpdateStreak: $e');
     }
   }
 
   void _showCongratulationDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Séance terminée, félicitations!'),
         actions: [
           TextButton(
             child: const Text('Fermer'),
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              // Fermer toutes les boîtes de dialogue et revenir à l'écran "session de base"
+              Navigator.of(dialogContext, rootNavigator: true)
+                  .popUntil((route) => route.isFirst);
             },
           ),
         ],
@@ -340,7 +440,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
         return AlertDialog(
           title: const Text('Temps de repos entre séries'),
           content: StatefulBuilder(
-            builder: (context, setState) {
+            builder: (context, setStateLocal) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -348,7 +448,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                     icon: const Icon(Icons.remove),
                     onPressed: () {
                       if (restTime > 10) {
-                        setState(() {
+                        setStateLocal(() {
                           restTime -= 10;
                         });
                       }
@@ -358,7 +458,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () {
-                      setState(() {
+                      setStateLocal(() {
                         restTime += 10;
                       });
                     },
@@ -392,6 +492,66 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
     }
   }
 
+  // Méthode pour Afficher le DecimalInputPicker
+  void _showDecimalInputPicker(
+      BuildContext context,
+      String title,
+      double initialValue,
+      double minValue,
+      double maxValue,
+      double step,
+      ValueChanged<double> onValueChanged) {
+    double currentValue = initialValue; // Valeur courante initialisée
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext builder) {
+        return Container(
+          height: 250, // Hauteur du modal
+          color: Colors.white, // Couleur de fond
+          child: Column(
+            children: [
+              // Titre du picker
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(title,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  backgroundColor: Colors.white,
+                  itemExtent: 32.0, // Hauteur de chaque élément
+                  scrollController: FixedExtentScrollController(
+                    initialItem: ((currentValue - minValue) / step)
+                        .round()
+                        .clamp(0, ((maxValue - minValue) / step).round()),
+                  ),
+                  onSelectedItemChanged: (int value) {
+                    currentValue = minValue +
+                        value * step; // Met à jour la valeur sélectionnée
+                  },
+                  children: List<Widget>.generate(
+                    ((maxValue - minValue) / step).round() +
+                        1, // Nombre d'éléments à générer
+                    (int index) {
+                      double value = minValue + index * step;
+                      return Text(
+                          '${value.toStringAsFixed(1)} kg'); // Affiche chaque valeur
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ).whenComplete(() {
+      // Lorsque le picker est fermé, appelle la fonction de rappel avec la nouvelle valeur
+      onValueChanged(currentValue);
+    });
+  }
+
   Widget _buildExerciseView() {
     return GestureDetector(
       onTap: () {
@@ -406,8 +566,9 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _currentExercise['image'] != null &&
-                      _currentExercise['image'].isNotEmpty
-                  ? Image.asset(
+                      (_currentExercise['image'] is String) &&
+                      (_currentExercise['image'] as String).isNotEmpty
+                  ? Image.network(
                       _currentExercise['image'],
                       height: 200,
                       errorBuilder: (context, error, stackTrace) {
@@ -432,7 +593,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 16),
-              // On ne permet plus de changer le temps de repos entre exercices ici
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _completeSet,
@@ -474,7 +634,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Répétitions: ${_currentExercise['reps']}  Poids: ${_currentExercise['weight']} kg',
+                'Répétitions: ${_currentExercise['reps']}  Poids: ${_currentExercise['weight'].toStringAsFixed(1)} kg',
                 style: const TextStyle(fontSize: 16),
               ),
             ],

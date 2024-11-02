@@ -1,7 +1,7 @@
 // Importation des bibliothèques nécessaires
 import 'package:flutter/material.dart'; // Widgets et thèmes Material Design
 import 'package:yellowmuscu/data/exercises_data.dart'; // Données des exercices
-import 'package:yellowmuscu/Exercise_Page_Widgets/ExerciseCategoryList.dart'; // Widget personnalisé pour la liste des catégories d'exercices
+import 'package:yellowmuscu/Exercise/ExerciseCategoryList.dart'; // Widget personnalisé pour la liste des catégories d'exercices
 import 'package:firebase_auth/firebase_auth.dart'; // Authentification Firebase
 import 'package:cloud_firestore/cloud_firestore.dart'; // Base de données Cloud Firestore
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Gestion d'état avec Riverpod

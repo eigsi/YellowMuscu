@@ -36,29 +36,58 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
   void initState() {
     super.initState();
     // Initialise la liste des exercices en copiant depuis le programme fourni
-    exercises = List<Map<String, dynamic>>.from(widget.program['exercises']);
+    // Si 'exercises' est absent ou null, initialise à une liste vide
+    exercises = widget.program['exercises'] != null
+        ? List<Map<String, dynamic>>.from(widget.program['exercises'])
+        : [];
 
     // Parcourt chaque exercice pour s'assurer que certaines clés existent
     for (var exercise in exercises) {
-      if (!exercise.containsKey('restBetweenExercises')) {
-        exercise['restBetweenExercises'] =
-            60; // Définit une valeur par défaut de 60 secondes
-      }
-      if (!exercise.containsKey('restTime')) {
-        exercise['restTime'] =
-            60; // Définit une valeur par défaut de 60 secondes
-      }
+      exercise['restBetweenExercises'] = exercise['restBetweenExercises'] ??
+          60; // Définit une valeur par défaut de 60 secondes
+      exercise['restTime'] = exercise['restTime'] ??
+          60; // Définit une valeur par défaut de 60 secondes
+      exercise['sets'] =
+          exercise['sets'] ?? 3; // Définit une valeur par défaut de 3 séries
+      exercise['reps'] = exercise['reps'] ??
+          10; // Définit une valeur par défaut de 10 répétitions
+      exercise['weight'] = exercise['weight']?.toDouble() ??
+          0.0; // Définit une valeur par défaut de 0.0 kg
+      exercise['image'] = exercise['image'] ??
+          'https://via.placeholder.com/150'; // Définit une image par défaut
+      exercise['name'] =
+          exercise['name'] ?? 'Exercice'; // Définit un nom par défaut
+      exercise['id'] = exercise['id'] ??
+          UniqueKey().toString(); // Génère un identifiant unique si absent
     }
   }
 
   // Méthode asynchrone pour sauvegarder les exercices modifiés dans Firestore
   Future<void> _saveExercises() async {
-    await FirebaseFirestore.instance
-        .collection('users') // Accède à la collection 'users'
-        .doc(widget.userId) // Sélectionne le document de l'utilisateur actuel
-        .collection('programs') // Accède à la sous-collection 'programs'
-        .doc(widget.program['id']) // Sélectionne le programme spécifique
-        .update({'exercises': exercises}); // Met à jour la liste des exercices
+    // Vérifie si le programme a un identifiant unique
+    String programId = widget.program['id'];
+    if (programId == null || programId.isEmpty) {
+      // Si 'id' est absent, génère un nouvel identifiant et crée le document
+      DocumentReference newProgramRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('programs')
+          .doc(); // Génère un nouvel identifiant
+      programId = newProgramRef.id;
+      await newProgramRef.set({
+        'id': programId,
+        'name': widget.program['name'] ?? 'Nouveau Programme',
+        'exercises': exercises,
+      });
+    } else {
+      // Si 'id' existe, met à jour le document existant avec 'set' et 'merge: true'
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('programs')
+          .doc(programId)
+          .set({'exercises': exercises}, SetOptions(merge: true));
+    }
 
     widget
         .onUpdate(); // Appelle la fonction de mise à jour pour notifier les changements
@@ -105,8 +134,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                   backgroundColor: Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
-                    initialItem: currentSeconds ~/
-                        10, // Valeur initiale en secondes (par tranche de 10)
+                    initialItem: (currentSeconds / 10)
+                        .floor(), // Valeur initiale en secondes (par tranche de 10)
                   ),
                   onSelectedItemChanged: (int value) {
                     currentSeconds =
@@ -147,14 +176,19 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           child: Column(
             children: [
               // Titre du picker
-              Text(title, style: const TextStyle(fontSize: 20)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(title,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
               Expanded(
                 child: CupertinoPicker(
                   backgroundColor: Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
-                    initialItem: (currentValue - minValue) ~/
-                        step, // Position initiale du picker
+                    initialItem: ((currentValue - minValue) ~/ step)
+                        .clamp(0, ((maxValue - minValue) ~/ step)),
                   ),
                   onSelectedItemChanged: (int value) {
                     currentValue = minValue +
@@ -180,13 +214,74 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     });
   }
 
+  // Méthode pour afficher un sélecteur numérique avec des demi-unités (par exemple, 0.5 kg)
+  void _showDecimalInputPicker(
+      BuildContext context,
+      String title,
+      double initialValue,
+      double minValue,
+      double maxValue,
+      double step,
+      ValueChanged<double> onValueChanged) {
+    double currentValue = initialValue; // Valeur courante initialisée
+
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext builder) {
+        return Container(
+          height: 250, // Hauteur du modal
+          color: Colors.white, // Couleur de fond
+          child: Column(
+            children: [
+              // Titre du picker
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(title,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              Expanded(
+                child: CupertinoPicker(
+                  backgroundColor: Colors.white,
+                  itemExtent: 32.0, // Hauteur de chaque élément
+                  scrollController: FixedExtentScrollController(
+                    initialItem: ((currentValue - minValue) / step)
+                        .round()
+                        .clamp(0, ((maxValue - minValue) / step).round()),
+                  ),
+                  onSelectedItemChanged: (int value) {
+                    currentValue = minValue +
+                        value * step; // Met à jour la valeur sélectionnée
+                  },
+                  children: List<Widget>.generate(
+                    ((maxValue - minValue) / step).round() +
+                        1, // Nombre d'éléments à générer
+                    (int index) {
+                      double value = minValue + index * step;
+                      return Text(
+                          '${value.toStringAsFixed(1)} kg'); // Affiche chaque valeur
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ).whenComplete(() {
+      // Lorsque le picker est fermé, appelle la fonction de rappel avec la nouvelle valeur
+      onValueChanged(currentValue);
+    });
+  }
+
   // Méthode pour éditer un exercice spécifique
   void _editExercise(int index) {
     final exercise = exercises[index]; // Récupère l'exercice à l'index donné
     int sets = exercise['sets']; // Nombre de séries
     int reps = exercise['reps']; // Nombre de répétitions
-    double weight = exercise['weight'] ?? 0.0; // Poids, par défaut 0.0
-    int restTime = exercise['restTime'] ??
+    double weight =
+        exercise['weight']?.toDouble() ?? 0.0; // Poids, par défaut 0.0
+    int restTime = exercise['restTime']?.toInt() ??
         60; // Temps de repos entre séries, par défaut 60 secondes
 
     final isDarkMode =
@@ -195,7 +290,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
+        builder: (context, setStateDialog) {
           // Utilise un StatefulBuilder pour gérer l'état local dans le dialogue
           return AlertDialog(
             backgroundColor: isDarkMode
@@ -205,109 +300,113 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               'Modifier ${exercise['name']}', // Titre du dialogue
               style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Modification du nombre de séries
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Séries:'), // Libellé
-                    GestureDetector(
-                      onTap: () {
-                        _showInputPicker(
-                          context,
-                          'Séries', // Titre du picker
-                          sets, // Valeur initiale
-                          1, // Valeur minimale
-                          99, // Valeur maximale
-                          1, // Pas
-                          (newSets) {
-                            setState(() {
-                              sets = newSets; // Met à jour le nombre de séries
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Modification du nombre de séries
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Séries:'), // Libellé
+                      GestureDetector(
+                        onTap: () {
+                          _showInputPicker(
+                            context,
+                            'Séries', // Titre du picker
+                            sets, // Valeur initiale
+                            1, // Valeur minimale
+                            99, // Valeur maximale
+                            1, // Pas
+                            (newSets) {
+                              setStateDialog(() {
+                                sets =
+                                    newSets; // Met à jour le nombre de séries
+                              });
+                            },
+                          );
+                        },
+                        child:
+                            Text('$sets séries'), // Affiche la valeur actuelle
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16), // Espace entre les champs
+                  // Modification du nombre de répétitions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Répétitions:'),
+                      GestureDetector(
+                        onTap: () {
+                          _showInputPicker(
+                            context,
+                            'Répétitions',
+                            reps,
+                            1,
+                            99,
+                            1,
+                            (newReps) {
+                              setStateDialog(() {
+                                reps =
+                                    newReps; // Met à jour le nombre de répétitions
+                              });
+                            },
+                          );
+                        },
+                        child: Text('$reps répétitions'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Modification du poids
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Poids (kg):'),
+                      GestureDetector(
+                        onTap: () {
+                          _showDecimalInputPicker(
+                            context,
+                            'Poids (kg)',
+                            weight,
+                            0.0,
+                            500.0,
+                            0.5,
+                            (newWeight) {
+                              setStateDialog(() {
+                                weight = newWeight; // Met à jour le poids
+                              });
+                            },
+                          );
+                        },
+                        child: Text(
+                            '${weight.toStringAsFixed(1)} kg'), // Affiche la valeur actuelle avec une décimale
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Modification du temps de repos entre séries
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Repos entre séries:'),
+                      GestureDetector(
+                        onTap: () {
+                          _showRestTimePicker(context, restTime, (newRestTime) {
+                            setStateDialog(() {
+                              restTime =
+                                  newRestTime; // Met à jour le temps de repos
                             });
-                          },
-                        );
-                      },
-                      child: Text('$sets séries'), // Affiche la valeur actuelle
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16), // Espace entre les champs
-                // Modification du nombre de répétitions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Répétitions:'),
-                    GestureDetector(
-                      onTap: () {
-                        _showInputPicker(
-                          context,
-                          'Répétitions',
-                          reps,
-                          1,
-                          99,
-                          1,
-                          (newReps) {
-                            setState(() {
-                              reps =
-                                  newReps; // Met à jour le nombre de répétitions
-                            });
-                          },
-                        );
-                      },
-                      child: Text('$reps répétitions'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Modification du poids
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Poids (kg):'),
-                    GestureDetector(
-                      onTap: () {
-                        _showInputPicker(
-                          context,
-                          'Poids (kg)',
-                          weight.toInt(),
-                          0,
-                          500,
-                          1,
-                          (newWeight) {
-                            setState(() {
-                              weight =
-                                  newWeight.toDouble(); // Met à jour le poids
-                            });
-                          },
-                        );
-                      },
-                      child: Text('$weight kg'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Modification du temps de repos entre séries
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Repos entre séries:'),
-                    GestureDetector(
-                      onTap: () {
-                        _showRestTimePicker(context, restTime, (newRestTime) {
-                          setState(() {
-                            restTime =
-                                newRestTime; // Met à jour le temps de repos
                           });
-                        });
-                      },
-                      child: Text(_formatDuration(
-                          restTime)), // Affiche le temps de repos formaté
-                    ),
-                  ],
-                ),
-              ],
+                        },
+                        child: Text(_formatDuration(
+                            restTime)), // Affiche le temps de repos formaté
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             actions: [
               // Bouton pour annuler les modifications
@@ -330,8 +429,10 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                   // Sauvegarde les modifications dans Firestore
                   await _saveExercises();
 
-                  _hasChanges =
-                      true; // Indique que des modifications ont été effectuées
+                  setState(() {
+                    _hasChanges =
+                        true; // Indique que des modifications ont été effectuées
+                  });
 
                   Navigator.of(context).pop(); // Ferme le dialogue
                 },
@@ -340,9 +441,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           );
         },
       ),
-    ).whenComplete(() {
-      _saveExercises(); // Sauvegarde les données après fermeture du modal
-    });
+    );
   }
 
   // Méthode pour modifier le temps de repos entre les exercices
@@ -367,6 +466,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           newIndex, item); // Insère l'exercice à la nouvelle position
       _hasChanges = true; // Indique que des modifications ont été effectuées
     });
+    _saveExercises(); // Sauvegarde les modifications
   }
 
   // Méthode pour basculer le mode d'édition de l'ordre des exercices
@@ -375,10 +475,6 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       _isEditingOrder = !_isEditingOrder; // Inverse la valeur booléenne
       if (!_isEditingOrder) {
         _saveExercises(); // Sauvegarde les modifications si on quitte le mode édition
-        if (!_hasChanges) {
-          _hasChanges =
-              true; // Indique que des modifications ont été effectuées
-        }
       }
     });
   }
@@ -417,8 +513,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           backgroundColor: isDarkMode
               ? Colors.black54
               : null, // Couleur de fond selon le thème
-          title: Text(widget.program[
-              'name']), // Affiche le nom du programme dans la barre d'applications
+          title: Text(widget.program['name'] ??
+              'Programme'), // Affiche le nom du programme dans la barre d'applications
           leading: IconButton(
             icon: const Icon(Icons.arrow_back), // Icône de retour
             onPressed: () {
@@ -488,10 +584,12 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundImage: NetworkImage(exercises[index]
-                                  ['image']), // Affiche l'image de l'exercice
+                                      ['image'] ??
+                                  'https://via.placeholder.com/150'), // Affiche l'image de l'exercice
                             ),
                             title: Text(
-                              exercises[index]['name'], // Nom de l'exercice
+                              exercises[index]['name'] ??
+                                  'Exercice', // Nom de l'exercice
                               style: TextStyle(
                                   color:
                                       isDarkMode ? Colors.white : Colors.black),
@@ -516,11 +614,12 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                         children: [
                           ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: NetworkImage(exercise[
-                                  'image']), // Affiche l'image de l'exercice
+                              backgroundImage: NetworkImage(exercise['image'] ??
+                                  'https://via.placeholder.com/150'), // Affiche l'image de l'exercice
                             ),
                             title: Text(
-                              exercise['name'], // Nom de l'exercice
+                              exercise['name'] ??
+                                  'Exercice', // Nom de l'exercice
                               style: TextStyle(
                                   color:
                                       isDarkMode ? Colors.white : Colors.black),
@@ -528,7 +627,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                             subtitle: Text(
                               // Affiche les détails de l'exercice
                               '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
-                              'Poids: ${exercise['weight'] ?? 0} kg\n'
+                              'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
                               'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
                               style: TextStyle(
                                   color: isDarkMode
@@ -544,30 +643,36 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                           ),
                           if (index < exercises.length - 1)
                             // Si ce n'est pas le dernier exercice, affiche le temps de repos entre exercices
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons
-                                      .remove), // Icône pour diminuer le temps
-                                  onPressed: () => _changeRestBetweenExercises(
-                                      index, -10), // Diminue de 10 secondes
-                                ),
-                                Text(
-                                  'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'])}', // Affiche le temps de repos
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      color: isDarkMode
-                                          ? Colors.white
-                                          : Colors.black),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons
-                                      .add), // Icône pour augmenter le temps
-                                  onPressed: () => _changeRestBetweenExercises(
-                                      index, 10), // Augmente de 10 secondes
-                                ),
-                              ],
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons
+                                        .remove), // Icône pour diminuer le temps
+                                    onPressed: () =>
+                                        _changeRestBetweenExercises(index,
+                                            -10), // Diminue de 10 secondes
+                                  ),
+                                  Text(
+                                    'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}', // Affiche le temps de repos
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.black),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons
+                                        .add), // Icône pour augmenter le temps
+                                    onPressed: () =>
+                                        _changeRestBetweenExercises(index,
+                                            10), // Augmente de 10 secondes
+                                  ),
+                                ],
+                              ),
                             ),
                         ],
                       );
