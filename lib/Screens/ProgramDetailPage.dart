@@ -66,7 +66,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
   Future<void> _saveExercises() async {
     // Vérifie si le programme a un identifiant unique
     String programId = widget.program['id'];
-    if (programId == null || programId.isEmpty) {
+    if (programId.isEmpty) {
       // Si 'id' est absent, génère un nouvel identifiant et crée le document
       DocumentReference newProgramRef = FirebaseFirestore.instance
           .collection('users')
