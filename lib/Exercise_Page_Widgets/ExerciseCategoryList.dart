@@ -1,3 +1,4 @@
+//display the list of categories in 'bibliotheque'
 import 'package:flutter/material.dart';
 
 class ExerciseCategoryList extends StatelessWidget {

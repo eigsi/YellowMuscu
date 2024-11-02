@@ -290,6 +290,157 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  // Méthode pour supprimer le compte utilisateur
+  void _deleteAccount() async {
+    // Affiche une boîte de dialogue de confirmation
+    bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Supprimer le compte'),
+          content: const Text(
+              'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Supprimer',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm != true) {
+      return; // L'utilisateur a annulé la suppression
+    }
+
+    // Optionnel : Demander à l'utilisateur de se ré-authentifier
+    // Cela est recommandé pour des raisons de sécurité, surtout si l'authentification est ancienne
+    // Vous pouvez implémenter une ré-authentification ici si nécessaire
+
+    try {
+      // Supprimer les données Firestore de l'utilisateur
+      await _deleteUserData();
+
+      // Supprimer l'utilisateur de Firebase Auth
+      await _user!.delete();
+
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Compte supprimé avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Après la suppression, afficher une boîte de dialogue pour choisir entre se connecter ou créer un compte
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Empêche la fermeture en tapant en dehors
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Compte supprimé'),
+              content: const Text(
+                  'Votre compte a été supprimé. Que souhaitez-vous faire maintenant ?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                    Navigator.of(context).pushReplacementNamed(
+                        '/signIn'); // Navigue vers la page de connexion
+                  },
+                  child: const Text('Se connecter'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                    Navigator.of(context).pushReplacementNamed(
+                        '/signUp'); // Navigue vers la page d'inscription
+                  },
+                  child: const Text('Créer un compte'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        _showError(
+            'La suppression du compte a échoué. Veuillez vous reconnecter et réessayer.');
+        // Optionnel : Naviguer vers la page de connexion pour ré-authentifier
+        Navigator.of(context).pushReplacementNamed('/signIn');
+      } else {
+        _showError('La suppression du compte a échoué : ${e.message}');
+      }
+    } catch (e) {
+      _showError('Une erreur est survenue : $e');
+    }
+  }
+
+  // Méthode pour supprimer les données utilisateur de Firestore
+  Future<void> _deleteUserData() async {
+    WriteBatch batch = FirebaseFirestore.instance.batch();
+
+    DocumentReference userRef =
+        FirebaseFirestore.instance.collection('users').doc(_user!.uid);
+
+    // Supprimer les notifications de l'utilisateur
+    QuerySnapshot notificationsSnapshot =
+        await userRef.collection('notifications').get();
+
+    for (var doc in notificationsSnapshot.docs) {
+      batch.delete(doc.reference);
+    }
+
+    // Supprimer le document utilisateur
+    batch.delete(userRef);
+
+    // Supprimer l'utilisateur de la liste des amis de tous les autres utilisateurs
+    QuerySnapshot friendsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('friends', arrayContains: _user!.uid)
+        .get();
+
+    for (var doc in friendsSnapshot.docs) {
+      DocumentReference docRef = doc.reference;
+      batch.update(docRef, {
+        'friends': FieldValue.arrayRemove([_user!.uid])
+      });
+    }
+
+    // Supprimer l'utilisateur des demandes envoyées de tous les autres utilisateurs
+    QuerySnapshot sentRequestsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('sentRequests', arrayContains: _user!.uid)
+        .get();
+
+    for (var doc in sentRequestsSnapshot.docs) {
+      DocumentReference docRef = doc.reference;
+      batch.update(docRef, {
+        'sentRequests': FieldValue.arrayRemove([_user!.uid])
+      });
+    }
+
+    // Supprimer les demandes reçues (notifications) de tous les autres utilisateurs
+    // Si les demandes reçues sont stockées dans une sous-collection 'notifications', il faudrait les supprimer individuellement.
+    // Cependant, cela peut être complexe et dépend de la structure exacte de vos notifications.
+
+    // Note : Nous supprimons ici les références dans les 'friends' et 'sentRequests'.
+    // Pour les notifications reçues, cela devrait être géré via Cloud Functions ou une autre logique appropriée.
+
+    // Exécute le batch
+    await batch.commit();
+  }
+
   // Widget pour afficher la section "Ajouter des amis"
   Widget _buildAddFriendsSection() {
     return Column(
@@ -376,32 +527,46 @@ class _ProfilePageState extends State<ProfilePage> {
         // Affichage des champs du profil ou des champs éditables selon le mode
         _isEditing ? _buildEditableFields() : _buildDisplayFields(),
         const SizedBox(height: 16),
-        // Boutons pour modifier le profil, enregistrer ou se déconnecter
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        // Boutons pour modifier le profil, enregistrer, se déconnecter et supprimer le compte
+        Column(
           children: [
-            ElevatedButton(
-              onPressed: _toggleEditing,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow[700],
-              ),
-              child: Text(_isEditing ? 'Annuler' : 'Modifier le profil'),
-            ),
-            _isEditing
-                ? ElevatedButton(
-                    onPressed: _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text('Enregistrer'),
-                  )
-                : ElevatedButton(
-                    onPressed: _signOut,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
-                    child: const Text('Se déconnecter'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: _toggleEditing,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[700],
                   ),
+                  child: Text(_isEditing ? 'Annuler' : 'Modifier le profil'),
+                ),
+                _isEditing
+                    ? ElevatedButton(
+                        onPressed: _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
+                        child: const Text('Enregistrer'),
+                      )
+                    : ElevatedButton(
+                        onPressed: _signOut,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: const Text('Se déconnecter'),
+                      ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Bouton pour supprimer le compte (visible uniquement en mode affichage)
+            if (!_isEditing)
+              ElevatedButton(
+                onPressed: _deleteAccount,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
+                child: const Text('Supprimer le compte'),
+              ),
           ],
         ),
         // Affiche la section "Ajouter des amis" si le mode édition est désactivé

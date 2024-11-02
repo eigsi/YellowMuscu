@@ -10,22 +10,13 @@ class ExercisesData {
           'Strengthen the core, improve balance and stability, and enhance overall body control by engaging multiple muscle groups simultaneously.'
     },
     {
-      'name': 'Leg Raises on Roman Chair',
+      'name': 'Crunch',
       'image':
-          'lib/data/yellowMuscu_Pictures/releve-jambes-chaise-romaine-abdominaux-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/crunch-abdominaux-au-sol-exercice-musculation.gif',
       'description':
-          'Leg Raises on a Roman Chair focus on the lower abdominals while strengthening the entire core. This exercise requires good stability and control.',
+          'The Crunch primarily targets the rectus abdominis, commonly referred to as the “six-pack” muscle, as well as the obliques. It’s a simple yet effective exercise requiring no equipment, making it ideal for beginners working out at home.',
       'goals':
-          'Target the lower abs, improve trunk control, and increase core strength for better performance in other exercises.'
-    },
-    {
-      'name': 'Hanging Knee Raises',
-      'image':
-          'lib/data/yellowMuscu_Pictures/releve-de-genoux-suspendu-exercice-musculation.gif',
-      'description':
-          'Hanging Knee Raises are an advanced lower abdominal exercise that also engages the hip flexors. It requires strong core stabilization to perform effectively.',
-      'goals':
-          'Tone the lower abs, improve overall core stability, and increase strength in the hip flexors.'
+          'Tone and strengthen the abdominal muscles, prepare for more advanced bodyweight exercises, support other compound lifts like deadlifts and squats, and improve overall dynamic control of the torso.'
     },
     {
       'name': 'Decline Sit-up',
@@ -37,70 +28,32 @@ class ExercisesData {
           'Increase abdominal strength, enhance the definition of the upper and lower abs, and improve overall core endurance.'
     },
     {
-      'name': 'Crunch',
+      'name': 'Hanging Knee Raises',
       'image':
-          'lib/data/yellowMuscu_Pictures/crunch-abdominaux-au-sol-exercice-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/releve-de-genoux-suspendu-exercice-musculation.gif',
       'description':
-          'The Crunch primarily targets the rectus abdominis, commonly referred to as the “six-pack” muscle, as well as the obliques. It’s a simple yet effective exercise requiring no equipment, making it ideal for beginners working out at home.',
+          'Hanging Knee Raises are an advanced lower abdominal exercise that also engages the hip flexors. It requires strong core stabilization to perform effectively.',
       'goals':
-          'Tone and strengthen the abdominal muscles, prepare for more advanced bodyweight exercises, support other compound lifts like deadlifts and squats, and improve overall dynamic control of the torso.'
+          'Tone the lower abs, improve overall core stability, and increase strength in the hip flexors.'
+    },
+    {
+      'name': 'Leg Raises on Roman Chair',
+      'image':
+          'lib/data/yellowMuscu_Pictures/releve-jambes-chaise-romaine-abdominaux-musculation.gif',
+      'description':
+          'Leg Raises on a Roman Chair focus on the lower abdominals while strengthening the entire core. This exercise requires good stability and control.',
+      'goals':
+          'Target the lower abs, improve trunk control, and increase core strength for better performance in other exercises.'
     },
   ];
 
   static final List<Map<String, String>> bicepsExercises = [
     {
-      'name': 'Lying Cable Curl',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/curl-allonge-a-la-poulie-biceps-musculation.gif',
+      'name': 'Archer Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Archer-Push-Up.gif',
       'description':
-          'A variation of the classic curl, performed lying down to maintain strict form and maximize bicep activation.',
-      'goals':
-          'Increase bicep size, improve muscle isolation, and prevent momentum during the movement.'
-    },
-    {
-      'name': 'EZ Bar Preacher Curl',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/curl-au-pupitre-barre-ez-larry-scott-musculation-biceps.gif',
-      'description':
-          'Also known as the Larry Scott curl, this exercise isolates the biceps and ensures full contraction, targeting the lower part of the biceps.',
-      'goals':
-          'Develop bicep peak, improve isolation, and enhance arm definition.'
-    },
-    {
-      'name': 'Concentration Curl',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/curl-concentre-avec-halteres-musculation.gif',
-      'description':
-          'This exercise isolates one arm at a time, allowing for a focused contraction and superior isolation of the bicep.',
-      'goals':
-          'Improve bicep definition, strengthen the brachialis, and correct muscle imbalances.'
-    },
-    {
-      'name': 'Barbell Curl',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-a-la-barre-musculation.gif',
-      'description':
-          'A fundamental biceps exercise, the barbell curl targets both heads of the biceps and allows for the use of heavier loads.',
-      'goals':
-          'Build overall bicep mass, increase strength, and enhance forearm stability.'
-    },
-    {
-      'name': 'Band Biceps Curl',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-avec-elastique-musculation-biceps.gif',
-      'description':
-          'Using resistance bands, this exercise mimics the traditional curl while providing constant tension throughout the movement.',
-      'goals':
-          'Increase bicep endurance, improve muscle contraction, and enhance flexibility in the biceps.'
-    },
-    // Exercices supplémentaires avec chemins d'accès complets
-    {
-      'name': 'Banded Shoulder Adduction',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Banded-Shoulder-Adduction.gif',
-      'description':
-          'Un exercice avec bande élastique ciblant les pectoraux en rapprochant le bras du corps.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité de l\'épaule.'
+          'Une pompe où un bras est tendu sur le côté, ciblant un pectoral à la fois.',
+      'goals': 'Renforcer la poitrine, améliorer la force unilatérale.'
     },
     {
       'name': 'Band Alternate Incline Chest Press',
@@ -112,13 +65,62 @@ class ExercisesData {
           'Renforcer le haut de la poitrine, améliorer la coordination et la stabilité.'
     },
     {
-      'name': 'Incline Close-Grip Bench Press',
+      'name': 'Band Biceps Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Incline-Close-Grip-Bench-Press.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-avec-elastique-musculation-biceps.gif',
       'description':
-          'Un développé incliné à prise serrée, ciblant les triceps et la poitrine supérieure.',
+          'Using resistance bands, this exercise mimics the traditional curl while providing constant tension throughout the movement.',
       'goals':
-          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
+          'Increase bicep endurance, improve muscle contraction, and enhance flexibility in the biceps.'
+    },
+    {
+      'name': 'Banded Shoulder Adduction',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Banded-Shoulder-Adduction.gif',
+      'description':
+          'Un exercice avec bande élastique ciblant les pectoraux en rapprochant le bras du corps.',
+      'goals': 'Renforcer la poitrine, améliorer la stabilité de l\'épaule.'
+    },
+    {
+      'name': 'Barbell Curl',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/curl-biceps-a-la-barre-musculation.gif',
+      'description':
+          'A fundamental biceps exercise, the barbell curl targets both heads of the biceps and allows for the use of heavier loads.',
+      'goals':
+          'Build overall bicep mass, increase strength, and enhance forearm stability.'
+    },
+    {
+      'name': 'Barbell Floor Press',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Barbell-Floor-Press.gif',
+      'description':
+          'Un développé couché au sol avec barre, limitant l\'amplitude pour réduire la tension sur les épaules.',
+      'goals':
+          'Renforcer la poitrine et les triceps, améliorer la force en toute sécurité.'
+    },
+    {
+      'name': 'BOSU Ball Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/BOSU-Ball-Push-Up.gif',
+      'description':
+          'Des pompes effectuées sur un BOSU ball, augmentant l\'instabilité.',
+      'goals':
+          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
+    },
+    {
+      'name': 'Chest Press Machine',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Chest-Press-Machine.gif',
+      'description':
+          'Le développé couché à la machine offre un mouvement guidé pour cibler la poitrine.',
+      'goals':
+          'Renforcer la poitrine, idéal pour varier l\'entraînement et pour les débutants.'
+    },
+    {
+      'name': 'Chest Tap Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Chest-Tap-Push-up.gif',
+      'description':
+          'Une pompe où vous tapez la poitrine entre les répétitions, augmentant la difficulté et l\'engagement du tronc.',
+      'goals':
+          'Renforcer la poitrine, améliorer la coordination et la stabilité.'
     },
     {
       'name': 'Close Grip Bench Press',
@@ -130,58 +132,20 @@ class ExercisesData {
           'Renforcer les triceps, améliorer la définition interne de la poitrine.'
     },
     {
-      'name': 'Diamond Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Diamond-Push-up.gif',
-      'description':
-          'Une pompe avec les mains en diamant sous la poitrine, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
-    },
-    {
-      'name': 'Hammer Press',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Hammer-Press.gif',
-      'description':
-          'Un développé avec haltères en prise marteau, ciblant la poitrine et les triceps.',
-      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Chest Press Machine',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Chest-Press-Machine.gif',
-      'description':
-          'Le développé couché à la machine offre un mouvement guidé pour cibler la poitrine.',
-      'goals':
-          'Renforcer la poitrine, idéal pour varier l\'entraînement et pour les débutants.'
-    },
-    {
-      'name': 'Corner Wall Stretch',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Corner-Wall-Stretch.gif',
-      'description':
-          'Un étirement où vous vous tenez dans un coin et poussez contre les murs pour étirer la poitrine.',
-      'goals':
-          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
-    },
-    {
-      'name': 'Barbell Floor Press',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Barbell-Floor-Press.gif',
-      'description':
-          'Un développé couché au sol avec barre, limitant l\'amplitude pour réduire la tension sur les épaules.',
-      'goals':
-          'Renforcer la poitrine et les triceps, améliorer la force en toute sécurité.'
-    },
-    {
-      'name': 'Landmine Floor Chest Fly',
+      'name': 'Close Grip Knee Push-Up',
       'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Landmine-Floor-Chest-Fly.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/Close-Grip-Knee-Push-up.gif',
       'description':
-          'Un écarté au sol avec une barre en terre, ciblant les pectoraux avec une trajectoire unique.',
-      'goals': 'Isoler la poitrine, améliorer la force et la stabilité.'
+          'Une pompe sur les genoux avec les mains rapprochées, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, idéal pour les débutants.'
     },
     {
-      'name': 'Decline Hammer Press',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Decline-hammer-press.gif',
+      'name': 'Close-Grip Dumbbell Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Close-Grip-Dumbbell-Push-Up.gif',
       'description':
-          'Un développé décliné en prise marteau, ciblant les pectoraux inférieurs.',
-      'goals':
-          'Renforcer la poitrine inférieure, améliorer la force des triceps.'
+          'Des pompes effectuées avec les mains sur des haltères rapprochés, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
     },
     {
       'name': 'Close-Grip Reverse Bench Press',
@@ -193,74 +157,50 @@ class ExercisesData {
           'Renforcer les triceps, améliorer la force du haut de la poitrine.'
     },
     {
-      'name': 'Wide-Grip Reverse Bench Press',
+      'name': 'Cobra Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Cobra-Push-Up.gif',
+      'description':
+          'Une variation de la pompe qui engage le dos et la poitrine avec un mouvement fluide.',
+      'goals': 'Améliorer la flexibilité, renforcer le haut du corps.'
+    },
+    {
+      'name': 'Concentration Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Wide-Grip-Reverse-Bench-Press.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-concentre-avec-halteres-musculation.gif',
       'description':
-          'Un développé couché à prise inversée et large, ciblant davantage la poitrine.',
-      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Straddle Planche',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Straddle-planche.gif',
-      'description':
-          'Un exercice avancé de poids du corps qui engage intensément les pectoraux, les épaules et le tronc.',
-      'goals': 'Renforcer le haut du corps, améliorer la force et l\'équilibre.'
-    },
-    {
-      'name': 'Close Grip Knee Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Close-Grip-Knee-Push-up.gif',
-      'description':
-          'Une pompe sur les genoux avec les mains rapprochées, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, idéal pour les débutants.'
-    },
-    {
-      'name': 'Push-Up with Rotation',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/push-up-with-rotation.gif',
-      'description':
-          'Une pompe suivie d\'une rotation du corps, engageant le tronc et les pectoraux.',
+          'This exercise isolates one arm at a time, allowing for a focused contraction and superior isolation of the bicep.',
       'goals':
-          'Renforcer la poitrine et le tronc, améliorer la stabilité et la coordination.'
+          'Improve bicep definition, strengthen the brachialis, and correct muscle imbalances.'
     },
     {
-      'name': 'Supine Medicine Ball Chest Throw',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Supine-Medicine-Ball-Chest-Throw-exercise.gif',
+      'name': 'Corner Wall Stretch',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Corner-Wall-Stretch.gif',
       'description':
-          'Un exercice pliométrique où vous lancez une balle médicinale en position couchée, ciblant la puissance de la poitrine.',
-      'goals': 'Améliorer la puissance explosive, renforcer les pectoraux.'
-    },
-    {
-      'name': 'Reverse Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Reverse-Dips.gif',
-      'description':
-          'Un exercice qui cible principalement les triceps mais engage également la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force du haut du corps.'
-    },
-    {
-      'name': 'TRX Chest Press',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Trx-Chest-Press.gif',
-      'description':
-          'Un développé couché avec sangles de suspension, engageant la poitrine et le tronc.',
+          'Un étirement où vous vous tenez dans un coin et poussez contre les murs pour étirer la poitrine.',
       'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
     },
     {
-      'name': 'Dumbbell Straight Arm Pullover (Knees at 90 Degrees)',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Dumbbell-Straight-Arm-Pullover-knees-at-90-degrees.gif',
+      'name': 'Decline Hammer Press',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Decline-hammer-press.gif',
       'description':
-          'Un pull-over avec les bras tendus et les genoux pliés, ciblant la poitrine et les dorsaux.',
+          'Un développé décliné en prise marteau, ciblant les pectoraux inférieurs.',
       'goals':
-          'Renforcer la poitrine et le dos, améliorer la stabilité du tronc.'
+          'Renforcer la poitrine inférieure, améliorer la force des triceps.'
     },
     {
-      'name': 'TRX Chest Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Trx-Chest-Flyes.gif',
+      'name': 'Decline Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Decline-Push-Up.gif',
       'description':
-          'Un écarté avec sangles de suspension, ciblant la poitrine avec une résistance variable.',
-      'goals': 'Isoler la poitrine, améliorer la stabilité et la force.'
+          'Des pompes avec les pieds surélevés, augmentant la difficulté et ciblant les pectoraux supérieurs.',
+      'goals': 'Renforcer la poitrine, améliorer la force du haut du corps.'
+    },
+    {
+      'name': 'Diamond Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Diamond-Push-up.gif',
+      'description':
+          'Une pompe avec les mains en diamant sous la poitrine, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
     },
     {
       'name': 'Doorway Pec and Shoulder Stretch',
@@ -269,100 +209,6 @@ class ExercisesData {
       'description':
           'Un étirement en utilisant une porte pour étirer la poitrine et les épaules.',
       'goals': 'Améliorer la flexibilité, réduire les tensions musculaires.'
-    },
-    {
-      'name': 'Kettlebell Renegade Row',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Kettlebell-Renegade-Row.gif',
-      'description':
-          'Un exercice qui engage le dos mais nécessite une stabilisation de la poitrine et du tronc.',
-      'goals': 'Renforcer le haut du corps, améliorer la stabilité.'
-    },
-    {
-      'name': 'Push-Up to Renegade Row',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Push-Up-to-Renegade-Row.gif',
-      'description':
-          'Une combinaison de pompe et de rowing, engageant la poitrine, le dos et le tronc.',
-      'goals':
-          'Renforcer le haut du corps, améliorer la coordination et la stabilité.'
-    },
-    {
-      'name': 'Modified Hindu Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Modified-Hindu-Push-up.gif',
-      'description':
-          'Une variation des pompes qui engage la poitrine, les épaules et le tronc avec un mouvement fluide.',
-      'goals':
-          'Améliorer la flexibilité, renforcer le haut du corps, améliorer la coordination.'
-    },
-    {
-      'name': 'Knuckle Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Knuckle-Push-Up.gif',
-      'description':
-          'Des pompes effectuées sur les poings, réduisant la pression sur les poignets et engageant davantage les avant-bras.',
-      'goals': 'Renforcer la poitrine, améliorer la force des avant-bras.'
-    },
-    {
-      'name': 'Planche Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Planche-Push-Up.gif',
-      'description':
-          'Un exercice avancé qui nécessite une grande force du haut du corps et du tronc.',
-      'goals':
-          'Renforcer la poitrine, les épaules et le tronc, améliorer la force globale.'
-    },
-    {
-      'name': 'Finger Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Finger-Push-up.gif',
-      'description':
-          'Des pompes effectuées sur les doigts, renforçant les mains et les avant-bras.',
-      'goals': 'Améliorer la force des doigts, renforcer la poitrine.'
-    },
-    {
-      'name': 'Chest Tap Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Chest-Tap-Push-up.gif',
-      'description':
-          'Une pompe où vous tapez la poitrine entre les répétitions, augmentant la difficulté et l\'engagement du tronc.',
-      'goals':
-          'Renforcer la poitrine, améliorer la coordination et la stabilité.'
-    },
-    {
-      'name': 'Kettlebell Deep Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Kettlebell-Deep-Push-Up.gif',
-      'description':
-          'Des pompes avec les mains sur des kettlebells, augmentant l\'amplitude de mouvement.',
-      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
-    },
-    {
-      'name': 'Archer Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Archer-Push-Up.gif',
-      'description':
-          'Une pompe où un bras est tendu sur le côté, ciblant un pectoral à la fois.',
-      'goals': 'Renforcer la poitrine, améliorer la force unilatérale.'
-    },
-    {
-      'name': 'One Leg Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/One-Leg-Push-Up.gif',
-      'description':
-          'Une pompe avec une jambe levée, augmentant l\'instabilité et engageant davantage le tronc.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité et l\'équilibre.'
-    },
-    {
-      'name': 'BOSU Ball Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/BOSU-Ball-Push-Up.gif',
-      'description':
-          'Des pompes effectuées sur un BOSU ball, augmentant l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
-    },
-    {
-      'name': 'Resistance Band Alternating Chest Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Resistance-Band-Alternating-Chest-Fly.gif',
-      'description':
-          'Un écarté alterné avec bande élastique, ciblant les pectoraux.',
-      'goals': 'Isoler la poitrine, améliorer la coordination et la force.'
     },
     {
       'name': 'Dumbbell Reverse Grip 30 Degrees Incline Bench Press',
@@ -374,121 +220,36 @@ class ExercisesData {
           'Renforcer le haut de la poitrine, réduire la tension sur les épaules.'
     },
     {
-      'name': 'Incline Landmine Press',
+      'name': 'Dumbbell Straight Arm Pullover (Knees at 90 Degrees)',
       'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Incline-Landmine-Press.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/Dumbbell-Straight-Arm-Pullover-knees-at-90-degrees.gif',
       'description':
-          'Un développé incliné avec une barre en terre, ciblant la poitrine et les épaules.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité et la force.'
-    },
-    {
-      'name': 'Ring Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Ring-Dips.gif',
-      'description':
-          'Des dips effectués sur des anneaux, augmentant la difficulté et l\'instabilité.',
+          'Un pull-over avec les bras tendus et les genoux pliés, ciblant la poitrine et les dorsaux.',
       'goals':
-          'Renforcer la poitrine, les triceps et les épaules, améliorer la stabilité.'
+          'Renforcer la poitrine et le dos, améliorer la stabilité du tronc.'
     },
     {
-      'name': 'Cobra Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Cobra-Push-Up.gif',
-      'description':
-          'Une variation de la pompe qui engage le dos et la poitrine avec un mouvement fluide.',
-      'goals': 'Améliorer la flexibilité, renforcer le haut du corps.'
-    },
-    {
-      'name': 'Shoulder Tap Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Shoulder-Tap-Push-up.gif',
-      'description':
-          'Une pompe suivie d\'un tapotement de l\'épaule, engageant le tronc et améliorant la stabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer la coordination et la stabilité du tronc.'
-    },
-    {
-      'name': 'Single Arm Raise Push-Up',
+      'name': 'EZ Bar Preacher Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Single-Arm-Raise-Push-up.gif',
+          'lib/data/yellowMuscu_Pictures/biceps/curl-au-pupitre-barre-ez-larry-scott-musculation-biceps.gif',
       'description':
-          'Une pompe où vous levez un bras en haut du mouvement, augmentant la difficulté.',
+          'Also known as the Larry Scott curl, this exercise isolates the biceps and ensures full contraction, targeting the lower part of the biceps.',
       'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la force unilatérale.'
+          'Develop bicep peak, improve isolation, and enhance arm definition.'
     },
     {
-      'name': 'Suspended Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Suspended-Push-Up.gif',
+      'name': 'Finger Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Finger-Push-up.gif',
       'description':
-          'Des pompes effectuées avec les pieds ou les mains suspendus, augmentant l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
+          'Des pompes effectuées sur les doigts, renforçant les mains et les avant-bras.',
+      'goals': 'Améliorer la force des doigts, renforcer la poitrine.'
     },
     {
-      'name': 'Close-Grip Dumbbell Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Close-Grip-Dumbbell-Push-Up.gif',
+      'name': 'Hammer Press',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Hammer-Press.gif',
       'description':
-          'Des pompes effectuées avec les mains sur des haltères rapprochés, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
-    },
-    {
-      'name': 'Medicine Ball Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Medicine-Ball-Push-Up.gif',
-      'description':
-          'Des pompes effectuées avec les mains sur une balle médicinale, augmentant l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
-    },
-    {
-      'name': 'Single Arm Push-Up on Medicine Ball',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Single-Arm-Push-Up-on-Medicine-Ball.gif',
-      'description':
-          'Une pompe sur un bras avec la main sur une balle médicinale, très avancée.',
-      'goals':
-          'Renforcer la poitrine, améliorer la force unilatérale et la stabilité.'
-    },
-    {
-      'name': 'Weighted Vest Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Weighted-Vest-Push-up.gif',
-      'description':
-          'Des pompes effectuées avec un gilet lesté pour augmenter la résistance.',
-      'goals':
-          'Renforcer la poitrine, augmenter la masse musculaire, améliorer l\'endurance.'
-    },
-    {
-      'name': 'Standing Incline Chest Press with Resistance Band',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Standing-Incline-Chest-Press.gif',
-      'description':
-          'Un développé incliné debout avec bande élastique, ciblant les pectoraux supérieurs.',
-      'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
-    },
-    {
-      'name': 'Middle Chest Fly with Resistance Band',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Middle-Chest-Fly-With-Resistance-Band.gif',
-      'description':
-          'Un écarté au niveau de la poitrine avec bande élastique, ciblant les pectoraux.',
-      'goals':
-          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
-    },
-    {
-      'name': 'Kneeling Incline Press (Gymstick)',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/kneeling-one-arm-dumbbell-press.gif',
-      'description':
-          'Un développé incliné à genoux avec Gymstick, engageant la poitrine et le tronc.',
-      'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
-    },
-    {
-      'name': 'Low Chest Fly with Resistance Band',
-      'image':
-          'lib/data/yellowMuscu_Pictures/biceps/Low-Chest-Fly-With-Resistance-Band.gif',
-      'description':
-          'Un écarté vers le bas avec bande élastique, ciblant les pectoraux supérieurs.',
-      'goals':
-          'Renforcer le haut de la poitrine, améliorer la définition musculaire.'
+          'Un développé avec haltères en prise marteau, ciblant la poitrine et les triceps.',
+      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
     },
     {
       'name': 'High Chest Fly with Resistance Band',
@@ -500,50 +261,235 @@ class ExercisesData {
           'Renforcer la poitrine inférieure, améliorer la définition musculaire.'
     },
     {
-      'name': 'Decline Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/biceps/Decline-Push-Up.gif',
+      'name': 'Incline Close-Grip Bench Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Incline-Close-Grip-Bench-Press.gif',
       'description':
-          'Des pompes avec les pieds surélevés, augmentant la difficulté et ciblant les pectoraux supérieurs.',
-      'goals': 'Renforcer la poitrine, améliorer la force du haut du corps.'
+          'Un développé incliné à prise serrée, ciblant les triceps et la poitrine supérieure.',
+      'goals':
+          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
+    },
+    {
+      'name': 'Incline Landmine Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Incline-Landmine-Press.gif',
+      'description':
+          'Un développé incliné avec une barre en terre, ciblant la poitrine et les épaules.',
+      'goals': 'Renforcer la poitrine, améliorer la stabilité et la force.'
+    },
+    {
+      'name': 'Kettlebell Deep Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Kettlebell-Deep-Push-Up.gif',
+      'description':
+          'Des pompes avec les mains sur des kettlebells, augmentant l\'amplitude de mouvement.',
+      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
+    },
+    {
+      'name': 'Kettlebell Renegade Row',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Kettlebell-Renegade-Row.gif',
+      'description':
+          'Un exercice qui engage le dos mais nécessite une stabilisation de la poitrine et du tronc.',
+      'goals': 'Renforcer le haut du corps, améliorer la stabilité.'
+    },
+    {
+      'name': 'Knuckle Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Knuckle-Push-Up.gif',
+      'description':
+          'Des pompes effectuées sur les poings, réduisant la pression sur les poignets et engageant davantage les avant-bras.',
+      'goals': 'Renforcer la poitrine, améliorer la force des avant-bras.'
+    },
+    {
+      'name': 'Landmine Floor Chest Fly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Landmine-Floor-Chest-Fly.gif',
+      'description':
+          'Un écarté au sol avec une barre en terre, ciblant les pectoraux avec une trajectoire unique.',
+      'goals': 'Isoler la poitrine, améliorer la force et la stabilité.'
+    },
+    {
+      'name': 'Low Chest Fly with Resistance Band',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Low-Chest-Fly-With-Resistance-Band.gif',
+      'description':
+          'Un écarté vers le bas avec bande élastique, ciblant les pectoraux supérieurs.',
+      'goals':
+          'Renforcer le haut de la poitrine, améliorer la définition musculaire.'
+    },
+    {
+      'name': 'Lying Cable Curl',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/curl-allonge-a-la-poulie-biceps-musculation.gif',
+      'description':
+          'A variation of the classic curl, performed lying down to maintain strict form and maximize bicep activation.',
+      'goals':
+          'Increase bicep size, improve muscle isolation, and prevent momentum during the movement.'
+    },
+    {
+      'name': 'Middle Chest Fly with Resistance Band',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Middle-Chest-Fly-With-Resistance-Band.gif',
+      'description':
+          'Un écarté au niveau de la poitrine avec bande élastique, ciblant les pectoraux.',
+      'goals':
+          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
+    },
+    {
+      'name': 'Modified Hindu Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Modified-Hindu-Push-up.gif',
+      'description':
+          'Une variation des pompes qui engage la poitrine, les épaules et le tronc avec un mouvement fluide.',
+      'goals':
+          'Améliorer la flexibilité, renforcer le haut du corps, améliorer la coordination.'
+    },
+    {
+      'name': 'One Leg Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/One-Leg-Push-Up.gif',
+      'description':
+          'Une pompe avec une jambe levée, augmentant l\'instabilité et engageant davantage le tronc.',
+      'goals': 'Renforcer la poitrine, améliorer la stabilité et l\'équilibre.'
+    },
+    {
+      'name': 'Planche Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Planche-Push-Up.gif',
+      'description':
+          'Un exercice avancé qui nécessite une grande force du haut du corps et du tronc.',
+      'goals':
+          'Renforcer la poitrine, les épaules et le tronc, améliorer la force globale.'
+    },
+    {
+      'name': 'Push-Up to Renegade Row',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Push-Up-to-Renegade-Row.gif',
+      'description':
+          'Une combinaison de pompe et de rowing, engageant la poitrine, le dos et le tronc.',
+      'goals':
+          'Renforcer le haut du corps, améliorer la coordination et la stabilité.'
+    },
+    {
+      'name': 'Push-Up with Rotation',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/push-up-with-rotation.gif',
+      'description':
+          'Une pompe suivie d\'une rotation du corps, engageant le tronc et les pectoraux.',
+      'goals':
+          'Renforcer la poitrine et le tronc, améliorer la stabilité et la coordination.'
+    },
+    {
+      'name': 'Resistance Band Alternating Chest Fly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Resistance-Band-Alternating-Chest-Fly.gif',
+      'description':
+          'Un écarté alterné avec bande élastique, ciblant les pectoraux.',
+      'goals': 'Isoler la poitrine, améliorer la coordination et la force.'
+    },
+    {
+      'name': 'Reverse Dips',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Reverse-Dips.gif',
+      'description':
+          'Un exercice qui cible principalement les triceps mais engage également la poitrine.',
+      'goals': 'Renforcer les triceps, améliorer la force du haut du corps.'
+    },
+    {
+      'name': 'Ring Dips',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Ring-Dips.gif',
+      'description':
+          'Des dips effectués sur des anneaux, augmentant la difficulté et l\'instabilité.',
+      'goals':
+          'Renforcer la poitrine, les triceps et les épaules, améliorer la stabilité.'
+    },
+    {
+      'name': 'Shoulder Tap Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Shoulder-Tap-Push-up.gif',
+      'description':
+          'Une pompe suivie d\'un tapotement de l\'épaule, engageant le tronc et améliorant la stabilité.',
+      'goals':
+          'Renforcer la poitrine, améliorer la coordination et la stabilité du tronc.'
+    },
+    {
+      'name': 'Single Arm Push-Up on Medicine Ball',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Single-Arm-Push-Up-on-Medicine-Ball.gif',
+      'description':
+          'Une pompe sur un bras avec la main sur une balle médicinale, très avancée.',
+      'goals':
+          'Renforcer la poitrine, améliorer la force unilatérale et la stabilité.'
+    },
+    {
+      'name': 'Standing Incline Chest Press with Resistance Band',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Standing-Incline-Chest-Press.gif',
+      'description':
+          'Un développé incliné debout avec bande élastique, ciblant les pectoraux supérieurs.',
+      'goals':
+          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+    },
+    {
+      'name': 'Straddle Planche',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Straddle-planche.gif',
+      'description':
+          'Un exercice avancé de poids du corps qui engage intensément les pectoraux, les épaules et le tronc.',
+      'goals': 'Renforcer le haut du corps, améliorer la force et l\'équilibre.'
+    },
+    {
+      'name': 'Supine Medicine Ball Chest Throw',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Supine-Medicine-Ball-Chest-Throw-exercise.gif',
+      'description':
+          'Un exercice pliométrique où vous lancez une balle médicinale en position couchée, ciblant la puissance de la poitrine.',
+      'goals': 'Améliorer la puissance explosive, renforcer les pectoraux.'
+    },
+    {
+      'name': 'Suspended Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Suspended-Push-Up.gif',
+      'description':
+          'Des pompes effectuées avec les pieds ou les mains suspendus, augmentant l\'instabilité.',
+      'goals':
+          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
+    },
+    {
+      'name': 'TRX Chest Fly',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Trx-Chest-Flyes.gif',
+      'description':
+          'Un écarté avec sangles de suspension, ciblant la poitrine avec une résistance variable.',
+      'goals': 'Isoler la poitrine, améliorer la stabilité et la force.'
+    },
+    {
+      'name': 'TRX Chest Press',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Trx-Chest-Press.gif',
+      'description':
+          'Un développé couché avec sangles de suspension, engageant la poitrine et le tronc.',
+      'goals':
+          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+    },
+    {
+      'name': 'Weighted Vest Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/biceps/Weighted-Vest-Push-up.gif',
+      'description':
+          'Des pompes effectuées avec un gilet lesté pour augmenter la résistance.',
+      'goals':
+          'Renforcer la poitrine, augmenter la masse musculaire, améliorer l\'endurance.'
+    },
+    {
+      'name': 'Wide-Grip Reverse Bench Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/biceps/Wide-Grip-Reverse-Bench-Press.gif',
+      'description':
+          'Un développé couché à prise inversée et large, ciblant davantage la poitrine.',
+      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
     },
   ];
 
   static final List<Map<String, String>> tricepsExercises = [
     {
-      'name': 'Dips avec une chaise',
+      'name': 'Barre front',
       'image':
-          'lib/data/yellowMuscu_Pictures/dips-sur-une-chaise-triceps-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/barre-front-triceps-musculation.gif',
       'description':
-          'Les dips sur une chaise sont un excellent exercice pour travailler les triceps en utilisant votre propre poids corporel.',
+          'Cet exercice de musculation isole les triceps pour un travail en profondeur, augmentant la force et la taille musculaire.',
       'goals':
-          'Renforcer les triceps tout en améliorant la stabilité des épaules et du haut du corps.'
-    },
-    {
-      'name': 'Extensions des triceps à la machine',
-      'image':
-          'lib/data/yellowMuscu_Pictures/extensions-des-triceps-a-la-machine-musculation.gif',
-      'description':
-          'Cet exercice utilise une machine pour offrir une tension constante sur les triceps, permettant un travail intensif et isolé des muscles du bras.',
-      'goals':
-          'Augmenter la force musculaire des triceps et améliorer la définition des bras.'
-    },
-    {
-      'name': 'Extension verticale triceps assis à la barre',
-      'image':
-          'lib/data/yellowMuscu_Pictures/extension-verticale-assis-barre-triceps-musculation.gif',
-      'description':
-          'Un exercice classique pour renforcer les triceps en utilisant une barre, offrant une grande amplitude de mouvement.',
-      'goals':
-          'Développer la force des triceps et améliorer la mobilité du bras lors des mouvements de poussée.'
-    },
-    {
-      'name': 'Extensions verticales d’un bras avec haltère',
-      'image':
-          'lib/data/yellowMuscu_Pictures/extensions-verticales-dun-bras-avec-haltere-triceps-musculation.gif',
-      'description':
-          'Exercice unilatéral qui cible le triceps d’un bras à la fois, permettant une concentration maximale sur le muscle ciblé.',
-      'goals':
-          'Isoler et renforcer chaque triceps individuellement, équilibrer la force entre les bras.'
+          'Développer la force des triceps et améliorer la résistance lors des mouvements de poussée.'
     },
     {
       'name': 'Dips aux barres parallèles',
@@ -555,14 +501,41 @@ class ExercisesData {
           'Améliorer la force fonctionnelle et la résistance musculaire des triceps.'
     },
     {
-      'name': 'Barre front',
+      'name': 'Dips avec une chaise',
       'image':
-          'lib/data/yellowMuscu_Pictures/barre-front-triceps-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/dips-sur-une-chaise-triceps-musculation.gif',
       'description':
-          'Cet exercice de musculation isole les triceps pour un travail en profondeur, augmentant la force et la taille musculaire.',
+          'Les dips sur une chaise sont un excellent exercice pour travailler les triceps en utilisant votre propre poids corporel.',
       'goals':
-          'Développer la force des triceps et améliorer la résistance lors des mouvements de poussée.'
-    }
+          'Renforcer les triceps tout en améliorant la stabilité des épaules et du haut du corps.'
+    },
+    {
+      'name': 'Extension verticale triceps assis à la barre',
+      'image':
+          'lib/data/yellowMuscu_Pictures/extension-verticale-assis-barre-triceps-musculation.gif',
+      'description':
+          'Un exercice classique pour renforcer les triceps en utilisant une barre, offrant une grande amplitude de mouvement.',
+      'goals':
+          'Développer la force des triceps et améliorer la mobilité du bras lors des mouvements de poussée.'
+    },
+    {
+      'name': 'Extensions des triceps à la machine',
+      'image':
+          'lib/data/yellowMuscu_Pictures/extensions-des-triceps-a-la-machine-musculation.gif',
+      'description':
+          'Cet exercice utilise une machine pour offrir une tension constante sur les triceps, permettant un travail intensif et isolé des muscles du bras.',
+      'goals':
+          'Augmenter la force musculaire des triceps et améliorer la définition des bras.'
+    },
+    {
+      'name': 'Extensions verticales d’un bras avec haltère',
+      'image':
+          'lib/data/yellowMuscu_Pictures/extensions-verticales-dun-bras-avec-haltere-triceps-musculation.gif',
+      'description':
+          'Exercice unilatéral qui cible le triceps d’un bras à la fois, permettant une concentration maximale sur le muscle ciblé.',
+      'goals':
+          'Isoler et renforcer chaque triceps individuellement, équilibrer la force entre les bras.'
+    },
   ];
 
   static final List<Map<String, String>> legExercises = [
@@ -584,13 +557,13 @@ class ExercisesData {
           'Strengthen the hamstrings and glutes, improve flexibility, and enhance lower body stability.'
     },
     {
-      'name': 'Squat',
+      'name': 'Leg Curl',
       'image':
-          'lib/data/yellowMuscu_Pictures/mouvement-squat-cuisses-fessiers-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/leg-curl-allonge-cuisses-ischios-musculation.gif',
       'description':
-          'The squat is often referred to as the king of exercises. It is a compound movement that engages multiple muscles simultaneously, primarily the quads, glutes, and hamstrings.',
+          'The lying leg curl targets the hamstrings, one of the key muscles responsible for knee flexion.',
       'goals':
-          'Increase lower body strength, build muscle mass, and improve functional movement patterns.'
+          'Isolate and strengthen the hamstrings, improving knee stability and reducing injury risk.'
     },
     {
       'name': 'Leg Press',
@@ -602,13 +575,13 @@ class ExercisesData {
           'Build lower body strength, especially in the quads and glutes, and increase muscle endurance.'
     },
     {
-      'name': 'Leg Curl',
+      'name': 'Squat',
       'image':
-          'lib/data/yellowMuscu_Pictures/leg-curl-allonge-cuisses-ischios-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/mouvement-squat-cuisses-fessiers-musculation.gif',
       'description':
-          'The lying leg curl targets the hamstrings, one of the key muscles responsible for knee flexion.',
+          'The squat is often referred to as the king of exercises. It is a compound movement that engages multiple muscles simultaneously, primarily the quads, glutes, and hamstrings.',
       'goals':
-          'Isolate and strengthen the hamstrings, improving knee stability and reducing injury risk.'
+          'Increase lower body strength, build muscle mass, and improve functional movement patterns.'
     },
     {
       'name': 'Stiff-Legged Deadlift',
@@ -622,217 +595,56 @@ class ExercisesData {
   ];
 
   static final List<Map<String, String>> chestExercises = [
-    // Exercices existants
     {
-      'name': 'Decline Dumbbell Bench Press',
+      'name': 'Above Head Chest Stretch',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/developpe-decline-halteres-exercice-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Above-Head-Chest-Stretch.gif',
       'description':
-          'Le développé couché décliné avec haltères est un excellent exercice pour cibler spécifiquement la partie inférieure des muscles pectoraux. En abaissant l\'angle du banc, vous concentrez davantage l\'effort sur les fibres inférieures de la poitrine, tout en impliquant les épaules et les triceps. Ce mouvement permet une amplitude de mouvement plus complète par rapport à la variante avec barre, augmentant ainsi l\'activation musculaire.',
+          'Un étirement où vous levez les bras au-dessus de la tête pour étirer la poitrine et les épaules.',
       'goals':
-          'Améliorer le développement de la région inférieure de la poitrine, améliorer la définition des pectoraux et renforcer la force globale du haut du corps.'
+          'Améliorer la flexibilité, réduire les tensions musculaires, améliorer la posture.'
     },
     {
-      'name': 'Chain Bench Press',
+      'name': 'Alternate Dumbbell Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/developpe-couche-avec-chaines-exercice-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Alternate-Dumbbell-Bench-Press.gif',
       'description':
-          'Le développé couché avec chaînes est une variation unique du développé couché traditionnel, où des chaînes sont attachées à chaque extrémité de la barre. À mesure que vous poussez la barre vers le haut, plus de maillons de chaîne se soulèvent du sol, augmentant progressivement la résistance. Ce mouvement est excellent pour développer la puissance explosive, car la résistance changeante sollicite vos muscles sur toute l\'amplitude du mouvement.',
+          'Le développé couché avec haltères en alternance engage les muscles stabilisateurs en travaillant un côté à la fois.',
       'goals':
-          'Augmenter la puissance de la poitrine, renforcer la force grâce à une résistance variable et améliorer l\'endurance musculaire.'
+          'Améliorer la stabilité, corriger les déséquilibres musculaires, renforcer la poitrine.'
     },
     {
-      'name': 'Push-ups',
+      'name': 'Arm Scissors',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Arm-Scissors.gif',
+      'description':
+          'Un étirement dynamique où les bras croisent devant la poitrine, étirant les pectoraux et les épaules.',
+      'goals':
+          'Échauffer le haut du corps, améliorer la mobilité, réduire les risques de blessure.'
+    },
+    {
+      'name': 'Assisted Chest Dip',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Assisted-Chest-Dip.gif',
+      'description':
+          'Une variation des dips avec assistance pour ceux qui développent encore leur force.',
+      'goals':
+          'Renforcer progressivement la poitrine et les triceps, améliorer la technique.'
+    },
+    {
+      'name': 'Assisted Reverse Stretch (Chest and Shoulder)',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Chest-Stretch.gif',
+      'description':
+          'Un étirement assisté pour la poitrine et les épaules qui aide à améliorer la flexibilité et à réduire les tensions musculaires.',
+      'goals':
+          'Augmenter la flexibilité de la poitrine et des épaules, améliorer la posture.'
+    },
+    {
+      'name': 'Band Alternate Incline Chest Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/pompe-exercice-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Band-Alternate-Incline-Chest-Press-.gif',
       'description':
-          'Les pompes sont un exercice de base au poids du corps qui cible principalement les muscles pectoraux, les triceps et les deltoïdes antérieurs. Elles ne nécessitent aucun équipement, ce qui en fait une option excellente pour s\'entraîner n\'importe où. Les pompes activent également les muscles du tronc et du bas du dos pour stabiliser le corps, offrant un entraînement complet du haut du corps.',
+          'Un développé incliné alterné avec bande élastique, ciblant les pectoraux supérieurs.',
       'goals':
-          'Améliorer la force du haut du corps, l\'endurance et la stabilité du tronc. Idéal pour développer la condition physique fonctionnelle et l\'endurance musculaire.'
-    },
-    {
-      'name': 'Unilateral Landmine Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/ecartes-unilateral-landmine-pectoraux-exercice.gif',
-      'description':
-          'L\'écarté unilatéral à la landmine est une variation unique de l\'écarté traditionnel, effectué avec une configuration landmine. Cet exercice permet un mouvement plus contrôlé qui se concentre sur la force et la stabilité unilatérales de la poitrine, minimisant la tension sur l\'épaule tout en ciblant les pectoraux.',
-      'goals':
-          'Développer la force et la stabilité de la poitrine de chaque côté individuellement, améliorer l\'équilibre musculaire et prévenir les déséquilibres de force.'
-    },
-    {
-      'name': 'Reverse Grip Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/developpe-couche-prise-inversee-exercice-musculation.gif',
-      'description':
-          'Le développé couché prise inversée est une variation du développé couché standard qui met l\'accent sur le haut de la poitrine et les triceps. En inversant la prise (paumes vers vous), les épaules sont positionnées de manière à déplacer le travail sur les pectoraux supérieurs tout en réduisant la tension sur les épaules.',
-      'goals':
-          'Améliorer le développement du haut de la poitrine, renforcer les triceps et réduire le stress sur les articulations de l\'épaule lors des mouvements de poussée.'
-    },
-    {
-      'name': 'Hyght Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/exercice-hyght-dumbell-fly.gif',
-      'description':
-          'Le Hyght fly est une variation de l\'écarté avec haltères, spécialement conçu pour mettre l\'accent sur la partie supérieure de la poitrine. En modifiant l\'angle des bras et la trajectoire des haltères, cet exercice assure une activation accrue des pectoraux supérieurs, ce qui en fait un excellent exercice de finition pour les entraînements de la poitrine.',
-      'goals':
-          'Développer la partie supérieure de la poitrine pour une apparence plus définie et symétrique, améliorer l\'amplitude de mouvement de l\'articulation de l\'épaule et augmenter l\'activation musculaire de la poitrine.'
-    },
-    {
-      'name': 'Decline Dumbbell Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/ecartes-decline-avec-halteres.gif',
-      'description':
-          'L\'écarté décliné avec haltères est un exercice d\'isolation qui cible les muscles inférieurs de la poitrine en étirant et en contractant la poitrine en position déclinée. Cet exercice aide à créer un aspect équilibré en se concentrant sur la partie souvent sous-développée des pectoraux inférieurs.',
-      'goals':
-          'Améliorer la définition de la partie inférieure de la poitrine, augmenter la flexibilité de la poitrine et isoler les pectoraux inférieurs pour une poitrine plus pleine.'
-    },
-    {
-      'name': 'Incline Chest Press on Converging Machine',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/developpe-incline-machine-convergente-exercice-musculation.webp',
-      'description':
-          'Le développé incliné sur machine convergente est conçu pour simuler l\'arc naturel d\'un développé avec barre ou haltères mais avec un soutien supplémentaire pour une meilleure stabilisation. Cette variation à la machine minimise la tension sur les épaules et offre un entraînement plus ciblé pour la partie supérieure de la poitrine.',
-      'goals':
-          'Construire la force et la taille de la partie supérieure de la poitrine tout en minimisant la tension sur les épaules et en améliorant la stabilité pendant le mouvement.'
-    },
-    {
-      'name': 'Pec-deck or Butterfly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/pec-deck-butterfly-exercice-musculation.webp',
-      'description':
-          'Le pec-deck (également connu sous le nom de machine butterfly) est un exercice d\'isolation conçu pour cibler les muscles pectoraux. Ce mouvement aide à isoler la poitrine tout en réduisant l\'implication des épaules, ce qui le rend idéal pour maximiser l\'engagement de la poitrine.',
-      'goals':
-          'Améliorer l\'isolation de la poitrine, augmenter l\'activation musculaire des pectoraux et développer la taille et la forme de la poitrine.'
-    },
-    {
-      'name': 'High to Low Cable Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/ecarte-a-la-poulie-vis-a-vis-haute-a-genoux-musculation-pectoraux.gif',
-      'description':
-          'L\'écarté à la poulie haute vers basse est une variation de l\'écarté à la poulie qui cible les muscles inférieurs de la poitrine. En tirant d\'une position haute vers un point bas, vous mettez l\'accent sur la partie inférieure des pectoraux tout en engageant également les épaules et les triceps.',
-      'goals':
-          'Développer la force et la définition de la partie inférieure de la poitrine, améliorer la forme globale de la poitrine et augmenter le contrôle musculaire.'
-    },
-    {
-      'name': 'Dumbbell Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/ecartes-couche-avec-halteres-musculation-pectoraux.gif',
-      'description':
-          'Le développé couché avec haltères est un exercice classique pour la poitrine qui permet une plus grande amplitude de mouvement par rapport au développé à la barre. Chaque bras travaille indépendamment, ce qui aide à corriger les déséquilibres musculaires et augmente la stabilisation.',
-      'goals':
-          'Construire la force et la taille de la poitrine, améliorer la symétrie entre les côtés gauche et droit et augmenter la stabilité de l\'épaule.'
-    },
-    {
-      'name': 'Incline Barbell Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/developpe-incline-barre.gif',
-      'description':
-          'Le développé couché incliné avec barre est un mouvement composé qui cible la partie supérieure de la poitrine et les épaules. Cet exercice est essentiel pour créer une poitrine équilibrée, car il met l\'accent sur les pectoraux supérieurs, qui sont souvent sous-développés.',
-      'goals':
-          'Augmenter la masse et la force de la partie supérieure de la poitrine, améliorer la stabilité de l\'épaule et renforcer la puissance de poussée globale.'
-    },
-    {
-      'name': 'Barbell Bench Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/developpe-couche.gif',
-      'description':
-          'Le développé couché à la barre est l\'exercice de poitrine par excellence pour construire la force et la masse. Il travaille toute la poitrine, les épaules et les triceps, ce qui en fait une partie essentielle de tout entraînement du haut du corps.',
-      'goals':
-          'Développer la taille et la force maximales de la poitrine, améliorer la puissance de poussée et renforcer la force globale du haut du corps.'
-    },
-    // Nouveaux exercices ajoutés (154 exercices)
-    {
-      'name': 'Dumbbell Pullover on Stability Ball',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Pullover-On-Stability-Ball.gif',
-      'description':
-          'Le pull-over avec haltère sur ballon de stabilité cible les pectoraux et les dorsaux tout en sollicitant les muscles du tronc pour maintenir l\'équilibre sur le ballon.',
-      'goals':
-          'Renforcer les pectoraux et les dorsaux, améliorer la stabilité du tronc et l\'équilibre.'
-    },
-    {
-      'name': 'Stability Ball Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/stability-ball-push-up.gif',
-      'description':
-          'Les pompes sur ballon de stabilité augmentent la difficulté en ajoutant de l\'instabilité, ce qui sollicite davantage les muscles stabilisateurs du tronc et des épaules.',
-      'goals':
-          'Améliorer la force du haut du corps, renforcer le tronc, améliorer l\'équilibre et la coordination.'
-    },
-    {
-      'name': 'Dumbbell Decline One-Arm Hammer Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Decline-One-Arm-Hammer-Press.gif',
-      'description':
-          'Le développé décliné unilatéral en prise marteau avec haltère cible les pectoraux inférieurs tout en engageant les triceps et les muscles stabilisateurs.',
-      'goals':
-          'Développer la force unilatérale de la poitrine, améliorer la stabilité et l\'équilibre musculaire.'
-    },
-    {
-      'name': 'Pike Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Pike-Push-up.gif',
-      'description':
-          'Le Pike Push-Up est une variation des pompes qui met l\'accent sur les épaules et le haut des pectoraux en positionnant le corps en V inversé.',
-      'goals':
-          'Renforcer les épaules et le haut de la poitrine, améliorer la flexibilité et la stabilité du tronc.'
-    },
-    {
-      'name': 'Weighted Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Weighted-Push-up.gif',
-      'description':
-          'Les pompes avec poids ajoutent une résistance supplémentaire, augmentant l\'intensité de l\'exercice pour développer davantage de force et de masse musculaire.',
-      'goals':
-          'Augmenter la force et l\'hypertrophie des pectoraux, des triceps et des épaules, améliorer l\'endurance musculaire.'
-    },
-    {
-      'name': 'Push-Up Plus',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Push-Up-Plus.gif',
-      'description':
-          'Le Push-Up Plus inclut une protraction scapulaire en fin de mouvement, ciblant les muscles stabilisateurs de l\'épaule et améliorant la santé scapulaire.',
-      'goals':
-          'Renforcer les muscles stabilisateurs de l\'épaule, améliorer la mobilité scapulaire et prévenir les blessures.'
-    },
-    {
-      'name': 'Single Arm Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Single-Arm-Push-up.gif',
-      'description':
-          'La pompe sur un bras est un exercice avancé qui sollicite intensément les pectoraux, les triceps et le tronc, améliorant la force unilatérale et la stabilité.',
-      'goals':
-          'Développer la force et la puissance unilatérales du haut du corps, renforcer le tronc et améliorer la coordination.'
-    },
-    {
-      'name': 'One-Arm Kettlebell Chest Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Kettlebell-Chest-Press-on-the-Bench.gif',
-      'description':
-          'Le développé couché unilatéral avec kettlebell engage les pectoraux tout en sollicitant les muscles stabilisateurs en raison du centre de gravité décalé de la kettlebell.',
-      'goals':
-          'Améliorer la force unilatérale de la poitrine, renforcer le tronc et les stabilisateurs d\'épaule.'
-    },
-    {
-      'name': 'Wide Grip Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Wide-Grip-Barbell-Bench-Press.gif',
-      'description':
-          'Le développé couché prise large accentue le travail sur les pectoraux en réduisant l\'implication des triceps grâce à une prise plus large.',
-      'goals':
-          'Augmenter la masse et la force des pectoraux, améliorer la largeur de la poitrine.'
-    },
-    {
-      'name': 'Decline Barbell Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/exercice-developpe-decline-barre.gif',
-      'description':
-          'Le développé couché décliné avec barre est un mouvement composé efficace pour construire de la masse et de la force dans la partie inférieure de la poitrine. En positionnant le corps en déclin, plus d\'emphase est mise sur la partie inférieure des pectoraux, tout en engageant également les triceps et les épaules.',
-      'goals':
-          'Augmenter la masse et la force globales de la poitrine avec un accent sur la partie inférieure et améliorer la puissance de poussée dans la poitrine et les épaules.'
-    },
-    {
-      'name': 'One Arm Push-Ups with Support',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Push-Ups-With-Support.gif',
-      'description':
-          'Les pompes sur un bras avec support sont une progression vers les pompes sur un bras complètes, utilisant une assistance pour réduire la difficulté.',
-      'goals':
-          'Développer la force nécessaire pour les pompes sur un bras, améliorer la stabilité et l\'équilibre.'
+          'Renforcer le haut de la poitrine, améliorer la coordination et la stabilité.'
     },
     {
       'name': 'Band Standing Chest Press',
@@ -844,38 +656,348 @@ class ExercisesData {
           'Renforcer la poitrine, améliorer la stabilité du tronc, excellent pour l\'entraînement fonctionnel.'
     },
     {
-      'name': 'Seated Chest Stretch',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Seated-Chest-Stretch.gif',
-      'description':
-          'L\'étirement de la poitrine assis aide à augmenter la flexibilité des pectoraux et à améliorer la posture en étirant les muscles de la poitrine.',
-      'goals':
-          'Améliorer la flexibilité de la poitrine, réduire la tension musculaire, améliorer la posture.'
-    },
-    {
-      'name': 'Foam Roller Chest Stretch',
+      'name': 'Banded Shoulder Adduction',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Foam-Roller-Chest-Stretch.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Banded-Shoulder-Adduction.gif',
       'description':
-          'L\'étirement de la poitrine avec un foam roller aide à libérer les tensions musculaires et à augmenter la mobilité thoracique.',
-      'goals':
-          'Améliorer la mobilité de la poitrine, réduire les tensions musculaires, favoriser la récupération.'
+          'Un exercice avec bande élastique ciblant les pectoraux en rapprochant le bras du corps.',
+      'goals': 'Renforcer la poitrine, améliorer la stabilité de l\'épaule.'
     },
     {
-      'name': 'Foam Roller Front Shoulder and Chest',
+      'name': 'Barbell Bench Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/developpe-couche.gif',
+      'description':
+          'Le développé couché à la barre est l\'exercice de poitrine par excellence pour construire la force et la masse. Il travaille toute la poitrine, les épaules et les triceps, ce qui en fait une partie essentielle de tout entraînement du haut du corps.',
+      'goals':
+          'Développer la taille et la force maximales de la poitrine, améliorer la puissance de poussée et renforcer la force globale du haut du corps.'
+    },
+    {
+      'name': 'Barbell Floor Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Barbell-Floor-Press.gif',
+      'description':
+          'Un développé couché au sol avec barre, limitant l\'amplitude pour réduire la tension sur les épaules.',
+      'goals':
+          'Renforcer la poitrine et les triceps, améliorer la force en toute sécurité.'
+    },
+    {
+      'name': 'Barre front',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Roll-Front-Shoulder-and-Chest-Lying-on-Floor.gif',
+          'lib/data/yellowMuscu_Pictures/chest/barre-front-triceps-musculation.gif',
       'description':
-          'Cet exercice utilise un foam roller pour masser et étirer les muscles de l\'épaule avant et de la poitrine.',
+          'Cet exercice de musculation isole les triceps pour un travail en profondeur, augmentant la force et la taille musculaire.',
       'goals':
-          'Libérer les tensions, améliorer la circulation sanguine, augmenter la flexibilité.'
+          'Développer la force des triceps et améliorer la résistance lors des mouvements de poussée.'
     },
     {
-      'name': 'Assisted Reverse Stretch (Chest and Shoulder)',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Chest-Stretch.gif',
+      'name': 'Back Pec Stretch',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Back-Pec-Stretch.gif',
       'description':
-          'Un étirement assisté pour la poitrine et les épaules qui aide à améliorer la flexibilité et à réduire les tensions musculaires.',
+          'Un étirement qui cible les pectoraux en tirant les bras vers l\'arrière.',
       'goals':
-          'Augmenter la flexibilité de la poitrine et des épaules, améliorer la posture.'
+          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
+    },
+    {
+      'name': 'Chest and Front of Shoulder Stretch',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Chest-and-Front-of-Shoulder-Stretch.gif',
+      'description':
+          'Un étirement qui cible la poitrine et l\'avant des épaules.',
+      'goals':
+          'Améliorer la flexibilité, réduire les tensions, améliorer la posture.'
+    },
+    {
+      'name': 'Chest Dips',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Dips.gif',
+      'description':
+          'Les dips pour la poitrine ciblent les pectoraux inférieurs et les triceps, nécessitant une bonne force du haut du corps.',
+      'goals':
+          'Augmenter la force et la masse des pectoraux et des triceps, améliorer la stabilité des épaules.'
+    },
+    {
+      'name': 'Chest Press Machine',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Press-Machine.gif',
+      'description':
+          'Le développé couché à la machine offre un mouvement guidé pour cibler la poitrine.',
+      'goals':
+          'Renforcer la poitrine, idéal pour varier l\'entraînement et pour les débutants.'
+    },
+    {
+      'name': 'Clap Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Clap-Push-Up.gif',
+      'description':
+          'Un exercice pliométrique où vous claquez des mains en l\'air entre chaque répétition.',
+      'goals':
+          'Améliorer la puissance explosive, renforcer les pectoraux et les triceps.'
+    },
+    {
+      'name': 'Cobra Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Cobra-Push-up.gif',
+      'description':
+          'Une variation de la pompe qui engage le dos et la poitrine avec un mouvement fluide.',
+      'goals': 'Améliorer la flexibilité, renforcer le haut du corps.'
+    },
+    {
+      'name': 'Corner Wall Stretch',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Corner-Wall-Stretch.gif',
+      'description':
+          'Un étirement où vous vous tenez dans un coin et poussez contre les murs pour étirer la poitrine.',
+      'goals':
+          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
+    },
+    {
+      'name': 'Close Grip Bench Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Bench-Press.gif',
+      'description':
+          'Le développé couché à prise serrée cible les triceps et la poitrine interne.',
+      'goals':
+          'Renforcer les triceps, améliorer la définition interne de la poitrine.'
+    },
+    {
+      'name': 'Close Grip Knee Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Knee-Push-up.gif',
+      'description':
+          'Une pompe sur les genoux avec les mains rapprochées, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, idéal pour les débutants.'
+    },
+    {
+      'name': 'Close-Grip Dumbbell Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Dumbbell-Press.gif',
+      'description':
+          'Un développé unilatéral avec haltère en prise inversée, ciblant les pectoraux supérieurs.',
+      'goals':
+          'Renforcer le haut de la poitrine, améliorer la force unilatérale.'
+    },
+    {
+      'name': 'Close-Grip Dumbbell Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Dumbbell-Push-Up.gif',
+      'description':
+          'Des pompes effectuées avec les mains sur des haltères rapprochés, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
+    },
+    {
+      'name': 'Close-Grip Incline Dumbbell Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Close-grip-Incline-Dumbbell-Press.gif',
+      'description':
+          'Un développé incliné avec les haltères rapprochés, ciblant les triceps et la poitrine supérieure.',
+      'goals':
+          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
+    },
+    {
+      'name': 'Close-Grip Reverse Bench Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Dumbbell-Bench-Press.gif',
+      'description':
+          'Un développé couché à prise inversée et serrée, ciblant les triceps et le haut de la poitrine.',
+      'goals':
+          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
+    },
+    {
+      'name': 'Cobra Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Cobra-Push-up.gif',
+      'description':
+          'Une variation de la pompe qui engage le dos et la poitrine avec un mouvement fluide.',
+      'goals': 'Améliorer la flexibilité, renforcer le haut du corps.'
+    },
+    {
+      'name': 'Drop Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Drop-Push-Up.gif',
+      'description':
+          'Un exercice pliométrique où vous laissez tomber vos mains d\'une surface surélevée pour augmenter l\'intensité.',
+      'goals':
+          'Améliorer la puissance explosive, renforcer les pectoraux et les triceps.'
+    },
+    {
+      'name': 'Dynamic Chest Stretch',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Dynamic-Chest-Stretch.gif',
+      'description':
+          'Un étirement dynamique pour échauffer les muscles de la poitrine avant l\'entraînement.',
+      'goals':
+          'Préparer les muscles à l\'effort, réduire les risques de blessure.'
+    },
+    {
+      'name': 'Finger Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Finger-Push-up.gif',
+      'description':
+          'Des pompes effectuées sur les doigts, renforçant les mains et les avant-bras.',
+      'goals': 'Améliorer la force des doigts, renforcer la poitrine.'
+    },
+    {
+      'name': 'Forearm Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Forearm-Push-up.gif',
+      'description':
+          'Une variation des pompes où vous vous appuyez sur les avant-bras, ciblant le tronc et la poitrine.',
+      'goals':
+          'Renforcer le tronc, améliorer la stabilité et la force de la poitrine.'
+    },
+    {
+      'name': 'Good Morning',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/good-morning-ischio-cuisses-fessiers-musculation.gif',
+      'description':
+          'The Good Morning is a muscle-building exercise focusing on the posterior muscles of the legs and glutes, especially the hamstrings.',
+      'goals':
+          'Strengthen the hamstrings and glutes, improve flexibility, and enhance lower body stability.'
+    },
+    {
+      'name': 'Hammer Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Hammer-Press.gif',
+      'description':
+          'Un développé avec haltères en prise marteau, ciblant la poitrine et les triceps.',
+      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
+    },
+    {
+      'name': 'High Chest Fly with Resistance Band',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/High-Chest-Fly-With-Resistance-Band.gif',
+      'description':
+          'Un écarté vers le haut avec bande élastique, ciblant les pectoraux inférieurs.',
+      'goals':
+          'Renforcer la poitrine inférieure, améliorer la définition musculaire.'
+    },
+    {
+      'name': 'High to Low Cable Fly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/ecarte-a-la-poulie-vis-a-vis-haute-a-genoux-musculation-pectoraux.gif',
+      'description':
+          'L\'écarté à la poulie haute vers basse est une variation de l\'écarté à la poulie qui cible les muscles inférieurs de la poitrine. En tirant d\'une position haute vers un point bas, vous mettez l\'accent sur la partie inférieure des pectoraux tout en engageant également les épaules et les triceps.',
+      'goals':
+          'Développer la force et la définition de la partie inférieure de la poitrine, améliorer la forme globale de la poitrine et augmenter le contrôle musculaire.'
+    },
+    {
+      'name': 'Hyght Fly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/exercice-hyght-dumbell-fly.gif',
+      'description':
+          'Le Hyght fly est une variation de l\'écarté avec haltères, spécialement conçu pour mettre l\'accent sur la partie supérieure de la poitrine. En modifiant l\'angle des bras et la trajectoire des haltères, cet exercice assure une activation accrue des pectoraux supérieurs, ce qui en fait un excellent exercice de finition pour les entraînements de la poitrine.',
+      'goals':
+          'Développer la partie supérieure de la poitrine pour une apparence plus définie et symétrique, améliorer l\'amplitude de mouvement de l\'articulation de l\'épaule et augmenter l\'activation musculaire de la poitrine.'
+    },
+    {
+      'name': 'Incline Barbell Bench Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/developpe-incline-barre.gif',
+      'description':
+          'Le développé couché incliné avec barre est un mouvement composé qui cible la partie supérieure de la poitrine et les épaules. Cet exercice est essentiel pour créer une poitrine équilibrée, car il met l\'accent sur les pectoraux supérieurs, qui sont souvent sous-développés.',
+      'goals':
+          'Augmenter la masse et la force de la partie supérieure de la poitrine, améliorer la stabilité de l\'épaule et renforcer la puissance de poussée globale.'
+    },
+    {
+      'name': 'Incline Chest Fly Machine',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Incline-Chest-Fly-Machine.gif',
+      'description':
+          'L\'écarté à la machine en position inclinée cible les pectoraux supérieurs avec un mouvement guidé.',
+      'goals':
+          'Isoler les pectoraux supérieurs, améliorer la définition musculaire.'
+    },
+    {
+      'name': 'Incline Chest Press on Converging Machine',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/developpe-incline-machine-convergente-exercice-musculation.webp',
+      'description':
+          'Le développé incliné sur machine convergente est conçu pour simuler l\'arc naturel d\'un développé avec barre ou haltères mais avec un soutien supplémentaire pour une meilleure stabilisation. Cette variation à la machine minimise la tension sur les épaules et offre un entraînement plus ciblé pour la partie supérieure de la poitrine.',
+      'goals':
+          'Construire la force et la taille de la partie supérieure de la poitrine tout en minimisant la tension sur les épaules et en améliorant la stabilité pendant le mouvement.'
+    },
+    {
+      'name': 'Incline Dumbbell Fly',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Fly.gif',
+      'description':
+          'L\'écarté incliné avec haltères cible les pectoraux supérieurs, étirant et contractant le muscle.',
+      'goals':
+          'Augmenter la masse des pectoraux supérieurs, améliorer la flexibilité et l\'isolation musculaire.'
+    },
+    {
+      'name': 'Incline Dumbbell Hammer Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Press.gif',
+      'description':
+          'Le développé incliné en prise marteau cible les pectoraux et les triceps avec une prise neutre.',
+      'goals':
+          'Renforcer le haut de la poitrine, réduire la tension sur les épaules, améliorer la force des triceps.'
+    },
+    {
+      'name': 'Incline Dumbbell Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Press.gif',
+      'description':
+          'Le développé incliné avec haltères cible les pectoraux supérieurs avec une plus grande amplitude de mouvement.',
+      'goals':
+          'Renforcer les pectoraux supérieurs, améliorer la symétrie musculaire.'
+    },
+    {
+      'name': 'Incline Landmine Press',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/incline-landmine-press.gif',
+      'description':
+          'Un développé incliné avec une barre en terre, ciblant la poitrine et les épaules.',
+      'goals': 'Renforcer la poitrine, améliorer la stabilité et la force.'
+    },
+    {
+      'name': 'Inverted Row',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Inverted-Row.gif',
+      'description':
+          'Un exercice qui cible principalement le dos mais engage également les pectoraux.',
+      'goals':
+          'Renforcer le haut du corps, améliorer la posture, équilibrer les muscles.'
+    },
+    {
+      'name': 'Kettlebell Deep Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Kettlebell-Deep-Push-Up.gif',
+      'description':
+          'Des pompes avec les mains sur des kettlebells, augmentant l\'amplitude de mouvement.',
+      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
+    },
+    {
+      'name': 'Kettlebell Renegade Row',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Kettlebell-Renegade-Row.gif',
+      'description':
+          'Un exercice qui engage le dos mais nécessite une stabilisation de la poitrine et du tronc.',
+      'goals': 'Renforcer le haut du corps, améliorer la stabilité.'
+    },
+    {
+      'name': 'Kneeling Diamond Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Kneeling-Diamond-Push-up.gif',
+      'description':
+          'Une pompe sur les genoux avec les mains en diamant, ciblant les triceps et la poitrine.',
+      'goals': 'Renforcer les triceps, idéal pour les débutants.'
+    },
+    {
+      'name': 'Kneeling Incline Press (Gymstick)',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/kneeling-one-arm-dumbbell-press.gif',
+      'description':
+          'Un développé incliné à genoux avec Gymstick, engageant la poitrine et le tronc.',
+      'goals':
+          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+    },
+    {
+      'name': 'Knuckle Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Knuckle-Push-up.gif',
+      'description':
+          'Des pompes effectuées sur les poings, réduisant la pression sur les poignets et engageant davantage les avant-bras.',
+      'goals': 'Renforcer la poitrine, améliorer la force des avant-bras.'
+    },
+    {
+      'name': 'Lever Chest Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Lever-Chest-Press-Machine.gif',
+      'description':
+          'Un développé unilatéral à la machine à levier, ciblant la poitrine.',
+      'goals': 'Isoler chaque pectoral, corriger les déséquilibres musculaires.'
+    },
+    {
+      'name': 'Lever Crossovers',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Lever-Pec-Deck-Fly_Chest_720.gif',
+      'description':
+          'Un exercice à la machine qui simule le mouvement de l\'écarté, ciblant les pectoraux.',
+      'goals':
+          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
     },
     {
       'name': 'Lever Decline Chest Press',
@@ -887,29 +1009,175 @@ class ExercisesData {
           'Augmenter la masse musculaire des pectoraux inférieurs, améliorer la force en toute sécurité.'
     },
     {
-      'name': 'Fish Pose',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Fish-Pose-Matsyasana.gif',
-      'description':
-          'La posture du poisson est un étirement de yoga qui ouvre la poitrine et étire les muscles pectoraux et du cou.',
-      'goals':
-          'Améliorer la flexibilité de la poitrine, réduire les tensions dans le cou et les épaules.'
-    },
-    {
-      'name': 'Incline Chest Press Machine',
+      'name': 'Lever Incline Hammer Chest Press',
       'image':
           'lib/data/yellowMuscu_Pictures/chest/Incline-Chest-Press-Machine.gif',
       'description':
-          'Le développé incliné à la machine cible les pectoraux supérieurs avec un mouvement stabilisé, idéal pour isoler la poitrine.',
+          'Le développé incliné en prise marteau à la machine cible les pectoraux supérieurs et les triceps.',
       'goals':
-          'Renforcer les pectoraux supérieurs, améliorer la définition musculaire.'
+          'Renforcer le haut de la poitrine, améliorer la force des triceps.'
     },
     {
-      'name': 'Incline Cable Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Cable-Fly.gif',
+      'name': 'Lever One Arm Chest Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Lever-One-Arm-Chest-Press.gif',
       'description':
-          'L\'écarté à la poulie inclinée cible les pectoraux supérieurs en isolant le muscle avec une résistance constante.',
+          'Un développé unilatéral à la machine à levier, ciblant la poitrine.',
+      'goals': 'Isoler chaque pectoral, corriger les déséquilibres musculaires.'
+    },
+    {
+      'name': 'Lying Chest Press Machine',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Press-Machine.gif',
+      'description':
+          'Une machine qui simule le développé couché avec un mouvement stabilisé.',
       'goals':
-          'Augmenter la masse des pectoraux supérieurs, améliorer l\'isolation musculaire.'
+          'Renforcer la poitrine, idéal pour les débutants ou pour varier l\'entraînement.'
+    },
+    {
+      'name': 'Middle Chest Fly with Resistance Band',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Middle-fly.gif',
+      'description':
+          'Un écarté au niveau de la poitrine avec bande élastique, ciblant les pectoraux.',
+      'goals':
+          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
+    },
+    {
+      'name': 'Medicine Ball Overhead Throw',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Medicine-Ball-Overhead-Throw.gif',
+      'description':
+          'Un exercice pliométrique qui développe la puissance du haut du corps.',
+      'goals':
+          'Augmenter la puissance explosive, renforcer les pectoraux et les épaules.'
+    },
+    {
+      'name': 'Medicine Ball Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Medicine-Ball-Push-Up.gif',
+      'description':
+          'Des pompes effectuées avec les mains sur une balle médicinale, augmentant l\'instabilité.',
+      'goals':
+          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
+    },
+    {
+      'name': 'Modified Hindu Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Modified-Hindu-Push-up.gif',
+      'description':
+          'Une variation des pompes qui engage la poitrine, les épaules et le tronc avec un mouvement fluide.',
+      'goals':
+          'Améliorer la flexibilité, renforcer le haut du corps, améliorer la coordination.'
+    },
+    {
+      'name': 'Narrow Grip Wall Push-Up',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Narrow-Grip-Wall-Push-Up.gif',
+      'description':
+          'Une pompe contre le mur avec les mains rapprochées, ciblant les triceps et la poitrine.',
+      'goals':
+          'Renforcer les triceps, idéal pour les débutants ou comme échauffement.'
+    },
+    {
+      'name': 'One Arm Decline Cable Fly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Decline-Cable-Fly.gif',
+      'description':
+          'Un écarté décliné unilatéral à la poulie, ciblant les pectoraux inférieurs.',
+      'goals':
+          'Isoler chaque pectoral inférieur, corriger les déséquilibres musculaires.'
+    },
+    {
+      'name': 'One Arm Push-Up on Medicine Ball',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Single-Arm-Push-Up-on-Medicine-Ball.gif',
+      'description':
+          'Une pompe sur un bras avec la main sur une balle médicinale, très avancée.',
+      'goals':
+          'Renforcer la poitrine, améliorer la force unilatérale et la stabilité.'
+    },
+    {
+      'name': 'One Arm Medicine Ball Slam',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Medicine-Ball-Slam.gif',
+      'description':
+          'Un exercice explosif qui engage tout le haut du corps, y compris les pectoraux.',
+      'goals':
+          'Améliorer la puissance explosive, renforcer le haut du corps, brûler des calories.'
+    },
+    {
+      'name': 'One-Arm Kettlebell Chest Press',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Kettlebell-Chest-Press-on-the-Bench.gif',
+      'description':
+          'Le développé couché unilatéral avec kettlebell engage les pectoraux tout en sollicitant les muscles stabilisateurs en raison du centre de gravité décalé de la kettlebell.',
+      'goals':
+          'Améliorer la force unilatérale de la poitrine, renforcer le tronc et les stabilisateurs d\'épaule.'
+    },
+    {
+      'name': 'Planche Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Planche-Push-Up.gif',
+      'description':
+          'Un exercice avancé qui nécessite une grande force du haut du corps et du tronc.',
+      'goals':
+          'Renforcer la poitrine, les épaules et le tronc, améliorer la force globale.'
+    },
+    {
+      'name': 'Pec-deck or Butterfly',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/pec-deck-butterfly-exercice-musculation.webp',
+      'description':
+          'Le pec-deck (également connu sous le nom de machine butterfly) est un exercice d\'isolation conçu pour cibler les muscles pectoraux. Ce mouvement aide à isoler la poitrine tout en réduisant l\'implication des épaules, ce qui le rend idéal pour maximiser l\'engagement de la poitrine.',
+      'goals':
+          'Améliorer l\'isolation de la poitrine, augmenter l\'activation musculaire des pectoraux et développer la taille et la forme de la poitrine.'
+    },
+    {
+      'name': 'Pike Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Pike-Push-Up.gif',
+      'description':
+          'Le Pike Push-Up est une variation des pompes qui met l\'accent sur les épaules et le haut des pectoraux en positionnant le corps en V inversé.',
+      'goals':
+          'Renforcer les épaules et le haut de la poitrine, améliorer la flexibilité et la stabilité du tronc.'
+    },
+    {
+      'name': 'Push-Up Plus',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Push-Up-Plus.gif',
+      'description':
+          'Le Push-Up Plus inclut une protraction scapulaire en fin de mouvement, ciblant les muscles stabilisateurs de l\'épaule et améliorant la santé scapulaire.',
+      'goals':
+          'Renforcer les muscles stabilisateurs de l\'épaule, améliorer la mobilité scapulaire et prévenir les blessures.'
+    },
+    {
+      'name': 'Push-Up to Renegade Row',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Push-Up-to-Renegade-Row.gif',
+      'description':
+          'Une combinaison de pompe et de rowing, engageant la poitrine, le dos et le tronc.',
+      'goals':
+          'Renforcer le haut du corps, améliorer la coordination et la stabilité.'
+    },
+    {
+      'name': 'Push-Up with Push-Up Bars',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Push-up-With-Push-up-Bars.gif',
+      'description':
+          'Les pompes avec barres augmentent l\'amplitude de mouvement, sollicitant davantage les pectoraux.',
+      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
+    },
+    {
+      'name': 'Push-ups',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/pompe-exercice-musculation.gif',
+      'description':
+          'Les pompes sont un exercice de base au poids du corps qui cible principalement les muscles pectoraux, les triceps et les deltoïdes antérieurs. Elles ne nécessitent aucun équipement, ce qui en fait une option excellente pour s\'entraîner n\'importe où. Les pompes activent également les muscles du tronc et du bas du dos pour stabiliser le corps, offrant un entraînement complet du haut du corps.',
+      'goals':
+          'Améliorer la force du haut du corps, l\'endurance et la stabilité du tronc. Idéal pour développer la condition physique fonctionnelle et l\'endurance musculaire.'
+    },
+    {
+      'name': 'Reaction Ball Throw',
+      'image':
+          'lib/data/yellowMuscu_Pictures/chest/Reaction-Ball-Throw-Agility-Ball-Drill-.gif',
+      'description':
+          'Un exercice pliométrique qui implique de lancer une balle de réaction, améliorant la puissance et la coordination.',
+      'goals':
+          'Augmenter la puissance explosive, améliorer la coordination main-œil.'
     },
     {
       'name': 'Reverse Chest Stretch',
@@ -920,29 +1188,44 @@ class ExercisesData {
           'Améliorer la flexibilité, réduire les tensions, améliorer la posture.'
     },
     {
-      'name': 'Kneeling Landmine Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Landmine-Chest-Press.gif',
+      'name': 'Reverse Dips',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Dips.gif',
       'description':
-          'Le développé à la barre en terre en position agenouillée engage les pectoraux et les épaules avec une trajectoire diagonale.',
-      'goals': 'Renforcer le haut du corps, améliorer la stabilité du tronc.'
+          'Un exercice qui cible principalement les triceps mais engage également la poitrine.',
+      'goals': 'Renforcer les triceps, améliorer la force du haut du corps.'
     },
     {
-      'name': 'Pike Push-Up Between Chairs',
+      'name': 'Reverse Grip Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Pike-Push-Up-Between-Chairs.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Bench-Press.gif',
       'description':
-          'Une variation avancée du pike push-up qui augmente l\'amplitude de mouvement en plaçant les mains sur des chaises.',
+          'Un développé couché à prise inversée et serrée, ciblant les triceps et le haut de la poitrine.',
       'goals':
-          'Renforcer les épaules et le haut de la poitrine, améliorer la flexibilité.'
+          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
     },
     {
-      'name': 'Reaction Ball Throw',
+      'name': 'Reverse Grip Incline Dumbbell Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Reaction-Ball-Throw-Agility-Ball-Drill-.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Incline-Dumbbell-Press.gif',
       'description':
-          'Un exercice pliométrique qui implique de lancer une balle de réaction, améliorant la puissance et la coordination.',
+          'Cette variation met l\'accent sur les pectoraux supérieurs et les triceps avec une prise inversée.',
       'goals':
-          'Augmenter la puissance explosive, améliorer la coordination main-œil.'
+          'Renforcer le haut de la poitrine, réduire la tension sur les épaules.'
+    },
+    {
+      'name': 'Reverse Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Push-up.gif',
+      'description':
+          'Une variation où vous tirez votre corps vers le haut en position inversée, ciblant les muscles du dos mais sollicitant également les pectoraux.',
+      'goals': 'Renforcer le haut du corps, améliorer la force fonctionnelle.'
+    },
+    {
+      'name': 'Ring Dips',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Ring-Dips.gif',
+      'description':
+          'Des dips effectués sur des anneaux, augmentant la difficulté et l\'instabilité.',
+      'goals':
+          'Renforcer la poitrine, les triceps et les épaules, améliorer la stabilité.'
     },
     {
       'name': 'Seated Cable Chest Press',
@@ -963,98 +1246,12 @@ class ExercisesData {
           'Renforcer les triceps et la poitrine, améliorer la définition musculaire.'
     },
     {
-      'name': 'Cable Half Kneeling Pallof Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Cable-Half-Kneeling-Pallof-Press.gif',
+      'name': 'Seated Chest Stretch',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Seated-Chest-Stretch.gif',
       'description':
-          'Un exercice anti-rotation qui engage le tronc tout en sollicitant légèrement les pectoraux.',
+          'L\'étirement de la poitrine assis aide à augmenter la flexibilité des pectoraux et à améliorer la posture en étirant les muscles de la poitrine.',
       'goals':
-          'Renforcer le tronc, améliorer la stabilité, prévenir les blessures.'
-    },
-    {
-      'name': 'One Arm Medicine Ball Slam',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Medicine-Ball-Slam.gif',
-      'description':
-          'Un exercice explosif qui engage tout le haut du corps, y compris les pectoraux.',
-      'goals':
-          'Améliorer la puissance, renforcer le haut du corps, brûler des calories.'
-    },
-    {
-      'name': 'Medicine Ball Overhead Throw',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Medicine-Ball-Overhead-Throw.gif',
-      'description':
-          'Un exercice pliométrique qui développe la puissance du haut du corps.',
-      'goals':
-          'Augmenter la puissance explosive, renforcer les pectoraux et les épaules.'
-    },
-    {
-      'name': 'Standing Medicine Ball Chest Pass',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Standing-Medicine-Ball-Chest-Pass.gif',
-      'description':
-          'Un exercice qui améliore la puissance et la coordination en lançant une balle médicinale depuis la poitrine.',
-      'goals':
-          'Renforcer les pectoraux, améliorer la puissance de poussée, développer la coordination.'
-    },
-    {
-      'name': 'Arm Scissors',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Arm-Scissors.gif',
-      'description':
-          'Un étirement dynamique où les bras croisent devant la poitrine, étirant les pectoraux et les épaules.',
-      'goals':
-          'Échauffer le haut du corps, améliorer la mobilité, réduire les risques de blessure.'
-    },
-    {
-      'name': 'Incline Chest Fly Machine',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Incline-Chest-Fly-Machine.gif',
-      'description':
-          'L\'écarté à la machine en position inclinée cible les pectoraux supérieurs avec un mouvement guidé.',
-      'goals':
-          'Isoler les pectoraux supérieurs, améliorer la définition musculaire.'
-    },
-    {
-      'name': 'Pec Deck Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Pec-Deck-Fly.gif',
-      'description':
-          'L\'écarté à la machine pec deck cible les pectoraux avec un mouvement guidé, idéal pour l\'isolation musculaire.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'isolation des pectoraux, augmenter la masse musculaire.'
-    },
-    {
-      'name': 'Dumbbell Pullover',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Pullover.gif',
-      'description':
-          'Le pull-over avec haltère cible les pectoraux et les dorsaux, étirant le haut du corps.',
-      'goals':
-          'Renforcer la poitrine et le dos, améliorer la flexibilité thoracique.'
-    },
-    {
-      'name': 'Low Cable Crossover',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Low-Cable-Crossover.gif',
-      'description':
-          'L\'écarté à la poulie basse cible les pectoraux supérieurs avec une trajectoire ascendante.',
-      'goals':
-          'Augmenter la masse des pectoraux supérieurs, améliorer l\'isolation musculaire.'
-    },
-    {
-      'name': 'Cable Crossover',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Cable-Crossover.gif',
-      'description':
-          'Un exercice qui cible les pectoraux avec une résistance constante, permettant une grande amplitude de mouvement.',
-      'goals':
-          'Renforcer la poitrine, améliorer la définition et la forme des pectoraux.'
-    },
-    {
-      'name': 'One-Arm Cable Chest Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Cable-Chest-Press.gif',
-      'description':
-          'Le développé unilatéral à la poulie engage les pectoraux et les muscles stabilisateurs.',
-      'goals':
-          'Améliorer la force unilatérale, renforcer le tronc, corriger les déséquilibres musculaires.'
+          'Améliorer la flexibilité de la poitrine, réduire la tension musculaire, améliorer la posture.'
     },
     {
       'name': 'Single Arm Cable Crossover',
@@ -1066,298 +1263,13 @@ class ExercisesData {
           'Isoler chaque pectoral, corriger les déséquilibres, améliorer la définition musculaire.'
     },
     {
-      'name': 'Incline Dumbbell Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Fly.gif',
-      'description':
-          'L\'écarté incliné avec haltères cible les pectoraux supérieurs, étirant et contractant le muscle.',
-      'goals':
-          'Augmenter la masse des pectoraux supérieurs, améliorer la flexibilité et l\'isolation musculaire.'
-    },
-    {
-      'name': 'Incline Dumbbell Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Press.gif',
-      'description':
-          'Le développé incliné avec haltères cible les pectoraux supérieurs avec une plus grande amplitude de mouvement.',
-      'goals':
-          'Renforcer les pectoraux supérieurs, améliorer la symétrie musculaire.'
-    },
-    {
-      'name': 'Reverse Grip Incline Dumbbell Press',
+      'name': 'Single Arm Raise Push-Up',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Incline-Dumbbell-Press.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Single-Arm-Raise-Push-up.gif',
       'description':
-          'Cette variation met l\'accent sur les pectoraux supérieurs et les triceps avec une prise inversée.',
+          'Une pompe où vous levez un bras en haut du mouvement, augmentant la difficulté.',
       'goals':
-          'Renforcer le haut de la poitrine, améliorer la force des triceps, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Machine Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/10301301-Lever-Pec-Deck-Fly_Chest_720.gif',
-      'description':
-          'L\'écarté à la machine cible les pectoraux avec un mouvement guidé, idéal pour les débutants.',
-      'goals':
-          'Isoler la poitrine, augmenter la masse musculaire, améliorer la définition.'
-    },
-    {
-      'name': 'Decline Dumbbell Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Decline-Dumbbell-Press.gif',
-      'description':
-          'Le développé décliné avec haltères cible les pectoraux inférieurs, offrant une plus grande amplitude de mouvement.',
-      'goals':
-          'Augmenter la masse des pectoraux inférieurs, améliorer l\'isolation musculaire.'
-    },
-    {
-      'name': 'Chest Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Dips.gif',
-      'description':
-          'Les dips pour la poitrine ciblent les pectoraux inférieurs et les triceps, nécessitant une bonne force du haut du corps.',
-      'goals':
-          'Augmenter la force et la masse des pectoraux et des triceps, améliorer la stabilité des épaules.'
-    },
-    {
-      'name': 'Assisted Chest Dip',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Assisted-Chest-Dip.gif',
-      'description':
-          'Une variation des dips avec assistance pour ceux qui développent encore leur force.',
-      'goals':
-          'Renforcer progressivement la poitrine et les triceps, améliorer la technique.'
-    },
-    {
-      'name': 'Drop Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Drop-Push-Up.gif',
-      'description':
-          'Un exercice pliométrique où vous laissez tomber vos mains d\'une surface surélevée pour augmenter l\'intensité.',
-      'goals':
-          'Améliorer la puissance explosive, renforcer les pectoraux et les triceps.'
-    },
-    {
-      'name': 'Incline Dumbbell Hammer Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Dumbbell-Press.gif',
-      'description':
-          'Le développé incliné en prise marteau cible les pectoraux et les triceps avec une prise neutre.',
-      'goals':
-          'Renforcer le haut de la poitrine, réduire la tension sur les épaules, améliorer la force des triceps.'
-    },
-    {
-      'name': 'Dumbbell Upward Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Upward-Fly.gif',
-      'description':
-          'Un écarté avec une trajectoire ascendante qui cible les pectoraux supérieurs.',
-      'goals':
-          'Isoler les pectoraux supérieurs, améliorer la définition et la masse musculaire.'
-    },
-    {
-      'name': 'Narrow Grip Wall Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Narrow-Grip-Wall-Push-Up.gif',
-      'description':
-          'Une pompe contre le mur avec les mains rapprochées, ciblant les triceps et la poitrine.',
-      'goals':
-          'Renforcer les triceps, idéal pour les débutants ou comme échauffement.'
-    },
-    {
-      'name': 'Shoulder Stretch Behind Back',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Shoulder-Stretch-Behind-Back.gif',
-      'description':
-          'Un étirement qui étire les épaules et la poitrine en tirant le bras derrière le dos.',
-      'goals':
-          'Améliorer la flexibilité des épaules, réduire les tensions, améliorer la posture.'
-    },
-    {
-      'name': 'Decline Chest Press Machine',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Decline-Chest-Press-Machine.gif',
-      'description':
-          'Le développé décliné à la machine cible les pectoraux inférieurs avec un mouvement guidé.',
-      'goals':
-          'Renforcer la poitrine inférieure, améliorer la masse musculaire en toute sécurité.'
-    },
-    {
-      'name': 'Lying Chest Press Machine',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Press-Machine.gif',
-      'description':
-          'Une machine qui simule le développé couché avec un mouvement stabilisé.',
-      'goals':
-          'Renforcer la poitrine, idéal pour les débutants ou pour varier l\'entraînement.'
-    },
-    {
-      'name': 'Wall Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Wall-Push-ups.gif',
-      'description':
-          'Une pompe contre le mur, idéale pour les débutants ou comme échauffement.',
-      'goals':
-          'Renforcer la poitrine et les triceps, améliorer la technique de pompe.'
-    },
-    {
-      'name': 'Smith Machine Hex Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Smith-Machine-Hex-Press.gif',
-      'description':
-          'Le hex press à la Smith Machine cible les pectoraux internes en pressant les haltères ensemble pendant le mouvement.',
-      'goals':
-          'Améliorer la définition interne de la poitrine, renforcer les triceps.'
-    },
-    {
-      'name': 'Close-Grip Incline Dumbbell Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Close-grip-Incline-Dumbbell-Press.gif',
-      'description':
-          'Un développé incliné avec les haltères rapprochés, ciblant les pectoraux supérieurs et les triceps.',
-      'goals':
-          'Renforcer le haut de la poitrine, améliorer la force des triceps.'
-    },
-    {
-      'name': 'Kneeling Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Kneeling-Push-up.gif',
-      'description':
-          'Une variation de la pompe sur les genoux, idéale pour les débutants ou pour travailler la technique.',
-      'goals':
-          'Renforcer la poitrine et les triceps, améliorer la technique de pompe.'
-    },
-    {
-      'name': 'Decline Cable Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Decline-Cable-Fly.gif',
-      'description':
-          'L\'écarté décliné à la poulie cible les pectoraux inférieurs avec une résistance constante.',
-      'goals':
-          'Isoler les pectoraux inférieurs, améliorer la définition musculaire.'
-    },
-    {
-      'name': 'Smith Machine Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Smith-Machine-Bench-Press.gif',
-      'description':
-          'Le développé couché à la Smith Machine offre un mouvement guidé pour cibler la poitrine.',
-      'goals':
-          'Renforcer la poitrine en toute sécurité, idéal pour varier l\'entraînement.'
-    },
-    {
-      'name': 'Smith Machine Incline Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Smith-Machine-Incline-Bench-Press.gif',
-      'description':
-          'Le développé incliné à la Smith Machine cible les pectoraux supérieurs avec un mouvement stabilisé.',
-      'goals':
-          'Renforcer les pectoraux supérieurs, améliorer la force en toute sécurité.'
-    },
-    {
-      'name': 'Parallel Bar Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/parallel-bar-dip.gif',
-      'description':
-          'Les dips aux barres parallèles ciblent les pectoraux, les triceps et les épaules.',
-      'goals':
-          'Augmenter la force du haut du corps, améliorer la masse musculaire.'
-    },
-    {
-      'name': 'Back Pec Stretch',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Back-Pec-Stretch.gif',
-      'description':
-          'Un étirement qui cible les pectoraux en tirant les bras vers l\'arrière.',
-      'goals':
-          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
-    },
-    {
-      'name': 'Lever Incline Hammer Chest Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Incline-Chest-Press-Machine.gif',
-      'description':
-          'Le développé incliné en prise marteau à la machine cible les pectoraux supérieurs et les triceps.',
-      'goals':
-          'Renforcer le haut de la poitrine, améliorer la force des triceps.'
-    },
-    {
-      'name': 'Lever Crossovers',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Lever-Pec-Deck-Fly_Chest_720.gif',
-      'description':
-          'Un exercice à la machine qui simule le mouvement de l\'écarté, ciblant les pectoraux.',
-      'goals':
-          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
-    },
-    {
-      'name': 'Reverse Grip Dumbbell Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Dumbbell-Bench-Press.gif',
-      'description':
-          'Le développé couché avec haltères en prise inversée cible les pectoraux supérieurs et les triceps.',
-      'goals':
-          'Renforcer le haut de la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Lever Chest Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Press-Machine.gif',
-      'description':
-          'Le développé couché à la machine à levier offre un mouvement guidé pour cibler la poitrine.',
-      'goals':
-          'Renforcer la poitrine, idéal pour varier l\'entraînement et pour les débutants.'
-    },
-    {
-      'name': 'Incline Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Incline-Push-Up.gif',
-      'description':
-          'Les pompes inclinées réduisent la difficulté de l\'exercice, idéal pour les débutants.',
-      'goals':
-          'Renforcer la poitrine et les triceps, améliorer la technique de pompe.'
-    },
-    {
-      'name': 'Svend Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Svend-Press.gif',
-      'description':
-          'Un exercice qui implique de presser un disque contre la poitrine, ciblant les pectoraux internes.',
-      'goals':
-          'Améliorer la définition interne de la poitrine, renforcer les épaules.'
-    },
-    {
-      'name': 'Reverse Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Push-up.gif',
-      'description':
-          'Une variation où vous tirez votre corps vers le haut en position inversée, ciblant les muscles du dos mais sollicitant également les pectoraux.',
-      'goals': 'Renforcer le haut du corps, améliorer la force fonctionnelle.'
-    },
-    {
-      'name': 'Alternate Dumbbell Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Alternate-Dumbbell-Bench-Press.gif',
-      'description':
-          'Le développé couché avec haltères en alternance engage les muscles stabilisateurs en travaillant un côté à la fois.',
-      'goals':
-          'Améliorer la stabilité, corriger les déséquilibres musculaires, renforcer la poitrine.'
-    },
-    {
-      'name': 'Close-Grip Dumbbell Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Dumbbell-Press.gif',
-      'description':
-          'Un développé couché avec haltères rapprochés, ciblant les triceps et la poitrine interne.',
-      'goals':
-          'Renforcer les triceps, améliorer la définition interne de la poitrine.'
-    },
-    {
-      'name': 'Clap Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Clap-Push-Up.gif',
-      'description':
-          'Un exercice pliométrique où vous claquez des mains en l\'air entre chaque répétition.',
-      'goals':
-          'Améliorer la puissance explosive, renforcer les pectoraux et les triceps.'
-    },
-    {
-      'name': 'Above Head Chest Stretch',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Above-Head-Chest-Stretch.gif',
-      'description':
-          'Un étirement où vous levez les bras au-dessus de la tête pour étirer la poitrine et les épaules.',
-      'goals':
-          'Améliorer la flexibilité, réduire les tensions musculaires, améliorer la posture.'
-    },
-    {
-      'name': 'Dynamic Chest Stretch',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Dynamic-Chest-Stretch.gif',
-      'description':
-          'Un étirement dynamique pour échauffer les muscles de la poitrine avant l\'entraînement.',
-      'goals':
-          'Préparer les muscles à l\'effort, réduire les risques de blessure.'
+          'Renforcer la poitrine, améliorer la stabilité et la force unilatérale.'
     },
     {
       'name': 'Single Dumbbell Close-Grip Press',
@@ -1369,35 +1281,13 @@ class ExercisesData {
           'Renforcer les triceps, améliorer la stabilité et la force de la poitrine.'
     },
     {
-      'name': 'Kneeling Diamond Push-Up',
+      'name': 'Smith Machine Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Kneeling-Diamond-Push-up.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Smith-Machine-Bench-Press.gif',
       'description':
-          'Une pompe sur les genoux avec les mains en diamant, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, idéal pour les débutants.'
-    },
-    {
-      'name': 'Dips Between Chairs',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Dips-Between-Chairs.gif',
-      'description':
-          'Une variation des dips en utilisant des chaises, ciblant la poitrine et les triceps.',
-      'goals': 'Renforcer le haut du corps, améliorer la force fonctionnelle.'
-    },
-    {
-      'name': 'Push-Up with Push-Up Bars',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Push-up-With-Push-up-Bars.gif',
-      'description':
-          'Les pompes avec barres augmentent l\'amplitude de mouvement, sollicitant davantage les pectoraux.',
-      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
-    },
-    {
-      'name': 'Inverted Row',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Inverted-Row.gif',
-      'description':
-          'Un exercice qui cible principalement le dos mais engage également les pectoraux.',
+          'Le développé couché à la Smith Machine offre un mouvement guidé pour cibler la poitrine.',
       'goals':
-          'Renforcer le haut du corps, améliorer la posture, équilibrer les muscles.'
+          'Renforcer la poitrine en toute sécurité, idéal pour varier l\'entraînement.'
     },
     {
       'name': 'Smith Machine Decline Bench Press',
@@ -1409,13 +1299,13 @@ class ExercisesData {
           'Renforcer la poitrine inférieure, améliorer la masse musculaire en toute sécurité.'
     },
     {
-      'name': 'One Arm Decline Cable Fly',
+      'name': 'Smith Machine Incline Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/One-Arm-Decline-Cable-Fly.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Smith-Machine-Incline-Bench-Press.gif',
       'description':
-          'Un écarté décliné unilatéral à la poulie, ciblant les pectoraux inférieurs.',
+          'Le développé incliné à la Smith Machine cible les pectoraux supérieurs avec un mouvement stabilisé.',
       'goals':
-          'Isoler chaque pectoral inférieur, corriger les déséquilibres musculaires.'
+          'Renforcer les pectoraux supérieurs, améliorer la force en toute sécurité.'
     },
     {
       'name': 'Straight Bar Dip',
@@ -1426,39 +1316,12 @@ class ExercisesData {
           'Augmenter la force du haut du corps, améliorer la masse musculaire.'
     },
     {
-      'name': 'Dumbbell One Arm Reverse Grip Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Dumbbell-One-Arm-Reverse-Grip-Press.gif',
+      'name': 'Stability Ball Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/stability-ball-push-up.gif',
       'description':
-          'Un développé unilatéral avec haltère en prise inversée, ciblant les pectoraux supérieurs.',
+          'Les pompes sur ballon de stabilité augmentent la difficulté en ajoutant de l\'instabilité, ce qui sollicite davantage les muscles stabilisateurs du tronc et des épaules.',
       'goals':
-          'Renforcer le haut de la poitrine, améliorer la force unilatérale.'
-    },
-    {
-      'name': 'Lever One Arm Chest Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Lever-Chest-Press-Machine.gif',
-      'description':
-          'Un développé unilatéral à la machine à levier, ciblant la poitrine.',
-      'goals': 'Isoler chaque pectoral, corriger les déséquilibres musculaires.'
-    },
-    {
-      'name': 'Standing One Arm Chest Stretch',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Standing-one-arm-chest-stretch.gif',
-      'description':
-          'Un étirement unilatéral de la poitrine en position debout, améliorant la flexibilité.',
-      'goals':
-          'Améliorer la flexibilité, réduire les tensions musculaires, corriger la posture.'
-    },
-    {
-      'name': 'Single Arm Medicine Ball Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Single-Arm-Push-Up-on-Medicine-Ball.gif',
-      'description':
-          'Une pompe avec une main sur une balle médicinale, augmentant l\'instabilité et la difficulté.',
-      'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+          'Améliorer la force du haut du corps, renforcer le tronc, améliorer l\'équilibre et la coordination.'
     },
     {
       'name': 'Stability Ball Decline Push-Up',
@@ -1470,359 +1333,19 @@ class ExercisesData {
           'Renforcer la poitrine, les épaules et le tronc, améliorer l\'équilibre.'
     },
     {
-      'name': 'Chest and Front of Shoulder Stretch',
+      'name': 'Standing Incline Chest Press with Resistance Band',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/Chest-and-Front-of-Shoulder-Stretch.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Standing-Incline-Chest-Press.gif',
       'description':
-          'Un étirement qui cible la poitrine et l\'avant des épaules.',
-      'goals':
-          'Améliorer la flexibilité, réduire les tensions, améliorer la posture.'
-    },
-    {
-      'name': 'Forearm Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Forearm-Push-up.gif',
-      'description':
-          'Une variation des pompes où vous vous appuyez sur les avant-bras, ciblant le tronc et la poitrine.',
-      'goals':
-          'Renforcer le tronc, améliorer la stabilité et la force de la poitrine.'
-    },
-    {
-      'name': 'Banded Shoulder Adduction',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Banded-Shoulder-Adduction.gif',
-      'description':
-          'Un exercice avec bande élastique ciblant les pectoraux en rapprochant le bras du corps.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité de l\'épaule.'
-    },
-    {
-      'name': 'Band Alternate Incline Chest Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Band-Alternate-Incline-Chest-Press-.gif',
-      'description':
-          'Un développé incliné alterné avec bande élastique, ciblant les pectoraux supérieurs.',
-      'goals':
-          'Renforcer le haut de la poitrine, améliorer la coordination et la stabilité.'
-    },
-    {
-      'name': 'Incline Close-Grip Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Incline-Close-Grip-Bench-Press.gif',
-      'description':
-          'Un développé incliné à prise serrée, ciblant les triceps et la poitrine supérieure.',
-      'goals':
-          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
-    },
-    {
-      'name': 'Close Grip Bench Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Bench-Press.gif',
-      'description':
-          'Le développé couché à prise serrée cible les triceps et la poitrine interne.',
-      'goals':
-          'Renforcer les triceps, améliorer la définition interne de la poitrine.'
-    },
-    {
-      'name': 'Diamond Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Diamond-Push-up.gif',
-      'description':
-          'Une pompe avec les mains en diamant sous la poitrine, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
-    },
-    {
-      'name': 'Hammer Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Hammer-Press.gif',
-      'description':
-          'Un développé avec haltères en prise marteau, ciblant la poitrine et les triceps.',
-      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Chest Press Machine',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Press-Machine.gif',
-      'description':
-          'Le développé couché à la machine offre un mouvement guidé pour cibler la poitrine.',
-      'goals':
-          'Renforcer la poitrine, idéal pour varier l\'entraînement et pour les débutants.'
-    },
-    {
-      'name': 'Corner Wall Stretch',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Corner-Wall-Stretch.gif',
-      'description':
-          'Un étirement où vous vous tenez dans un coin et poussez contre les murs pour étirer la poitrine.',
-      'goals':
-          'Améliorer la flexibilité de la poitrine, réduire les tensions musculaires.'
-    },
-    {
-      'name': 'Barbell Floor Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Barbell-Floor-Press.gif',
-      'description':
-          'Un développé couché au sol avec barre, limitant l\'amplitude pour réduire la tension sur les épaules.',
-      'goals':
-          'Renforcer la poitrine et les triceps, améliorer la force en toute sécurité.'
-    },
-    {
-      'name': 'Landmine Floor Chest Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Landmine-Floor-Chest-Fly.gif',
-      'description':
-          'Un écarté au sol avec une barre en terre, ciblant les pectoraux avec une trajectoire unique.',
-      'goals': 'Isoler la poitrine, améliorer la force et la stabilité.'
-    },
-    {
-      'name': 'Decline Hammer Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Decline-hammer-press.gif',
-      'description':
-          'Un développé décliné en prise marteau, ciblant les pectoraux inférieurs.',
-      'goals':
-          'Renforcer la poitrine inférieure, améliorer la force des triceps.'
-    },
-    {
-      'name': 'Close-Grip Reverse Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Reverse-Grip-Dumbbell-Bench-Press.gif',
-      'description':
-          'Un développé couché à prise inversée et serrée, ciblant les triceps et le haut de la poitrine.',
-      'goals':
-          'Renforcer les triceps, améliorer la force du haut de la poitrine.'
-    },
-    {
-      'name': 'Wide-Grip Reverse Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Wide-Grip-Reverse-Bench-Press.gif',
-      'description':
-          'Un développé couché à prise inversée et large, ciblant davantage la poitrine.',
-      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Straddle Planche',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Straddle-planche.gif',
-      'description':
-          'Un exercice avancé de poids du corps qui engage intensément les pectoraux, les épaules et le tronc.',
-      'goals': 'Renforcer le haut du corps, améliorer la force et l\'équilibre.'
-    },
-    {
-      'name': 'Close Grip Knee Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Knee-Push-up.gif',
-      'description':
-          'Une pompe sur les genoux avec les mains rapprochées, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, idéal pour les débutants.'
-    },
-    {
-      'name': 'Push-Up with Rotation',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/push-up-with-rotation.gif',
-      'description':
-          'Une pompe suivie d\'une rotation du corps, engageant le tronc et les pectoraux.',
-      'goals':
-          'Renforcer la poitrine et le tronc, améliorer la stabilité et la coordination.'
-    },
-    {
-      'name': 'Supine Medicine Ball Chest Throw',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Supine-Medicine-Ball-Chest-Throw-exercise.gif',
-      'description':
-          'Un exercice pliométrique où vous lancez une balle médicinale en position couchée, ciblant la puissance de la poitrine.',
-      'goals': 'Améliorer la puissance explosive, renforcer les pectoraux.'
-    },
-    {
-      'name': 'Reverse Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Reverse-Dips.gif',
-      'description':
-          'Un exercice qui cible principalement les triceps mais engage également la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force du haut du corps.'
-    },
-    {
-      'name': 'TRX Chest Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Trx-Chest-Press.gif',
-      'description':
-          'Un développé couché avec sangles de suspension, engageant la poitrine et le tronc.',
+          'Un développé incliné debout avec bande élastique, ciblant les pectoraux supérieurs.',
       'goals':
           'Renforcer la poitrine, améliorer la stabilité et la coordination.'
     },
     {
-      'name': 'Dumbbell Straight Arm Pullover (Knees at 90 Degrees)',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Straight-Arm-Pullover-knees-at-90-degrees.gif',
-      'description':
-          'Un pull-over avec les bras tendus et les genoux pliés, ciblant la poitrine et les dorsaux.',
-      'goals':
-          'Renforcer la poitrine et le dos, améliorer la stabilité du tronc.'
-    },
-    {
-      'name': 'TRX Chest Fly',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Trx-Chest-Flyes.gif',
-      'description':
-          'Un écarté avec sangles de suspension, ciblant la poitrine avec une résistance variable.',
-      'goals': 'Isoler la poitrine, améliorer la stabilité et la force.'
-    },
-    {
-      'name': 'Doorway Pec and Shoulder Stretch',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Doorway-chest-and-sshoulder-stretch.gif',
-      'description':
-          'Un étirement en utilisant une porte pour étirer la poitrine et les épaules.',
-      'goals': 'Améliorer la flexibilité, réduire les tensions musculaires.'
-    },
-    {
-      'name': 'Kettlebell Renegade Row',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Kettlebell-Renegade-Row.gif',
-      'description':
-          'Un exercice qui engage le dos mais nécessite une stabilisation de la poitrine et du tronc.',
-      'goals': 'Renforcer le haut du corps, améliorer la stabilité.'
-    },
-    {
-      'name': 'Push-Up to Renegade Row',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Push-Up-to-Renegade-Row.gif',
-      'description':
-          'Une combinaison de pompe et de rowing, engageant la poitrine, le dos et le tronc.',
-      'goals':
-          'Renforcer le haut du corps, améliorer la coordination et la stabilité.'
-    },
-    {
-      'name': 'Modified Hindu Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Modified-Hindu-Push-up.gif',
-      'description':
-          'Une variation des pompes qui engage la poitrine, les épaules et le tronc avec un mouvement fluide.',
-      'goals':
-          'Améliorer la flexibilité, renforcer le haut du corps, améliorer la coordination.'
-    },
-    {
-      'name': 'Knuckle Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Knuckle-Push-up.gif',
-      'description':
-          'Des pompes effectuées sur les poings, réduisant la pression sur les poignets et engageant davantage les avant-bras.',
-      'goals': 'Renforcer la poitrine, améliorer la force des avant-bras.'
-    },
-    {
-      'name': 'Planche Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Planche-Push-Up.gif',
-      'description':
-          'Un exercice avancé qui nécessite une grande force du haut du corps et du tronc.',
-      'goals':
-          'Renforcer la poitrine, les épaules et le tronc, améliorer la force globale.'
-    },
-    {
-      'name': 'Finger Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Finger-Push-up.gif',
-      'description':
-          'Des pompes effectuées sur les doigts, renforçant les mains et les avant-bras.',
-      'goals': 'Améliorer la force des doigts, renforcer la poitrine.'
-    },
-    {
-      'name': 'Chest Tap Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Chest-Tap-Push-up.gif',
-      'description':
-          'Une pompe où vous tapez la poitrine entre les répétitions, augmentant la difficulté et l\'engagement du tronc.',
-      'goals':
-          'Renforcer la poitrine, améliorer la coordination et la stabilité.'
-    },
-    {
-      'name': 'Kettlebell Deep Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Kettlebell-Deep-Push-Up.gif',
-      'description':
-          'Des pompes avec les mains sur des kettlebells, augmentant l\'amplitude de mouvement.',
-      'goals': 'Renforcer la poitrine, améliorer la flexibilité et la force.'
-    },
-    {
-      'name': 'Archer Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Archer-Push-Up.gif',
-      'description':
-          'Une pompe où un bras est tendu sur le côté, ciblant un pectoral à la fois.',
-      'goals': 'Renforcer la poitrine, améliorer la force unilatérale.'
-    },
-    {
-      'name': 'One Leg Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/One-Leg-Push-Up.gif',
-      'description':
-          'Une pompe avec une jambe levée, augmentant l\'instabilité et engageant davantage le tronc.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité et l\'équilibre.'
-    },
-    {
-      'name': 'BOSU Ball Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/BOSU-Ball-Push-Up.gif',
-      'description':
-          'Des pompes effectuées sur un BOSU ball, augmentant l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
-    },
-    {
-      'name': 'Resistance Band Alternating Chest Fly',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Resistance-Band-Alternating-Chest-Fly.gif',
-      'description':
-          'Un écarté alterné avec bande élastique, ciblant les pectoraux.',
-      'goals': 'Isoler la poitrine, améliorer la coordination et la force.'
-    },
-    {
-      'name': 'Dumbbell Reverse Grip 30 Degrees Incline Bench Press',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Dumbbell-Reverse-Grip-30-Degrees-Incline-Bench-Press.gif',
-      'description':
-          'Un développé incliné à 30 degrés en prise inversée, ciblant le haut de la poitrine.',
-      'goals':
-          'Renforcer le haut de la poitrine, réduire la tension sur les épaules.'
-    },
-    {
-      'name': 'Incline Landmine Press',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/incline-landmine-press.gif',
-      'description':
-          'Un développé incliné avec une barre en terre, ciblant la poitrine et les épaules.',
-      'goals': 'Renforcer la poitrine, améliorer la stabilité et la force.'
-    },
-    {
-      'name': 'Ring Dips',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Ring-Dips.gif',
-      'description':
-          'Des dips effectués sur des anneaux, augmentant la difficulté et l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, les triceps et les épaules, améliorer la stabilité.'
-    },
-    {
-      'name': 'Cobra Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Cobra-Push-up.gif',
-      'description':
-          'Une variation de la pompe qui engage le dos et la poitrine avec un mouvement fluide.',
-      'goals': 'Améliorer la flexibilité, renforcer le haut du corps.'
-    },
-    {
-      'name': 'Shoulder Tap Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Shoulder-Tap-Push-up.gif',
-      'description':
-          'Une pompe suivie d\'un tapotement de l\'épaule, engageant le tronc et améliorant la stabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer la coordination et la stabilité du tronc.'
-    },
-    {
-      'name': 'Single Arm Raise Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Single-Arm-Raise-Push-up.gif',
-      'description':
-          'Une pompe où vous levez un bras en haut du mouvement, augmentant la difficulté.',
-      'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la force unilatérale.'
-    },
-    {
-      'name': 'Suspended Push-Up',
+      'name': 'Suspened Push-Up',
       'image': 'lib/data/yellowMuscu_Pictures/chest/Suspended-Push-Up.gif',
       'description':
           'Des pompes effectuées avec les pieds ou les mains suspendus, augmentant l\'instabilité.',
-      'goals':
-          'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
-    },
-    {
-      'name': 'Close-Grip Dumbbell Push-Up',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/Close-Grip-Dumbbell-Push-Up.gif',
-      'description':
-          'Des pompes effectuées avec les mains sur des haltères rapprochés, ciblant les triceps et la poitrine.',
-      'goals': 'Renforcer les triceps, améliorer la force de la poitrine.'
-    },
-    {
-      'name': 'Medicine Ball Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Medicine-Ball-Push-Up.gif',
-      'description':
-          'Des pompes effectuées avec les mains sur une balle médicinale, augmentant l\'instabilité.',
       'goals':
           'Renforcer la poitrine, améliorer l\'équilibre et la coordination.'
     },
@@ -1836,14 +1359,6 @@ class ExercisesData {
           'Renforcer la poitrine, améliorer la force unilatérale et la stabilité.'
     },
     {
-      'name': 'Weighted Vest Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Weighted-Vest-Push-up.gif',
-      'description':
-          'Des pompes effectuées avec un gilet lesté pour augmenter la résistance.',
-      'goals':
-          'Renforcer la poitrine, augmenter la masse musculaire, améliorer l\'endurance.'
-    },
-    {
       'name': 'Standing Incline Chest Press with Resistance Band',
       'image':
           'lib/data/yellowMuscu_Pictures/chest/Standing-Incline-Chest-Press.gif',
@@ -1853,58 +1368,49 @@ class ExercisesData {
           'Renforcer la poitrine, améliorer la stabilité et la coordination.'
     },
     {
-      'name': 'Middle Chest Fly with Resistance Band',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Middle-fly.gif',
+      'name': 'Weighted Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Weighted-Push-up.gif',
       'description':
-          'Un écarté au niveau de la poitrine avec bande élastique, ciblant les pectoraux.',
+          'Les pompes avec poids ajoutent une résistance supplémentaire, augmentant l\'intensité de l\'exercice pour développer davantage de force et de masse musculaire.',
       'goals':
-          'Isoler la poitrine, améliorer la définition et la masse musculaire.'
+          'Augmenter la force et l\'hypertrophie des pectoraux, des triceps et des épaules, améliorer l\'endurance musculaire.'
     },
     {
-      'name': 'Kneeling Incline Press (Gymstick)',
+      'name': 'Weighted Vest Push-Up',
+      'image': 'lib/data/yellowMuscu_Pictures/chest/Weighted-Vest-Push-up.gif',
+      'description':
+          'Des pompes effectuées avec un gilet lesté pour augmenter la résistance.',
+      'goals':
+          'Renforcer la poitrine, augmenter la masse musculaire, améliorer l\'endurance.'
+    },
+    {
+      'name': 'Wide Grip Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/kneeling-one-arm-dumbbell-press.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Wide-Grip-Barbell-Bench-Press.gif',
       'description':
-          'Un développé incliné à genoux avec Gymstick, engageant la poitrine et le tronc.',
+          'Le développé couché prise large accentue le travail sur les pectoraux en réduisant l\'implication des triceps grâce à une prise plus large.',
       'goals':
-          'Renforcer la poitrine, améliorer la stabilité et la coordination.'
+          'Augmenter la masse et la force des pectoraux, améliorer la largeur de la poitrine.'
     },
     {
-      'name': 'Low Chest Fly with Resistance Band',
+      'name': 'Wide-Grip Reverse Bench Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/chest/resistance-band-chest-fly.gif',
+          'lib/data/yellowMuscu_Pictures/chest/Wide-Grip-Reverse-Bench-Press.gif',
       'description':
-          'Un écarté vers le bas avec bande élastique, ciblant les pectoraux supérieurs.',
-      'goals':
-          'Renforcer le haut de la poitrine, améliorer la définition musculaire.'
-    },
-    {
-      'name': 'High Chest Fly with Resistance Band',
-      'image':
-          'lib/data/yellowMuscu_Pictures/chest/High-Chest-Fly-With-Resistance-Band.gif',
-      'description':
-          'Un écarté vers le haut avec bande élastique, ciblant les pectoraux inférieurs.',
-      'goals':
-          'Renforcer la poitrine inférieure, améliorer la définition musculaire.'
-    },
-    {
-      'name': 'Decline Push-Up',
-      'image': 'lib/data/yellowMuscu_Pictures/chest/Decline-Push-Up.gif',
-      'description':
-          'Des pompes avec les pieds surélevés, augmentant la difficulté et ciblant les pectoraux supérieurs.',
-      'goals': 'Renforcer la poitrine, améliorer la force du haut du corps.'
+          'Un développé couché à prise inversée et large, ciblant davantage la poitrine.',
+      'goals': 'Renforcer la poitrine, réduire la tension sur les épaules.'
     },
   ];
 
   static final List<Map<String, String>> backExercises = [
     {
-      'name': 'Seated Machine Pullover',
+      'name': 'Barbell Bent Over Row',
       'image':
-          'lib/data/yellowMuscu_Pictures/pull-over-assis-a-la-machine-musculation-dorsaux.gif',
+          'lib/data/yellowMuscu_Pictures/rowing-barre-buste-penche-musculation-dorsaux.gif',
       'description':
-          'The seated machine pullover focuses on strengthening the back muscles, especially the latissimus dorsi. This exercise helps in expanding the ribcage and increasing upper body strength.',
+          'This polyarticular exercise targets the entire back, particularly the latissimus dorsi, traps, and rhomboids. It helps improve posture and strengthens multiple muscle groups simultaneously.',
       'goals':
-          'To build strength in the upper back and improve shoulder mobility, making it an effective exercise for overall upper body conditioning.'
+          'Increase back strength, improve core stability, and enhance muscle definition throughout the upper and lower back.'
     },
     {
       'name': 'Barbell Shrug',
@@ -1916,13 +1422,13 @@ class ExercisesData {
           'Enhance upper back strength, improve posture, and build muscular endurance in the shoulders.'
     },
     {
-      'name': 'Barbell Bent Over Row',
+      'name': 'Pull-Up',
       'image':
-          'lib/data/yellowMuscu_Pictures/rowing-barre-buste-penche-musculation-dorsaux.gif',
+          'lib/data/yellowMuscu_Pictures/exercice-traction-musculation-dos-.gif',
       'description':
-          'This polyarticular exercise targets the entire back, particularly the latissimus dorsi, traps, and rhomboids. It helps improve posture and strengthens multiple muscle groups simultaneously.',
+          'Pull-ups are a classic bodyweight exercise targeting the upper back, shoulders, and arms. They are essential for improving overall upper body strength.',
       'goals':
-          'Increase back strength, improve core stability, and enhance muscle definition throughout the upper and lower back.'
+          'Build upper body strength, particularly in the back and biceps, while improving grip and functional fitness.'
     },
     {
       'name': 'Seated Cable Row',
@@ -1934,25 +1440,25 @@ class ExercisesData {
           'Strengthen the middle back, enhance posture, and improve muscular endurance for better overall body strength.'
     },
     {
-      'name': 'Pull-Up',
+      'name': 'Seated Machine Pullover',
       'image':
-          'lib/data/yellowMuscu_Pictures/exercice-traction-musculation-dos-.gif',
+          'lib/data/yellowMuscu_Pictures/pull-over-assis-a-la-machine-musculation-dorsaux.gif',
       'description':
-          'Pull-ups are a classic bodyweight exercise targeting the upper back, shoulders, and arms. They are essential for improving overall upper body strength.',
+          'The seated machine pullover focuses on strengthening the back muscles, especially the latissimus dorsi. This exercise helps in expanding the ribcage and increasing upper body strength.',
       'goals':
-          'Build upper body strength, particularly in the back and biceps, while improving grip and functional fitness.'
+          'To build strength in the upper back and improve shoulder mobility, making it an effective exercise for overall upper body conditioning.'
     },
   ];
 
   static final List<Map<String, String>> shoulderExercises = [
     {
-      'name': 'Machine Lateral Raise',
+      'name': 'Arnold Press',
       'image':
-          'lib/data/yellowMuscu_Pictures/elevations-laterales-a-la-machine-musculation-epaules.gif',
+          'lib/data/yellowMuscu_Pictures/developpe-arnold-haltere-exercice-musculation.gif',
       'description':
-          'Machine lateral raises focus on the middle deltoid, which is responsible for shoulder width and roundness. This machine-guided movement ensures consistent tension throughout the exercise.',
+          'The Arnold press is a compound movement named after Arnold Schwarzenegger. It combines a shoulder press with rotation, activating the front and lateral deltoids.',
       'goals':
-          'Increase shoulder width, improve shoulder stability, and target the deltoid muscles for balanced shoulder development.'
+          'Build shoulder mass, improve shoulder mobility, and target all parts of the deltoids in one motion.'
     },
     {
       'name': 'Cable Lateral Raise',
@@ -1973,13 +1479,13 @@ class ExercisesData {
           'Strengthen rear deltoids, improve posture, and enhance shoulder stability.'
     },
     {
-      'name': 'Arnold Press',
+      'name': 'Machine Lateral Raise',
       'image':
-          'lib/data/yellowMuscu_Pictures/developpe-arnold-haltere-exercice-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/elevations-laterales-a-la-machine-musculation-epaules.gif',
       'description':
-          'The Arnold press is a compound movement named after Arnold Schwarzenegger. It combines a shoulder press with rotation, activating the front and lateral deltoids.',
+          'Machine lateral raises focus on the middle deltoid, which is responsible for shoulder width and roundness. This machine-guided movement ensures consistent tension throughout the exercise.',
       'goals':
-          'Build shoulder mass, improve shoulder mobility, and target all parts of the deltoids in one motion.'
+          'Increase shoulder width, improve shoulder stability, and target the deltoid muscles for balanced shoulder development.'
     },
     {
       'name': 'Military Press',
@@ -1993,15 +1499,6 @@ class ExercisesData {
   ];
 
   static final List<Map<String, String>> calfExercises = [
-    {
-      'name': 'Extensions des mollets au hack-squat',
-      'image':
-          'lib/data/yellowMuscu_Pictures/extensions-mollets-hack-squat-musculation.gif',
-      'description':
-          'Cet exercice cible les muscles du mollet en utilisant la machine hack squat, un mouvement de base pour développer la partie inférieure des jambes.',
-      'goals':
-          'Renforcement des muscles du mollet, amélioration de la force des membres inférieurs.'
-    },
     {
       'name': 'Élévations des mollets au Donkey',
       'image':
@@ -2021,13 +1518,13 @@ class ExercisesData {
           'Renforcement et hypertrophie des mollets, amélioration de la stabilité lors des mouvements debout.'
     },
     {
-      'name': 'Extension des mollets à la barre debout',
+      'name': 'Extensions des mollets au hack-squat',
       'image':
-          'lib/data/yellowMuscu_Pictures/extension-mollets-barre-debout-musculation.gif',
+          'lib/data/yellowMuscu_Pictures/extensions-mollets-hack-squat-musculation.gif',
       'description':
-          'Cet exercice sollicite les muscles du mollet tout en étant debout, un mouvement efficace pour le développement des jumeaux et des muscles stabilisateurs.',
+          'Cet exercice cible les muscles du mollet en utilisant la machine hack squat, un mouvement de base pour développer la partie inférieure des jambes.',
       'goals':
-          'Augmentation de la force musculaire dans les mollets et des performances athlétiques globales.'
+          'Renforcement des muscles du mollet, amélioration de la force des membres inférieurs.'
     },
     {
       'name': 'Extensions des mollets avec partenaire',
@@ -2037,6 +1534,15 @@ class ExercisesData {
           'Une variante des extensions de mollets qui implique l’assistance d’un partenaire pour ajouter de la résistance supplémentaire.',
       'goals':
           'Développer la masse musculaire des mollets tout en maximisant la contraction avec l’aide d’un partenaire.'
+    },
+    {
+      'name': 'Extension des mollets à la barre debout',
+      'image':
+          'lib/data/yellowMuscu_Pictures/extension-mollets-barre-debout-musculation.gif',
+      'description':
+          'Cet exercice sollicite les muscles du mollet tout en étant debout, un mouvement efficace pour le développement des jumeaux et des muscles stabilisateurs.',
+      'goals':
+          'Augmentation de la force musculaire dans les mollets et des performances athlétiques globales.'
     },
   ];
 
@@ -2049,6 +1555,15 @@ class ExercisesData {
           'L\'Ardha Bhekasana, ou posture de la demi-grenouille, est une posture de yoga qui étire les muscles des hanches et des cuisses tout en améliorant la flexibilité du dos.',
       'goals':
           'Améliorer la flexibilité des hanches et des cuisses, réduire les tensions dans le bas du dos.'
+    },
+    {
+      'name': 'Mandukasana Posture de la grenouille Yoga',
+      'image':
+          'lib/data/yellowMuscu_Pictures/mandukasana-posture-de-la-grenouille-yoga-stretching.gif',
+      'description':
+          'Le Mandukasana est une posture de yoga qui étire les hanches, les cuisses et la colonne vertébrale, en travaillant sur la flexibilité des articulations.',
+      'goals':
+          'Améliorer la flexibilité des hanches et des cuisses, soulager les tensions dans le bas du dos et les genoux.'
     },
     {
       'name': 'Mayurasana Posture du Paon Yoga',
@@ -2067,15 +1582,6 @@ class ExercisesData {
           'La posture de l\'oiseau du paradis est une posture de yoga avancée combinant force, souplesse et équilibre, en étirant profondément les jambes.',
       'goals':
           'Augmenter la souplesse des jambes, améliorer l\'équilibre et la coordination corporelle.'
-    },
-    {
-      'name': 'Mandukasana Posture de la grenouille Yoga',
-      'image':
-          'lib/data/yellowMuscu_Pictures/mandukasana-posture-de-la-grenouille-yoga-stretching.gif',
-      'description':
-          'Le Mandukasana est une posture de yoga qui étire les hanches, les cuisses et la colonne vertébrale, en travaillant sur la flexibilité des articulations.',
-      'goals':
-          'Améliorer la flexibilité des hanches et des cuisses, soulager les tensions dans le bas du dos et les genoux.'
     },
     {
       'name': 'Vajrasana Posture du diamant Yoga',

@@ -144,6 +144,10 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
 
     final isDarkMode = ref.watch(themeProvider); // Vérification du thème
 
+    // Ajout d'un contrôleur pour la recherche
+    TextEditingController searchController = TextEditingController();
+    List<Map<String, String>> filteredExercises = List.from(exercises);
+
     // Affichage d'une feuille de bas (modal bottom sheet) avec la liste des exercices
     showModalBottomSheet(
       context: context,
@@ -156,88 +160,152 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
       isScrollControlled:
           true, // Permet le scroll si le contenu dépasse la hauteur
       builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16.0), // Marges internes
-          height: MediaQuery.of(context).size.height *
-              0.7, // Hauteur de 70% de l'écran
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // Alignement à gauche
-            children: [
-              // Titre de la catégorie
-              Text(
-                category,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16), // Espacement vertical
-              // Liste des exercices
-              Expanded(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(), // Effet de rebond
-                  itemCount: exercises.length, // Nombre d'éléments
-                  itemBuilder: (context, index) {
-                    final exercise = exercises[index]; // Exercice actuel
-                    return ListTile(
-                      leading: Container(
-                        width: 50,
-                        height: 50,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipOval(
-                          child: FittedBox(
-                            fit: BoxFit.contain,
-                            child: Image.asset(
-                              exercise['image']!, // Image de l'exercice
-                              width: 40,
-                              height: 40,
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.image_not_supported);
-                              },
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Container(
+              padding: const EdgeInsets.all(16.0), // Marges internes
+              height: MediaQuery.of(context).size.height *
+                  0.8, // Hauteur de 80% de l'écran
+              child: Column(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Alignement à gauche
+                children: [
+                  // Titre de la catégorie
+                  Text(
+                    category,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16), // Espacement vertical
+                  // Barre de recherche
+                  TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher un exercice',
+                      hintStyle: TextStyle(
+                          color: isDarkMode
+                              ? Colors.white70
+                              : Colors.grey[600]), // Couleur du placeholder
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: isDarkMode ? Colors.white : Colors.grey[600],
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white70 : Colors.grey),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: isDarkMode ? Colors.white : Colors.blue),
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                    onChanged: (value) {
+                      setState(() {
+                        filteredExercises = exercises
+                            .where((exercise) => exercise['name']!
+                                .toLowerCase()
+                                .contains(value.toLowerCase()))
+                            .toList();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16), // Espacement vertical
+                  // Liste des exercices
+                  Expanded(
+                    child: filteredExercises.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Aucun exercice trouvé.',
+                              style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white70
+                                      : Colors.grey[600]),
                             ),
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        exercise['name']!, // Nom de l'exercice
-                        style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min, // Ajuste la taille
-                        children: [
-                          // Bouton pour afficher les détails de l'exercice
-                          IconButton(
-                            icon: Icon(Icons.info_outline,
-                                color:
-                                    isDarkMode ? Colors.white : Colors.black),
-                            onPressed: () {
-                              _showExerciseInfo(exercise); // Affiche les infos
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            physics:
+                                const BouncingScrollPhysics(), // Effet de rebond
+                            itemCount:
+                                filteredExercises.length, // Nombre d'éléments
+                            itemBuilder: (context, index) {
+                              final exercise =
+                                  filteredExercises[index]; // Exercice actuel
+                              return ListTile(
+                                leading: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: ClipOval(
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Image.asset(
+                                        exercise[
+                                            'image']!, // Image de l'exercice
+                                        width: 40,
+                                        height: 40,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return const Icon(
+                                              Icons.image_not_supported);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  exercise['name']!, // Nom de l'exercice
+                                  style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize:
+                                      MainAxisSize.min, // Ajuste la taille
+                                  children: [
+                                    // Bouton pour afficher les détails de l'exercice
+                                    IconButton(
+                                      icon: Icon(Icons.info_outline,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black),
+                                      onPressed: () {
+                                        _showExerciseInfo(
+                                            exercise); // Affiche les infos
+                                      },
+                                    ),
+                                    // Bouton pour ajouter l'exercice à un programme
+                                    IconButton(
+                                      icon: Icon(Icons.add,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black),
+                                      onPressed: () {
+                                        _showProgramSelection(
+                                            exercise); // Sélection du programme
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
                             },
                           ),
-                          // Bouton pour ajouter l'exercice à un programme
-                          IconButton(
-                            icon: Icon(Icons.add,
-                                color:
-                                    isDarkMode ? Colors.white : Colors.black),
-                            onPressed: () {
-                              _showProgramSelection(
-                                  exercise); // Sélection du programme
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -328,6 +396,10 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
   void _showProgramSelection(Map<String, String> exercise) {
     final isDarkMode = ref.watch(themeProvider); // Vérification du thème
 
+    // Tri des programmes par ordre alphabétique
+    List<Map<String, dynamic>> sortedPrograms = List.from(_programs);
+    sortedPrograms.sort((a, b) => a['name'].compareTo(b['name']));
+
     // Affichage d'une feuille de bas avec la liste des programmes
     showModalBottomSheet(
       context: context,
@@ -364,7 +436,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                       ),
                     ),
                     const SizedBox(height: 16), // Espacement vertical
-                    _programs.isEmpty
+                    sortedPrograms.isEmpty
                         ? Text(
                             // Message si aucun programme n'est disponible
                             'Aucun programme disponible. Ajoutez-en un nouveau.',
@@ -376,10 +448,10 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                             // Liste des programmes disponibles
                             child: ListView.builder(
                               shrinkWrap: true,
-                              itemCount: _programs.length,
+                              itemCount: sortedPrograms.length,
                               itemBuilder: (context, index) {
                                 final program =
-                                    _programs[index]; // Programme actuel
+                                    sortedPrograms[index]; // Programme actuel
                                 return ListTile(
                                   title: Text(
                                     program['name'], // Nom du programme
@@ -391,8 +463,12 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   onTap: () {
                                     Navigator.of(context)
                                         .pop(); // Ferme la feuille de bas
-                                    _showRestTimePopup(exercise,
-                                        index); // Demande le temps de repos
+                                    _showRestTimePopup(
+                                        exercise,
+                                        _programs.indexWhere((p) =>
+                                            p['id'] ==
+                                            program[
+                                                'id'])); // Demande le temps de repos
                                   },
                                 );
                               },
@@ -801,6 +877,12 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                         .add(newProgram);
                     _fetchPrograms(); // Rafraîchit la liste des programmes
                     Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                            "Programme '${programController.text}' ajouté avec succès."),
+                      ),
+                    );
                   } catch (e) {
                     messenger.showSnackBar(
                       const SnackBar(

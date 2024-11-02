@@ -771,10 +771,10 @@ class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   /// Méthode pour formater la durée en jours, heures, minutes, secondes
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String days = duration.inDays > 0 ? '${duration.inDays}j ' : '';
-    String hours = twoDigits(duration.inHours.remainder(24));
-    String minutes = twoDigits(duration.inMinutes.remainder(60));
-    String seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$days$hours:$minutes:$seconds';
+    String days = duration.inDays > 0 ? '${duration.inDays} jours ' : '';
+    //String hours = twoDigits(duration.inHours.remainder(24));
+    //String minutes = twoDigits(duration.inMinutes.remainder(60));
+    //String seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$days'; //$hours:$minutes:$seconds';
   }
 }
