@@ -216,14 +216,19 @@ class _StreaksWidgetState extends State<StreaksWidget> {
     });
   }
 
-  /// Méthode pour formater la durée en jours, heures, minutes, secondes
+  /// Méthode pour formater la durée en jours, heures, minutes
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String days = duration.inDays > 0 ? '${duration.inDays} jours ' : '';
-    //String hours = twoDigits(duration.inHours.remainder(24));
-    //String minutes = twoDigits(duration.inMinutes.remainder(60));
-    //String seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$days'; //$hours:$minutes:$seconds';
+    if (duration.inDays > 1) {
+      return '${duration.inDays} jours';
+    } else if (duration.inDays == 1) {
+      // Si exactement 1 jour, afficher "1 jour"
+      return '1 jour';
+    } else {
+      int hours = duration.inHours.remainder(24);
+      int minutes = duration.inMinutes.remainder(60);
+      return '${twoDigits(hours)} heures ${twoDigits(minutes)} minutes';
+    }
   }
 
   @override

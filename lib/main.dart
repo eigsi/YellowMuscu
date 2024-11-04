@@ -1,7 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
-import 'package:dcdg/dcdg.dart';
+//import 'package:dcdg/dcdg.dart'; //uncomment to use PlantUML diagramm
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yellowmuscu/authentification/sign_in_page.dart';

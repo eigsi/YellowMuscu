@@ -66,8 +66,17 @@ flutter:
   assets:
     - lib/data/icon_images/
     - lib/data/yellowMuscu_Pictures/chest/
+    - lib/data/yellowMuscu_Pictures/back/
+    - lib/data/yellowMuscu_Pictures/shoulder/
     - lib/data/yellowMuscu_Pictures/biceps/
+    - lib/data/yellowMuscu_Pictures/triceps/
     - lib/data/yellowMuscu_Pictures/legs/
+    - lib/data/yellowMuscu_Pictures/calf/
+    - lib/data/yellowMuscu_Pictures/abs/
+    - lib/data/yellowMuscu_Pictures/stretching/
+    
+    
+    
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
