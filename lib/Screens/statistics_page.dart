@@ -44,10 +44,6 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
   Duration weeklyTimeSpent =
       const Duration(); // Temps passé en sessions cette semaine
 
-  // Liste des sections de statistiques
-  List<StatisticSection> _generalSections = [];
-  List<StatisticSection> _weekSections = [];
-
   @override
   void initState() {
     super.initState();
@@ -57,8 +53,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Initialiser les sections une fois que les dépendances sont établies
-    _updateSections(ref.watch(themeProvider));
+    // Aucune action nécessaire ici puisque les sections sont gérées de manière réactive
   }
 
   // Méthode pour obtenir le nom abrégé du jour de la semaine en anglais
@@ -172,8 +167,8 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
       }
     }
 
-    _updateSections(ref.watch(
-        themeProvider)); // Mettre à jour les sections avec le thème actuel
+    // Appeler setState pour reconstruire l'interface utilisateur avec les nouvelles données
+    setState(() {});
   }
 
   // Méthode pour afficher le modal de personnalisation
@@ -186,7 +181,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
         return StatefulBuilder(
           builder: (context, setStateModal) {
             return Container(
-              color: isDarkMode ? Colors.black : Colors.white,
+              color: isDarkMode ? Colors.black54 : Colors.white,
               height: MediaQuery.of(context).size.height * 0.5,
               child: SafeArea(
                 child: Column(
@@ -210,7 +205,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                             // Utiliser CupertinoListSection et CupertinoListTile
                             CupertinoListSection.insetGrouped(
                               backgroundColor:
-                                  isDarkMode ? Colors.black : Colors.white,
+                                  isDarkMode ? Colors.black54 : Colors.white,
                               children: [
                                 _buildSwitchListTile(
                                   'Show Total Sessions',
@@ -292,7 +287,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                       ),
                     ),
                     CupertinoButton(
-                      child: Text(
+                      child: const Text(
                         'Done',
                         style: TextStyle(
                           color: Colors.blue,
@@ -328,149 +323,9 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
         value: value,
         onChanged: onChanged,
       ),
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
     );
   }
-
-  // Méthode pour mettre à jour la liste des sections en fonction des flags de visibilité et du thème
-  void _updateSections(bool isDarkMode) {
-    final settings = ref.watch(statisticsSettingsProvider);
-
-    setState(() {
-      // Sections pour le menu "General Statistics"
-      _generalSections = settings.generalOrder
-          .map((sectionId) {
-            switch (sectionId) {
-              case 'general_sessions':
-                if (settings.showTotalSessions) {
-                  return StatisticSection(
-                    id: 'general_sessions',
-                    widget: _buildDraggableSection(
-                      'general_sessions',
-                      _buildGeneralStatCard(
-                        title: 'Total Sessions',
-                        value: '$totalSessions',
-                        cupertinoIcon: CupertinoIcons.calendar,
-                        color: Colors.black,
-                        isDarkMode: isDarkMode,
-                      ),
-                    ),
-                  );
-                }
-                break;
-              case 'general_weight':
-                if (settings.showTotalWeight) {
-                  return StatisticSection(
-                    id: 'general_weight',
-                    widget: _buildDraggableSection(
-                      'general_weight',
-                      _buildGeneralStatCard(
-                        title: 'Total Weight Lifted',
-                        value: '${totalWeight.toStringAsFixed(1)} kg',
-                        cupertinoIcon: CupertinoIcons.sportscourt,
-                        color: Colors.black,
-                        isDarkMode: isDarkMode,
-                      ),
-                    ),
-                  );
-                }
-                break;
-              default:
-                return StatisticSection(id: 'unknown', widget: Container());
-            }
-            return null;
-          })
-          .whereType<StatisticSection>()
-          .toList();
-
-      // Sections pour le menu "Statistics Week"
-      _weekSections = settings.weekOrder
-          .map((sectionId) {
-            switch (sectionId) {
-              case 'weekly_sessions':
-                if (settings.showWeeklySessions) {
-                  return StatisticSection(
-                    id: 'weekly_sessions',
-                    widget: _buildDraggableSection(
-                      'weekly_sessions',
-                      _buildWeeklyStatCard(
-                        title: 'Sessions this Week',
-                        value: '$weeklySessions',
-                        cupertinoIcon: CupertinoIcons.check_mark_circled,
-                        color: Colors.black,
-                        isDarkMode: isDarkMode,
-                      ),
-                    ),
-                  );
-                }
-                break;
-              case 'weekly_weight':
-                if (settings.showWeeklyWeight) {
-                  return StatisticSection(
-                    id: 'weekly_weight',
-                    widget: _buildDraggableSection(
-                      'weekly_weight',
-                      _buildWeeklyStatCard(
-                        title: 'Weight Lifted this Week',
-                        value: '${weeklyWeight.toStringAsFixed(1)} kg',
-                        cupertinoIcon: CupertinoIcons.sportscourt,
-                        color: Colors.black,
-                        isDarkMode: isDarkMode,
-                      ),
-                    ),
-                  );
-                }
-                break;
-              case 'weekly_time':
-                if (settings.showWeeklyTime) {
-                  return StatisticSection(
-                    id: 'weekly_time',
-                    widget: _buildDraggableSection(
-                      'weekly_time',
-                      _buildWeeklyStatCard(
-                        title: 'Time Spent this Week',
-                        value:
-                            '${weeklyTimeSpent.inHours}h ${weeklyTimeSpent.inMinutes.remainder(60)}m',
-                        cupertinoIcon: CupertinoIcons.time,
-                        color: Colors.black,
-                        isDarkMode: isDarkMode,
-                      ),
-                    ),
-                  );
-                }
-                break;
-              case 'weekly_chart':
-                if (settings.showWeeklyChart) {
-                  return StatisticSection(
-                    id: 'weekly_chart',
-                    widget: _buildDraggableSection(
-                      'weekly_chart',
-                      _buildWeeklyChartCard(isDarkMode),
-                    ),
-                  );
-                }
-                break;
-              default:
-                return StatisticSection(id: 'unknown', widget: Container());
-            }
-            return null;
-          })
-          .whereType<StatisticSection>()
-          .toList();
-    });
-  }
-
-  // Widget pour construire une section réordonnable avec une poignée de drag
-  Widget _buildDraggableSection(String id, Widget content) {
-    return Row(
-      children: [
-        Expanded(child: content),
-      ],
-    );
-  }
-
-  // Méthode pour sauvegarder l'ordre des sections sauvegardé via le provider
-  // Cette méthode est maintenant gérée par le provider, donc elle n'est plus nécessaire ici.
 
   @override
   Widget build(BuildContext context) {
@@ -521,6 +376,127 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                   _updateStatistics(snapshot.data!);
                 }
 
+                // Générer les sections en fonction des réglages
+                List<StatisticSection> sections = [];
+
+                if (settings.selectedMenu == StatisticsMenu.general) {
+                  // Générer les sections générales en respectant l'ordre
+                  for (String sectionId in settings.generalOrder) {
+                    switch (sectionId) {
+                      case 'general_sessions':
+                        if (settings.showTotalSessions) {
+                          sections.add(StatisticSection(
+                            id: 'general_sessions',
+                            widget: _buildDraggableSection(
+                              'general_sessions',
+                              _buildGeneralStatCard(
+                                title: 'Total Sessions',
+                                value: '$totalSessions',
+                                cupertinoIcon: CupertinoIcons.calendar,
+                                color: Colors.black,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ));
+                        }
+                        break;
+                      case 'general_weight':
+                        if (settings.showTotalWeight) {
+                          sections.add(StatisticSection(
+                            id: 'general_weight',
+                            widget: _buildDraggableSection(
+                              'general_weight',
+                              _buildGeneralStatCard(
+                                title: 'Total Weight Lifted',
+                                value: '${totalWeight.toStringAsFixed(1)} kg',
+                                cupertinoIcon: CupertinoIcons.sportscourt,
+                                color: Colors.black,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ));
+                        }
+                        break;
+                      default:
+                        // Ignorer les identifiants inconnus
+                        break;
+                    }
+                  }
+                } else if (settings.selectedMenu == StatisticsMenu.week) {
+                  // Générer les sections hebdomadaires en respectant l'ordre
+                  for (String sectionId in settings.weekOrder) {
+                    switch (sectionId) {
+                      case 'weekly_sessions':
+                        if (settings.showWeeklySessions) {
+                          sections.add(StatisticSection(
+                            id: 'weekly_sessions',
+                            widget: _buildDraggableSection(
+                              'weekly_sessions',
+                              _buildWeeklyStatCard(
+                                title: 'Sessions this Week',
+                                value: '$weeklySessions',
+                                cupertinoIcon:
+                                    CupertinoIcons.check_mark_circled,
+                                color: Colors.black,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ));
+                        }
+                        break;
+                      case 'weekly_weight':
+                        if (settings.showWeeklyWeight) {
+                          sections.add(StatisticSection(
+                            id: 'weekly_weight',
+                            widget: _buildDraggableSection(
+                              'weekly_weight',
+                              _buildWeeklyStatCard(
+                                title: 'Weight Lifted this Week',
+                                value: '${weeklyWeight.toStringAsFixed(1)} kg',
+                                cupertinoIcon: CupertinoIcons.sportscourt,
+                                color: Colors.black,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ));
+                        }
+                        break;
+                      case 'weekly_time':
+                        if (settings.showWeeklyTime) {
+                          sections.add(StatisticSection(
+                            id: 'weekly_time',
+                            widget: _buildDraggableSection(
+                              'weekly_time',
+                              _buildWeeklyStatCard(
+                                title: 'Time Spent this Week',
+                                value:
+                                    '${weeklyTimeSpent.inHours}h ${weeklyTimeSpent.inMinutes.remainder(60)}m',
+                                cupertinoIcon: CupertinoIcons.time,
+                                color: Colors.black,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ),
+                          ));
+                        }
+                        break;
+                      case 'weekly_chart':
+                        if (settings.showWeeklyChart) {
+                          sections.add(StatisticSection(
+                            id: 'weekly_chart',
+                            widget: _buildDraggableSection(
+                              'weekly_chart',
+                              _buildWeeklyChartCard(isDarkMode),
+                            ),
+                          ));
+                        }
+                        break;
+                      default:
+                        // Ignorer les identifiants inconnus
+                        break;
+                    }
+                  }
+                }
+
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -568,7 +544,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                           ref
                               .read(statisticsSettingsProvider.notifier)
                               .setSelectedMenu(value);
-                          _updateSections(isDarkMode);
+                          // Pas besoin d'appeler _updateSections ici car la build sera réactive
                         },
                       ),
                       const SizedBox(height: 16), // Espacement
@@ -596,30 +572,19 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                                   .read(statisticsSettingsProvider.notifier)
                                   .setWeekOrder(updatedOrder);
                             }
-                            _updateSections(isDarkMode);
+                            // Pas besoin d'appeler _updateSections ici car la build sera réactive
                           },
                           needsLongPressDraggable:
                               true, // Permettre le drag sur appui long
-                          children: settings.selectedMenu ==
-                                  StatisticsMenu.general
-                              ? _generalSections
-                                  .map((section) => Padding(
-                                        key: ValueKey(section
-                                            .id), // Assigner une clé unique
-                                        padding:
-                                            const EdgeInsets.only(bottom: 16.0),
-                                        child: section.widget,
-                                      ))
-                                  .toList()
-                              : _weekSections
-                                  .map((section) => Padding(
-                                        key: ValueKey(section
-                                            .id), // Assigner une clé unique
-                                        padding:
-                                            const EdgeInsets.only(bottom: 16.0),
-                                        child: section.widget,
-                                      ))
-                                  .toList(),
+                          children: sections
+                              .map((section) => Padding(
+                                    key: ValueKey(
+                                        section.id), // Assigner une clé unique
+                                    padding:
+                                        const EdgeInsets.only(bottom: 16.0),
+                                    child: section.widget,
+                                  ))
+                              .toList(),
                         ),
                       ),
                     ],
@@ -630,6 +595,15 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // Widget pour construire une section réordonnable avec une poignée de drag
+  Widget _buildDraggableSection(String id, Widget content) {
+    return Row(
+      children: [
+        Expanded(child: content),
+      ],
     );
   }
 

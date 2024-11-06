@@ -908,8 +908,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
       margin: const EdgeInsets.symmetric(vertical: 8.0), // Marges externes
       padding: const EdgeInsets.all(12.0), // Marges internes
       decoration: BoxDecoration(
-        color:
-            isDarkMode ? Colors.grey[800] : Colors.grey[200], // Couleur de fond
+        color: isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
         borderRadius: BorderRadius.circular(16.0), // Coins arrondis
       ),
       child: Row(
