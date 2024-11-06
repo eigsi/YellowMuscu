@@ -1,4 +1,5 @@
-// Import necessary packages
+// lib/statistics_page.dart
+
 import 'package:flutter/cupertino.dart'; // To use Cupertino widgets
 import 'package:flutter/material.dart'; // Main Flutter widget library
 import 'package:cloud_firestore/cloud_firestore.dart'; // Interact with Firestore
@@ -6,8 +7,18 @@ import 'package:syncfusion_flutter_charts/charts.dart'; // Create interactive ch
 import 'package:firebase_auth/firebase_auth.dart'; // Firebase authentication
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // State management with Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider for theme (light/dark)
+import 'package:yellowmuscu/Provider/statistics_provider.dart'; // Import the new statistics provider
+import 'package:reorderables/reorderables.dart'; // For drag and drop functionality
 
-// Definition of the StatisticsPage class, a ConsumerStatefulWidget to use Riverpod
+// Définition de la classe StatisticSection
+class StatisticSection {
+  final String id; // Unique identifier
+  final Widget widget; // The widget to display
+
+  StatisticSection({required this.id, required this.widget});
+}
+
+// Définition de la classe StatisticsPage, un ConsumerStatefulWidget pour utiliser Riverpod
 class StatisticsPage extends ConsumerStatefulWidget {
   const StatisticsPage({super.key});
 
@@ -15,41 +26,42 @@ class StatisticsPage extends ConsumerStatefulWidget {
   _StatisticsPageState createState() => _StatisticsPageState();
 }
 
-// State associated with the StatisticsPage class
+// État associé à la classe StatisticsPage
 class _StatisticsPageState extends ConsumerState<StatisticsPage> {
-  // Firebase instances for authentication and Firestore
+  // Instances Firebase pour l'authentification et Firestore
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user; // Currently logged-in user
+  User? _user; // Utilisateur actuellement connecté
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Variables to store general statistics
-  int totalSessions = 0; // Total number of completed sessions
-  double totalWeight = 0.0; // Total weight lifted
-  Map<String, int> sessionsPerCategory =
-      {}; // Number of sessions per category (not used in this code)
-  Map<String, double> weightPerDay = {}; // Weight lifted per day of the week
+  // Variables pour stocker les statistiques générales
+  int totalSessions = 0; // Nombre total de sessions complétées
+  double totalWeight = 0.0; // Poids total soulevé
+  Map<String, double> weightPerDay = {}; // Poids soulevé par jour de la semaine
 
-  // Variables for weekly statistics
-  int weeklySessions = 0; // Number of sessions this week
-  double weeklyWeight = 0.0; // Weight lifted this week
+  // Variables pour les statistiques hebdomadaires
+  int weeklySessions = 0; // Nombre de sessions cette semaine
+  double weeklyWeight = 0.0; // Poids soulevé cette semaine
   Duration weeklyTimeSpent =
-      const Duration(); // Time spent in sessions this week
+      const Duration(); // Temps passé en sessions cette semaine
 
-  // Variables to control the visibility of statistics
-  bool showTotalSessions = true;
-  bool showTotalWeight = true;
-  bool showWeeklySessions = true;
-  bool showWeeklyWeight = true;
-  bool showWeeklyTime = true;
-  bool showWeeklyChart = true;
+  // Liste des sections de statistiques
+  List<StatisticSection> _generalSections = [];
+  List<StatisticSection> _weekSections = [];
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser; // Get the currently logged-in user
+    _user = _auth.currentUser; // Obtenir l'utilisateur actuellement connecté
   }
 
-  // Method to get the abbreviated English name of the weekday
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialiser les sections une fois que les dépendances sont établies
+    _updateSections(ref.watch(themeProvider));
+  }
+
+  // Méthode pour obtenir le nom abrégé du jour de la semaine en anglais
   String _getEnglishDayName(int weekday) {
     switch (weekday) {
       case 1:
@@ -71,30 +83,33 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     }
   }
 
-  // Method to create data series for the chart
+  // Méthode pour créer les séries de données pour le graphique
   List<ChartSeries<DayWeight, String>> _createWeightSeries() {
-    // Transform the weightPerDay Map into a list of DayWeight objects
+    // Transformer la Map weightPerDay en une liste d'objets DayWeight
     final data = weightPerDay.entries
         .map((entry) => DayWeight(entry.key, entry.value))
         .toList();
 
     return [
-      // Create a column series for the chart
+      // Créer une série de colonnes pour le graphique
       ColumnSeries<DayWeight, String>(
-        dataSource: data, // Data source
-        xValueMapper: (DayWeight dw, _) => dw.day, // Map day name on X-axis
-        yValueMapper: (DayWeight dw, _) => dw.weight, // Map weight on Y-axis
-        color: Colors.blue, // Color of the chart bars
+        dataSource: data, // Source de données
+        xValueMapper: (DayWeight dw, _) =>
+            dw.day, // Mapper le nom du jour sur l'axe X
+        yValueMapper: (DayWeight dw, _) =>
+            dw.weight, // Mapper le poids sur l'axe Y
+        color: Colors.blue, // Couleur des barres du graphique
       )
     ];
   }
 
-  // Asynchronous method to update statistics
+  // Méthode asynchrone pour mettre à jour les statistiques
   Future<void> _updateStatistics(
       QuerySnapshot<Map<String, dynamic>> snapshot) async {
-    if (_user == null) return; // If the user is not logged in, exit the method
+    if (_user == null)
+      return; // Si l'utilisateur n'est pas connecté, quitter la méthode
 
-    // Reset statistics
+    // Réinitialiser les statistiques
     totalSessions = 0;
     totalWeight = 0.0;
     weeklySessions = 0;
@@ -110,55 +125,59 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
       'Sun': 0.0,
     };
 
-    // Calculate the start and end dates of the current week
+    // Calculer les dates de début et de fin de la semaine en cours
     DateTime now = DateTime.now();
     DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    DateTime endOfWeek = startOfWeek.add(const Duration(days: 7));
     Timestamp startTimestamp = Timestamp.fromDate(
         DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day));
     Timestamp endTimestamp = Timestamp.fromDate(
-        DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day + 7));
+        DateTime(endOfWeek.year, endOfWeek.month, endOfWeek.day));
 
-    // Iterate over each document (completed session) in the snapshot
+    // Itérer sur chaque document (session complétée) dans le snapshot
     for (var doc in snapshot.docs) {
-      totalSessions += 1; // Increment total sessions
+      totalSessions += 1; // Incrémenter le nombre total de sessions
 
-      // Get the total weight lifted for this session
+      // Obtenir le poids total soulevé pour cette session
       double weight = doc.data()['totalWeight']?.toDouble() ?? 0.0;
-      totalWeight += weight; // Add to total weight
+      totalWeight += weight; // Ajouter au poids total
 
-      // Get the session date
+      // Obtenir la date de la session
       Timestamp sessionDate = doc.data()['date'];
-      // Check if the session is in the current week
+      // Vérifier si la session est dans la semaine en cours
       if (sessionDate.compareTo(startTimestamp) >= 0 &&
           sessionDate.compareTo(endTimestamp) < 0) {
-        weeklySessions += 1; // Increment sessions this week
-        weeklyWeight += weight; // Add to weight lifted this week
+        weeklySessions += 1; // Incrémenter le nombre de sessions cette semaine
+        weeklyWeight += weight; // Ajouter au poids soulevé cette semaine
 
-        // Get the duration of the session and convert to Duration
+        // Obtenir la durée de la session et la convertir en Duration
         String duration = doc.data()['duration'] ?? "0:0:0";
         List<String> parts = duration.split(':');
-        int hours = int.parse(parts[0]);
-        int minutes = int.parse(parts[1]);
-        int seconds = int.parse(parts[2]);
+        if (parts.length == 3) {
+          int hours = int.parse(parts[0]);
+          int minutes = int.parse(parts[1]);
+          int seconds = int.parse(parts[2]);
 
-        weeklyTimeSpent += Duration(
-            hours: hours,
-            minutes: minutes,
-            seconds: seconds); // Add to time spent this week
+          weeklyTimeSpent += Duration(
+              hours: hours,
+              minutes: minutes,
+              seconds: seconds); // Ajouter au temps passé cette semaine
+        }
 
-        // Get the English name of the weekday
+        // Obtenir le nom anglais abrégé du jour de la semaine
         DateTime date = sessionDate.toDate();
         String day = _getEnglishDayName(date.weekday);
-        // Add the weight lifted on that day
+        // Ajouter le poids soulevé ce jour-là
         weightPerDay[day] = (weightPerDay[day] ?? 0.0) + weight;
       }
     }
 
-    setState(() {}); // Update the user interface
+    _updateSections(ref.watch(
+        themeProvider)); // Mettre à jour les sections avec le thème actuel
   }
 
-  // Method to show the customization modal
-  void _showCustomizationModal() {
+  // Méthode pour afficher le modal de personnalisation
+  void _showCustomizationModal(StatisticsSettings settings) {
     final isDarkMode = ref.watch(themeProvider);
 
     showCupertinoModalPopup(
@@ -172,7 +191,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
               child: SafeArea(
                 child: Column(
                   children: [
-                    // Modal title
+                    // Titre du modal
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       child: Text(
@@ -188,73 +207,80 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                       child: CupertinoScrollbar(
                         child: ListView(
                           children: [
-                            // Use CupertinoListSection and CupertinoListTile
+                            // Utiliser CupertinoListSection et CupertinoListTile
                             CupertinoListSection.insetGrouped(
                               backgroundColor:
                                   isDarkMode ? Colors.black : Colors.white,
                               children: [
                                 _buildSwitchListTile(
                                   'Show Total Sessions',
-                                  showTotalSessions,
+                                  settings.showTotalSessions,
                                   (value) {
-                                    setState(() {
-                                      showTotalSessions = value;
-                                    });
-                                    setStateModal(() {}); // Update modal state
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowTotalSessions(value);
+                                    setStateModal(
+                                        () {}); // Mettre à jour l'état du modal
                                   },
                                   isDarkMode,
                                 ),
                                 _buildSwitchListTile(
                                   'Show Total Weight',
-                                  showTotalWeight,
+                                  settings.showTotalWeight,
                                   (value) {
-                                    setState(() {
-                                      showTotalWeight = value;
-                                    });
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowTotalWeight(value);
                                     setStateModal(() {});
                                   },
                                   isDarkMode,
                                 ),
                                 _buildSwitchListTile(
                                   'Show Weekly Sessions',
-                                  showWeeklySessions,
+                                  settings.showWeeklySessions,
                                   (value) {
-                                    setState(() {
-                                      showWeeklySessions = value;
-                                    });
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowWeeklySessions(value);
                                     setStateModal(() {});
                                   },
                                   isDarkMode,
                                 ),
                                 _buildSwitchListTile(
                                   'Show Weekly Weight',
-                                  showWeeklyWeight,
+                                  settings.showWeeklyWeight,
                                   (value) {
-                                    setState(() {
-                                      showWeeklyWeight = value;
-                                    });
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowWeeklyWeight(value);
                                     setStateModal(() {});
                                   },
                                   isDarkMode,
                                 ),
                                 _buildSwitchListTile(
                                   'Show Weekly Time',
-                                  showWeeklyTime,
+                                  settings.showWeeklyTime,
                                   (value) {
-                                    setState(() {
-                                      showWeeklyTime = value;
-                                    });
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowWeeklyTime(value);
                                     setStateModal(() {});
                                   },
                                   isDarkMode,
                                 ),
                                 _buildSwitchListTile(
                                   'Show Weight Chart',
-                                  showWeeklyChart,
+                                  settings.showWeeklyChart,
                                   (value) {
-                                    setState(() {
-                                      showWeeklyChart = value;
-                                    });
+                                    ref
+                                        .read(
+                                            statisticsSettingsProvider.notifier)
+                                        .toggleShowWeeklyChart(value);
                                     setStateModal(() {});
                                   },
                                   isDarkMode,
@@ -269,7 +295,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                       child: Text(
                         'Done',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.blue : Colors.blue,
+                          color: Colors.blue,
                           fontSize: 17,
                         ),
                       ),
@@ -287,7 +313,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     );
   }
 
-  // Helper method to build switch tiles
+  // Méthode auxiliaire pour construire les tiles de switch
   Widget _buildSwitchListTile(
       String title, bool value, ValueChanged<bool> onChanged, bool isDarkMode) {
     return CupertinoListTile(
@@ -306,15 +332,155 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     );
   }
 
+  // Méthode pour mettre à jour la liste des sections en fonction des flags de visibilité et du thème
+  void _updateSections(bool isDarkMode) {
+    final settings = ref.watch(statisticsSettingsProvider);
+
+    setState(() {
+      // Sections pour le menu "General Statistics"
+      _generalSections = settings.generalOrder
+          .map((sectionId) {
+            switch (sectionId) {
+              case 'general_sessions':
+                if (settings.showTotalSessions) {
+                  return StatisticSection(
+                    id: 'general_sessions',
+                    widget: _buildDraggableSection(
+                      'general_sessions',
+                      _buildGeneralStatCard(
+                        title: 'Total Sessions',
+                        value: '$totalSessions',
+                        cupertinoIcon: CupertinoIcons.calendar,
+                        color: Colors.black,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+                break;
+              case 'general_weight':
+                if (settings.showTotalWeight) {
+                  return StatisticSection(
+                    id: 'general_weight',
+                    widget: _buildDraggableSection(
+                      'general_weight',
+                      _buildGeneralStatCard(
+                        title: 'Total Weight Lifted',
+                        value: '${totalWeight.toStringAsFixed(1)} kg',
+                        cupertinoIcon: CupertinoIcons.sportscourt,
+                        color: Colors.black,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+                break;
+              default:
+                return StatisticSection(id: 'unknown', widget: Container());
+            }
+            return null;
+          })
+          .whereType<StatisticSection>()
+          .toList();
+
+      // Sections pour le menu "Statistics Week"
+      _weekSections = settings.weekOrder
+          .map((sectionId) {
+            switch (sectionId) {
+              case 'weekly_sessions':
+                if (settings.showWeeklySessions) {
+                  return StatisticSection(
+                    id: 'weekly_sessions',
+                    widget: _buildDraggableSection(
+                      'weekly_sessions',
+                      _buildWeeklyStatCard(
+                        title: 'Sessions this Week',
+                        value: '$weeklySessions',
+                        cupertinoIcon: CupertinoIcons.check_mark_circled,
+                        color: Colors.black,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+                break;
+              case 'weekly_weight':
+                if (settings.showWeeklyWeight) {
+                  return StatisticSection(
+                    id: 'weekly_weight',
+                    widget: _buildDraggableSection(
+                      'weekly_weight',
+                      _buildWeeklyStatCard(
+                        title: 'Weight Lifted this Week',
+                        value: '${weeklyWeight.toStringAsFixed(1)} kg',
+                        cupertinoIcon: CupertinoIcons.sportscourt,
+                        color: Colors.black,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+                break;
+              case 'weekly_time':
+                if (settings.showWeeklyTime) {
+                  return StatisticSection(
+                    id: 'weekly_time',
+                    widget: _buildDraggableSection(
+                      'weekly_time',
+                      _buildWeeklyStatCard(
+                        title: 'Time Spent this Week',
+                        value:
+                            '${weeklyTimeSpent.inHours}h ${weeklyTimeSpent.inMinutes.remainder(60)}m',
+                        cupertinoIcon: CupertinoIcons.time,
+                        color: Colors.black,
+                        isDarkMode: isDarkMode,
+                      ),
+                    ),
+                  );
+                }
+                break;
+              case 'weekly_chart':
+                if (settings.showWeeklyChart) {
+                  return StatisticSection(
+                    id: 'weekly_chart',
+                    widget: _buildDraggableSection(
+                      'weekly_chart',
+                      _buildWeeklyChartCard(isDarkMode),
+                    ),
+                  );
+                }
+                break;
+              default:
+                return StatisticSection(id: 'unknown', widget: Container());
+            }
+            return null;
+          })
+          .whereType<StatisticSection>()
+          .toList();
+    });
+  }
+
+  // Widget pour construire une section réordonnable avec une poignée de drag
+  Widget _buildDraggableSection(String id, Widget content) {
+    return Row(
+      children: [
+        Expanded(child: content),
+      ],
+    );
+  }
+
+  // Méthode pour sauvegarder l'ordre des sections sauvegardé via le provider
+  // Cette méthode est maintenant gérée par le provider, donc elle n'est plus nécessaire ici.
+
   @override
   Widget build(BuildContext context) {
-    final isDarkMode =
-        ref.watch(themeProvider); // Check if dark theme is enabled
+    final isDarkMode = ref.watch(themeProvider);
+    final settings = ref.watch(statisticsSettingsProvider);
 
     return CupertinoPageScaffold(
       child: Stack(
         children: [
-          // Gradient background
+          // Fond dégradé
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -322,11 +488,11 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                     ? [
                         const Color.fromRGBO(255, 204, 0, 1.0),
                         Colors.black
-                      ] // Colors for dark theme
+                      ] // Couleurs pour le thème sombre
                     : [
                         const Color.fromRGBO(255, 204, 0, 1.0),
                         const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-                      ], // Colors for light theme
+                      ], // Couleurs pour le thème clair
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -338,117 +504,125 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                   .collection('users')
                   .doc(_user!.uid)
                   .collection('completedSessions')
-                  .snapshots(), // Real-time stream of the user's completed sessions
+                  .snapshots(), // Flux en temps réel des sessions complétées de l'utilisateur
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
-                  // In case of error, display a message
+                  // En cas d'erreur, afficher un message
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
 
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Display a loading indicator while fetching data
+                  // Afficher un indicateur de chargement pendant la récupération des données
                   return const Center(child: CupertinoActivityIndicator());
                 }
 
                 if (snapshot.hasData) {
-                  // If data is available, update the statistics
+                  // Si les données sont disponibles, mettre à jour les statistiques
                   _updateStatistics(snapshot.data!);
                 }
 
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    // Allow content to scroll if necessary
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Row with title and settings button
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'General Statistics',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Ligne avec le titre et le bouton de paramètres
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            settings.selectedMenu == StatisticsMenu.general
+                                ? 'General Statistics'
+                                : 'Statistics Week',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
-                            GestureDetector(
-                              onTap: _showCustomizationModal,
-                              child: Icon(
-                                CupertinoIcons.slider_horizontal_3,
-                                color: isDarkMode ? Colors.white : Colors.black,
-                              ),
+                          ),
+                          GestureDetector(
+                            onTap: () => _showCustomizationModal(settings),
+                            child: Icon(
+                              CupertinoIcons.slider_horizontal_3,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16), // Espacement
+
+                      // Segmented Control pour les menus
+                      CupertinoSegmentedControl<StatisticsMenu>(
+                        children: const {
+                          StatisticsMenu.general: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text('  General  '),
+                          ),
+                          StatisticsMenu.week: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text('  Week  '),
+                          ),
+                        },
+                        groupValue: settings.selectedMenu,
+                        onValueChanged: (StatisticsMenu value) {
+                          ref
+                              .read(statisticsSettingsProvider.notifier)
+                              .setSelectedMenu(value);
+                          _updateSections(isDarkMode);
+                        },
+                      ),
+                      const SizedBox(height: 16), // Espacement
+
+                      // Expanded ReorderableColumn pour permettre le drag and drop
+                      Expanded(
+                        child: ReorderableColumn(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          onReorder: (int oldIndex, int newIndex) {
+                            if (settings.selectedMenu ==
+                                StatisticsMenu.general) {
+                              final updatedOrder =
+                                  List<String>.from(settings.generalOrder);
+                              final movedItem = updatedOrder.removeAt(oldIndex);
+                              updatedOrder.insert(newIndex, movedItem);
+                              ref
+                                  .read(statisticsSettingsProvider.notifier)
+                                  .setGeneralOrder(updatedOrder);
+                            } else {
+                              final updatedOrder =
+                                  List<String>.from(settings.weekOrder);
+                              final movedItem = updatedOrder.removeAt(oldIndex);
+                              updatedOrder.insert(newIndex, movedItem);
+                              ref
+                                  .read(statisticsSettingsProvider.notifier)
+                                  .setWeekOrder(updatedOrder);
+                            }
+                            _updateSections(isDarkMode);
+                          },
+                          needsLongPressDraggable:
+                              true, // Permettre le drag sur appui long
+                          children: settings.selectedMenu ==
+                                  StatisticsMenu.general
+                              ? _generalSections
+                                  .map((section) => Padding(
+                                        key: ValueKey(section
+                                            .id), // Assigner une clé unique
+                                        padding:
+                                            const EdgeInsets.only(bottom: 16.0),
+                                        child: section.widget,
+                                      ))
+                                  .toList()
+                              : _weekSections
+                                  .map((section) => Padding(
+                                        key: ValueKey(section
+                                            .id), // Assigner une clé unique
+                                        padding:
+                                            const EdgeInsets.only(bottom: 16.0),
+                                        child: section.widget,
+                                      ))
+                                  .toList(),
                         ),
-                        const SizedBox(height: 16), // Spacing
-                        // Conditionally display total number of sessions
-                        if (showTotalSessions)
-                          _buildGeneralStatCard(
-                            title: 'Total Sessions',
-                            value: '$totalSessions',
-                            cupertinoIcon: CupertinoIcons.calendar,
-                            color: Colors.black,
-                            isDarkMode: isDarkMode,
-                          ),
-                        if (showTotalSessions) const SizedBox(height: 16),
-                        // Conditionally display total weight lifted
-                        if (showTotalWeight)
-                          _buildGeneralStatCard(
-                            title: 'Total Weight Lifted',
-                            value: '${totalWeight.toStringAsFixed(1)} kg',
-                            cupertinoIcon: CupertinoIcons.sportscourt,
-                            color: Colors.black,
-                            isDarkMode: isDarkMode,
-                          ),
-                        if (showTotalWeight) const SizedBox(height: 32),
-                        // Weekly Statistics Title
-                        Text(
-                          'Weekly Statistics',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Conditionally display number of sessions this week
-                        if (showWeeklySessions)
-                          _buildWeeklyStatCard(
-                            title: 'Sessions this Week',
-                            value: '$weeklySessions',
-                            cupertinoIcon: CupertinoIcons.check_mark_circled,
-                            color: Colors.black,
-                            isDarkMode: isDarkMode,
-                          ),
-                        if (showWeeklySessions) const SizedBox(height: 16),
-                        // Conditionally display weight lifted this week
-                        if (showWeeklyWeight)
-                          _buildWeeklyStatCard(
-                            title: 'Weight Lifted this Week',
-                            value: '${weeklyWeight.toStringAsFixed(1)} kg',
-                            cupertinoIcon: CupertinoIcons.sportscourt,
-                            color: Colors.black,
-                            isDarkMode: isDarkMode,
-                          ),
-                        if (showWeeklyWeight) const SizedBox(height: 16),
-                        // Conditionally display time spent in sessions this week
-                        if (showWeeklyTime)
-                          _buildWeeklyStatCard(
-                            title: 'Time Spent this Week',
-                            value:
-                                '${weeklyTimeSpent.inHours}h ${weeklyTimeSpent.inMinutes.remainder(60)}m',
-                            cupertinoIcon: CupertinoIcons.time,
-                            color: Colors.black,
-                            isDarkMode: isDarkMode,
-                          ),
-                        if (showWeeklyTime) const SizedBox(height: 16),
-                        // Conditionally display chart of weight lifted per day
-                        if (showWeeklyChart) _buildWeeklyChartCard(isDarkMode),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -459,7 +633,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     );
   }
 
-  // Widget to display a general statistic card
+  // Widget pour afficher une carte de statistique générale
   Widget _buildGeneralStatCard({
     required String title,
     required String value,
@@ -468,17 +642,17 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     required bool isDarkMode,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16.0), // Inner padding
+      padding: const EdgeInsets.all(16.0), // Padding interne
       decoration: BoxDecoration(
         color: isDarkMode
             ? Colors.grey[900]
-            : Colors.white, // Background color based on theme
-        borderRadius: BorderRadius.circular(12.0), // Rounded corners
+            : Colors.white, // Couleur de fond selon le thème
+        borderRadius: BorderRadius.circular(12.0), // Coins arrondis
         boxShadow: [
           BoxShadow(
             color: isDarkMode
                 ? Colors.black.withOpacity(0.2)
-                : Colors.grey.withOpacity(0.2), // Drop shadow
+                : Colors.grey.withOpacity(0.2), // Ombre portée
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -486,7 +660,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
       ),
       child: Row(
         children: [
-          // Icon in a rounded container
+          // Icône dans un conteneur arrondi
           Container(
             width: 60,
             height: 60,
@@ -497,12 +671,12 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
             child: Icon(cupertinoIcon, size: 30, color: color),
           ),
           const SizedBox(width: 16),
-          // Text for title and value
+          // Texte pour le titre et la valeur
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Statistic title
+                // Titre de la statistique
                 Text(
                   title,
                   style: TextStyle(
@@ -512,7 +686,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Statistic value
+                // Valeur de la statistique
                 Text(
                   value,
                   style: TextStyle(
@@ -529,7 +703,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     );
   }
 
-  // Widget to display a weekly statistic card
+  // Widget pour afficher une carte de statistique hebdomadaire
   Widget _buildWeeklyStatCard({
     required String title,
     required String value,
@@ -546,20 +720,20 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     );
   }
 
-  // Widget to display the chart of weight lifted per day
+  // Widget pour afficher le graphique du poids soulevé par jour
   Widget _buildWeeklyChartCard(bool isDarkMode) {
     return Container(
-      padding: const EdgeInsets.all(16.0), // Inner padding
+      padding: const EdgeInsets.all(16.0), // Padding interne
       decoration: BoxDecoration(
         color: isDarkMode
             ? Colors.grey[900]
-            : Colors.white, // Background color based on theme
-        borderRadius: BorderRadius.circular(12.0), // Rounded corners
+            : Colors.white, // Couleur de fond selon le thème
+        borderRadius: BorderRadius.circular(12.0), // Coins arrondis
         boxShadow: [
           BoxShadow(
             color: isDarkMode
                 ? Colors.black.withOpacity(0.2)
-                : Colors.grey.withOpacity(0.2), // Drop shadow
+                : Colors.grey.withOpacity(0.2), // Ombre portée
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -568,7 +742,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Chart title
+          // Titre du graphique
           Text(
             'Weight Lifted per Day',
             style: TextStyle(
@@ -578,17 +752,17 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          // Display the chart
+          // Afficher le graphique
           SizedBox(
-            height: 200, // Height of the chart
+            height: 200, // Hauteur du graphique
             child: SfCartesianChart(
               backgroundColor:
-                  Colors.transparent, // Transparent background for the chart
+                  Colors.transparent, // Fond transparent pour le graphique
               primaryXAxis: CategoryAxis(
                 labelStyle: TextStyle(
                   color: isDarkMode
                       ? Colors.white
-                      : Colors.black, // X-axis label color
+                      : Colors.black, // Couleur des labels de l'axe X
                 ),
                 majorGridLines: const MajorGridLines(width: 0),
               ),
@@ -596,7 +770,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                 labelStyle: TextStyle(
                   color: isDarkMode
                       ? Colors.white
-                      : Colors.black, // Y-axis label color
+                      : Colors.black, // Couleur des labels de l'axe Y
                 ),
                 majorGridLines: MajorGridLines(
                   color: isDarkMode
@@ -604,7 +778,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                       : Colors.black.withOpacity(0.1),
                 ),
               ),
-              series: _createWeightSeries(), // Chart data
+              series: _createWeightSeries(), // Données du graphique
             ),
           ),
         ],
@@ -613,10 +787,39 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
   }
 }
 
-// Class to represent the weight lifted each day
+// Classe pour représenter le poids soulevé chaque jour
 class DayWeight {
-  final String day; // Name of the day
-  final double weight; // Weight lifted on that day
+  final String day; // Nom du jour
+  final double weight; // Poids soulevé ce jour-là
 
-  DayWeight(this.day, this.weight); // Constructor
+  DayWeight(this.day, this.weight); // Constructeur
+}
+
+// Classe personnalisée pour CupertinoListTile (car Flutter ne fournit pas de CupertinoListTile par défaut)
+class CupertinoListTile extends StatelessWidget {
+  final Widget title;
+  final Widget trailing;
+  final Color backgroundColor;
+
+  const CupertinoListTile({
+    Key? key,
+    required this.title,
+    required this.trailing,
+    required this.backgroundColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: backgroundColor,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          title,
+          trailing,
+        ],
+      ),
+    );
+  }
 }

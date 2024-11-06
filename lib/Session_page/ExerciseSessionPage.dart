@@ -30,6 +30,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   late int _timerSeconds;
   late Map<String, dynamic> _currentExercise;
   bool _isBetweenExercises = false;
+  int _bonusTime = 0; // Variable pour le temps bonus ajouté
 
   @override
   void initState() {
@@ -78,6 +79,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
       setState(() {
         _isResting = false;
         _timerSeconds = _restTimeBetweenSets;
+        _bonusTime = 0; // Réinitialise le temps bonus
       });
     }
   }
@@ -89,6 +91,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
         _isResting = true;
         _isTimerRunning = true;
         _timerSeconds = _restTimeBetweenSets;
+        _bonusTime = 0; // Réinitialise le temps bonus
       });
       _startTimer();
     } else {
@@ -100,6 +103,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
           _isBetweenExercises = true;
           _isTimerRunning = true;
           _timerSeconds = _restTimeBetweenExercises;
+          _bonusTime = 0; // Réinitialise le temps bonus
         });
         _startTimer();
       } else {
@@ -120,6 +124,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
       _isResting = false;
       _isBetweenExercises = false;
       _timerSeconds = _restTimeBetweenSets;
+      _bonusTime = 0; // Réinitialise le temps bonus
     });
   }
 
@@ -333,7 +338,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
     );
   }
 
-  // Définir la méthode _checkAndUpdateStreak avant son utilisation
   Future<void> _checkAndUpdateStreak() async {
     try {
       // Vérifier si toutes les séances de la semaine sont terminées
@@ -433,58 +437,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
     );
   }
 
-  void _showRestTimePopup() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        int restTime = _restTimeBetweenSets;
-        return AlertDialog(
-          title: const Text('Temps de repos entre séries'),
-          content: StatefulBuilder(
-            builder: (context, setStateLocal) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove),
-                    onPressed: () {
-                      if (restTime > 10) {
-                        setStateLocal(() {
-                          restTime -= 10;
-                        });
-                      }
-                    },
-                  ),
-                  Text('$restTime s'),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      setStateLocal(() {
-                        restTime += 10;
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Fermer'),
-              onPressed: () {
-                setState(() {
-                  _restTimeBetweenSets = restTime;
-                  _currentExercise['restTime'] = restTime;
-                });
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _toggleTimer() {
     if (_isTimerRunning) {
       _pauseTimer();
@@ -493,7 +445,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
     }
   }
 
-  // Méthode pour Afficher le DecimalInputPicker
+  // Méthode pour afficher le DecimalInputPicker
   void _showDecimalInputPicker(
       BuildContext context,
       String title,
@@ -554,53 +506,47 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
   }
 
   Widget _buildExerciseView() {
-    return GestureDetector(
-      onTap: () {
-        _showRestTimePopup();
-      },
-      child: SingleChildScrollView(
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(16),
-          color: Colors.white,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _currentExercise['image'] != null &&
-                      (_currentExercise['image'] is String) &&
-                      (_currentExercise['image'] as String).isNotEmpty
-                  ? Image.network(
-                      _currentExercise['image'],
-                      height: 200,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.image_not_supported, size: 200);
-                      },
-                    )
-                  : const Icon(Icons.image_not_supported, size: 200),
-              const SizedBox(height: 16),
-              Text(
-                _currentExercise['name'] ?? '',
-                style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _currentExercise['description'] ?? '',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Objectifs:\n${_currentExercise['goals'] ?? ''}',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _completeSet,
-                child: Text('Terminer la série ${_currentSet + 1}'),
-              ),
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        color: Colors.white,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _currentExercise['image'] != null &&
+                    (_currentExercise['image'] is String) &&
+                    (_currentExercise['image'] as String).isNotEmpty
+                ? Image.network(
+                    _currentExercise['image'],
+                    height: 200,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.image_not_supported, size: 200);
+                    },
+                  )
+                : const Icon(Icons.image_not_supported, size: 200),
+            const SizedBox(height: 16),
+            Text(
+              _currentExercise['name'] ?? '',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _currentExercise['description'] ?? '',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Objectifs:\n${_currentExercise['goals'] ?? ''}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const SizedBox(height: 32),
+            ElevatedButton(
+              onPressed: _completeSet,
+              child: Text('Terminer la série ${_currentSet + 1}'),
+            ),
+          ],
         ),
       ),
     );
@@ -624,6 +570,61 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
           icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
           iconSize: 48,
           onPressed: _toggleTimer,
+        ),
+        const SizedBox(height: 16),
+        if (_bonusTime > 0)
+          Text(
+            'Bonus temps ajouté: ${_bonusTime}s',
+            style: const TextStyle(fontSize: 16),
+          ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white, // Background color
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CupertinoButton(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: const Text(
+                  '+10s',
+                  style: TextStyle(
+                      fontSize: 16, color: Colors.black), // Black text
+                ),
+                onPressed: () {
+                  setState(() {
+                    _timerSeconds += 10;
+                    _bonusTime += 10;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white, // Background color
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: CupertinoButton(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: const Text(
+                  '+30s',
+                  style: TextStyle(
+                      fontSize: 16, color: Colors.black), // Black text
+                ),
+                onPressed: () {
+                  setState(() {
+                    _timerSeconds += 30;
+                    _bonusTime += 30;
+                  });
+                },
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         if (!_isBetweenExercises)

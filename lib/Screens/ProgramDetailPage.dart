@@ -59,6 +59,16 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           exercise['name'] ?? 'Exercice'; // Définit un nom par défaut
       exercise['id'] = exercise['id'] ??
           UniqueKey().toString(); // Génère un identifiant unique si absent
+      exercise['multipleWeights'] =
+          exercise['multipleWeights'] ?? false; // Définit par défaut à false
+      if (exercise['multipleWeights']) {
+        // Si multipleWeights est activé, initialise weightsPerSet
+        exercise['weightsPerSet'] = exercise['weightsPerSet'] != null
+            ? List<double>.from(
+                exercise['weightsPerSet'].map((w) => w.toDouble()))
+            : List<double>.filled(
+                exercise['sets'], exercise['weight'].toDouble());
+      }
     }
   }
 
@@ -283,6 +293,13 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         exercise['weight']?.toDouble() ?? 0.0; // Poids, par défaut 0.0
     int restTime = exercise['restTime']?.toInt() ??
         60; // Temps de repos entre séries, par défaut 60 secondes
+    bool multipleWeights =
+        exercise['multipleWeights'] ?? false; // Poids multiples
+    List<double> weightsPerSet = multipleWeights
+        ? List<double>.from(
+            exercise['weightsPerSet']?.map((w) => w.toDouble()) ??
+                List<double>.filled(sets, weight))
+        : [weight.toDouble()]; // Poids par série
 
     final isDarkMode =
         ref.watch(themeProvider); // Vérifie si le thème sombre est activé
@@ -322,6 +339,17 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                               setStateDialog(() {
                                 sets =
                                     newSets; // Met à jour le nombre de séries
+                                if (multipleWeights) {
+                                  // Ajuste la liste des poids par série
+                                  if (newSets > weightsPerSet.length) {
+                                    weightsPerSet.addAll(List<double>.filled(
+                                        newSets - weightsPerSet.length,
+                                        weight));
+                                  } else if (newSets < weightsPerSet.length) {
+                                    weightsPerSet =
+                                        weightsPerSet.sublist(0, newSets);
+                                  }
+                                }
                               });
                             },
                           );
@@ -360,31 +388,63 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                   ),
                   const SizedBox(height: 16),
                   // Modification du poids
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Poids (kg):'),
-                      GestureDetector(
-                        onTap: () {
-                          _showDecimalInputPicker(
-                            context,
-                            'Poids (kg)',
-                            weight,
-                            0.0,
-                            500.0,
-                            0.5,
-                            (newWeight) {
-                              setStateDialog(() {
-                                weight = newWeight; // Met à jour le poids
-                              });
-                            },
-                          );
-                        },
-                        child: Text(
-                            '${weight.toStringAsFixed(1)} kg'), // Affiche la valeur actuelle avec une décimale
-                      ),
-                    ],
-                  ),
+                  if (!multipleWeights)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Poids (kg):'),
+                        GestureDetector(
+                          onTap: () {
+                            _showDecimalInputPicker(
+                              context,
+                              'Poids (kg)',
+                              weight,
+                              0.0,
+                              500.0,
+                              0.5,
+                              (newWeight) {
+                                setStateDialog(() {
+                                  weight = newWeight; // Met à jour le poids
+                                });
+                              },
+                            );
+                          },
+                          child: Text(
+                              '${weight.toStringAsFixed(1)} kg'), // Affiche la valeur actuelle avec une décimale
+                        ),
+                      ],
+                    ),
+                  if (multipleWeights)
+                    Column(
+                      children: List.generate(sets, (s) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Poids série ${s + 1}:'),
+                            GestureDetector(
+                              onTap: () {
+                                _showDecimalInputPicker(
+                                  context,
+                                  'Poids série ${s + 1}',
+                                  weightsPerSet[s],
+                                  0.0,
+                                  500.0,
+                                  0.5,
+                                  (newWeight) {
+                                    setStateDialog(() {
+                                      weightsPerSet[s] =
+                                          newWeight; // Met à jour le poids de la série
+                                    });
+                                  },
+                                );
+                              },
+                              child: Text(
+                                  '${weightsPerSet[s].toStringAsFixed(1)} kg'), // Affiche le poids de la série
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
                   const SizedBox(height: 16),
                   // Modification du temps de repos entre séries
                   Row(
@@ -405,6 +465,32 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  // Bouton pour activer/désactiver les poids multiples
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Poids multiples:'),
+                      CupertinoSwitch(
+                        value: multipleWeights,
+                        onChanged: (bool value) {
+                          setStateDialog(() {
+                            multipleWeights = value;
+                            if (value) {
+                              // Initialiser weightsPerSet si activé
+                              weightsPerSet = List<double>.filled(sets, weight);
+                            } else {
+                              // Réinitialiser weight si désactivé
+                              weight = weightsPerSet.isNotEmpty
+                                  ? weightsPerSet[0]
+                                  : 0.0;
+                              weightsPerSet = [];
+                            }
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -422,8 +508,16 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                     // Met à jour les valeurs de l'exercice dans la liste
                     exercises[index]['sets'] = sets;
                     exercises[index]['reps'] = reps;
-                    exercises[index]['weight'] = weight;
                     exercises[index]['restTime'] = restTime;
+                    exercises[index]['multipleWeights'] = multipleWeights;
+                    if (multipleWeights) {
+                      exercises[index]['weightsPerSet'] = weightsPerSet;
+                      exercises[index]['weight'] =
+                          weightsPerSet.isNotEmpty ? weightsPerSet[0] : 0.0;
+                    } else {
+                      exercises[index]['weight'] = weight;
+                      exercises[index].remove('weightsPerSet');
+                    }
                   });
 
                   // Sauvegarde les modifications dans Firestore
@@ -461,7 +555,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     setState(() {
       if (newIndex > oldIndex) newIndex -= 1; // Ajuste l'index si nécessaire
       final item = exercises
-          .removeAt(oldIndex); // Supprime l'exercice de son ancienne position
+          .removeAt(oldIndex); // Supprime l'exercice de sa position actuelle
       exercises.insert(
           newIndex, item); // Insère l'exercice à la nouvelle position
       _hasChanges = true; // Indique que des modifications ont été effectuées
@@ -624,15 +718,61 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                   color:
                                       isDarkMode ? Colors.white : Colors.black),
                             ),
-                            subtitle: Text(
-                              // Affiche les détails de l'exercice
-                              '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
-                              'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
-                              'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
-                              style: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black87),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (!exercise['multipleWeights'])
+                                  Text(
+                                    // Affiche les détails de l'exercice avec un poids unique
+                                    '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
+                                    'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
+                                    'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                    style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black87),
+                                  ),
+                                if (exercise['multipleWeights'])
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${exercise['sets']} séries x ${exercise['reps']} répétitions',
+                                        style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white70
+                                                : Colors.black87),
+                                      ),
+                                      Text(
+                                        'Poids par série:',
+                                        style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white70
+                                                : Colors.black87),
+                                      ),
+                                      ...List.generate(
+                                        (exercise['weightsPerSet']
+                                                as List<dynamic>)
+                                            .length,
+                                        (s) => Text(
+                                          '  Série ${s + 1}: ${((exercise['weightsPerSet'] as List<dynamic>)[s] as double).toStringAsFixed(1)} kg',
+                                          style: TextStyle(
+                                              color: isDarkMode
+                                                  ? Colors.white70
+                                                  : Colors.black87),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                        style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white70
+                                                : Colors.black87),
+                                      ),
+                                    ],
+                                  ),
+                              ],
                             ),
                             trailing: IconButton(
                               icon: const Icon(
