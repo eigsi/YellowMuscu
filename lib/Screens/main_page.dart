@@ -64,8 +64,9 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   /// Méthode pour récupérer les événements des amis de l'utilisateur
   void _fetchFriendsEvents() async {
-    if (_userId == null)
+    if (_userId == null) {
       return; // Si l'utilisateur n'est pas connecté, ne rien faire
+    }
 
     try {
       // Récupérer le document de l'utilisateur actuel depuis Firestore
@@ -204,8 +205,9 @@ class _MainPageState extends ConsumerState<MainPage> {
 
   /// Méthode pour liker un événement
   void _likeEvent(Map<String, dynamic> event) async {
-    if (_userId == null)
+    if (_userId == null) {
       return; // Si l'utilisateur n'est pas connecté, ne rien faire
+    }
 
     try {
       // Récupérer les informations nécessaires de l'événement

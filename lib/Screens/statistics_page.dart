@@ -784,11 +784,11 @@ class CupertinoListTile extends StatelessWidget {
   final Color backgroundColor;
 
   const CupertinoListTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.trailing,
     required this.backgroundColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

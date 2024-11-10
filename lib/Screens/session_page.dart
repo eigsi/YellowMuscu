@@ -33,8 +33,9 @@ class _SessionPageState extends ConsumerState<SessionPage> {
 
   // Méthode pour marquer un programme comme terminé
   void _markProgramAsDone(String programId, DateTime sessionEndTime) async {
-    if (_user == null)
+    if (_user == null) {
       return; // Si l'utilisateur n'est pas connecté, ne rien faire
+    }
 
     try {
       // Récupère le programme depuis Firestore

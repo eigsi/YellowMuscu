@@ -68,8 +68,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   // Méthode pour accepter une demande d'ami
   void _acceptFriendRequest(String fromUserId, String notificationId) async {
-    if (_user == null)
+    if (_user == null) {
       return; // Si aucun utilisateur n'est connecté, on quitte la méthode
+    }
 
     try {
       // Ajouter l'ID de l'ami à la liste des amis de l'utilisateur actuel
@@ -124,8 +125,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   // Méthode pour rejeter une demande d'ami
   void _rejectFriendRequest(String fromUserId, String notificationId) async {
-    if (_user == null)
+    if (_user == null) {
       return; // Si aucun utilisateur n'est connecté, on quitte la méthode
+    }
 
     try {
       // Supprimer la notification de demande d'ami de la collection des notifications de l'utilisateur actuel
