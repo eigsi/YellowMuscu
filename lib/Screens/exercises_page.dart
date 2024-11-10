@@ -361,7 +361,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                 const SizedBox(height: 16), // Espacement vertical
                 // Titre "Objectifs"
                 Text(
-                  'Objectifs',
+                  'Goals',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

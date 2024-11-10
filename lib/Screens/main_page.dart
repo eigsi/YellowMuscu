@@ -16,7 +16,7 @@ import 'dart:async'; // Pour utiliser les objets Timer et gérer l'asynchronisme
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
 
-// Classe principale de la page, qui est un ConsumerStatefulWidget pour utiliser Riverpod
+/// Classe principale de la page, qui est un ConsumerStatefulWidget pour utiliser Riverpod
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
@@ -24,13 +24,14 @@ class MainPage extends ConsumerStatefulWidget {
   _MainPageState createState() => _MainPageState();
 }
 
-// État associé à la classe MainPage
+/// État associé à la classe MainPage
 class _MainPageState extends ConsumerState<MainPage> {
   int _selectedIndex =
       0; // Index de l'onglet sélectionné dans la barre de navigation
   String? _userId; // Identifiant de l'utilisateur actuel
 
   List<Map<String, dynamic>> likesData = []; // Liste des données des likes
+  List<String> hiddenEvents = []; // Liste des eventId des événements supprimés
 
   // Liste des jours de la semaine en français
   final List<String> _daysOfWeek = [
@@ -49,7 +50,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     _getCurrentUser(); // Appel pour récupérer l'utilisateur actuel lors de l'initialisation
   }
 
-  // Méthode pour obtenir l'utilisateur actuel connecté via Firebase Auth
+  /// Méthode pour obtenir l'utilisateur actuel connecté via Firebase Auth
   void _getCurrentUser() {
     User? user =
         FirebaseAuth.instance.currentUser; // Récupère l'utilisateur courant
@@ -61,7 +62,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  // Méthode pour récupérer les événements des amis de l'utilisateur
+  /// Méthode pour récupérer les événements des amis de l'utilisateur
   void _fetchFriendsEvents() async {
     if (_userId == null)
       return; // Si l'utilisateur n'est pas connecté, ne rien faire
@@ -85,12 +86,16 @@ class _MainPageState extends ConsumerState<MainPage> {
         return;
       }
 
-      // Récupérer la liste des amis de l'utilisateur
+      // Récupérer la liste des amis de l'utilisateur et les événements cachés
       List<dynamic> friends = [];
       if (userDoc.data() != null) {
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
         if (data.containsKey('friends') && data['friends'] is List) {
           friends = data['friends']; // Liste des IDs des amis
+        }
+        if (data.containsKey('hiddenEvents') && data['hiddenEvents'] is List) {
+          hiddenEvents = List<String>.from(
+              data['hiddenEvents']); // Liste des eventId cachés
         }
       }
 
@@ -122,6 +127,12 @@ class _MainPageState extends ConsumerState<MainPage> {
 
         for (var doc in eventsSnapshot.docs) {
           Map<String, dynamic> data = doc.data();
+          String eventId = doc.id;
+
+          // Filtrer les événements cachés
+          if (hiddenEvents.contains(eventId)) {
+            continue; // Ignorer cet événement
+          }
 
           // S'assurer que les champs nécessaires existent
           String profileImage = friendsData[friendId]?['profilePicture'] ??
@@ -136,7 +147,7 @@ class _MainPageState extends ConsumerState<MainPage> {
                   .trim();
 
           events.add({
-            'eventId': doc.id,
+            'eventId': eventId,
             'friendId': friendId,
             'friendName': friendName,
             'profileImage': profileImage,
@@ -191,7 +202,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  // Méthode pour liker un événement
+  /// Méthode pour liker un événement
   void _likeEvent(Map<String, dynamic> event) async {
     if (_userId == null)
       return; // Si l'utilisateur n'est pas connecté, ne rien faire
@@ -270,7 +281,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  // Méthode pour construire la section de résumé du programme
+  /// Méthode pour construire la section de résumé du programme
   Widget _buildProgramSummarySection() {
     if (_userId == null) {
       // Si l'utilisateur n'est pas connecté, afficher un message
@@ -357,7 +368,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  // Méthode pour construire la section des likes
+  /// Méthode pour construire la section des likes avec suppression permanente
   Widget _buildLikesSection() {
     final isDarkMode =
         ref.watch(themeProvider); // Vérifie si le thème sombre est activé
@@ -415,11 +426,43 @@ class _MainPageState extends ConsumerState<MainPage> {
                       return Dismissible(
                         key: Key(event['eventId']),
                         direction: DismissDirection.endToStart,
-                        onDismissed: (direction) {
+                        onDismissed: (direction) async {
+                          String dismissedEventId = event['eventId'];
+
                           setState(() {
                             likesData.removeAt(index);
                           });
-                          // Optionnel : Supprimer de Firestore si nécessaire
+
+                          // Ajouter l'eventId à hiddenEvents dans Firestore
+                          try {
+                            await FirebaseFirestore.instance
+                                .collection('users')
+                                .doc(_userId)
+                                .update({
+                              'hiddenEvents':
+                                  FieldValue.arrayUnion([dismissedEventId])
+                            });
+                          } catch (e) {
+                            // Gérer les erreurs, par exemple afficher un SnackBar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content:
+                                    Text('Erreur lors de la suppression: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            print(
+                                'Erreur lors de la mise à jour de hiddenEvents: $e');
+                          }
+
+                          // Optionnel : Afficher un message de confirmation
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Événement supprimé définitivement.'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         },
                         background: Container(
                           color: Colors.red,
@@ -442,7 +485,7 @@ class _MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  // Méthode pour construire la page d'accueil avec le dégradé
+  /// Méthode pour construire la page d'accueil avec le dégradé
   Widget _buildHomePage() {
     final isDarkMode = ref.watch(themeProvider);
 
