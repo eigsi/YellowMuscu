@@ -14,13 +14,13 @@ class ExerciseSessionPage extends StatefulWidget {
     required this.program,
     required this.userId,
     required this.onSessionComplete,
-  }); // Utilisation correcte de super.key
+  });
 
   @override
-  _ExerciseSessionPageState createState() => _ExerciseSessionPageState();
+  ExerciseSessionPageState createState() => ExerciseSessionPageState();
 }
 
-class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
+class ExerciseSessionPageState extends State<ExerciseSessionPage> {
   int _currentExerciseIndex = 0;
   int _currentSet = 0;
   bool _isResting = false;
@@ -135,6 +135,8 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
             (exercise) => Map<String, dynamic>.from(exercise))
         .toList();
 
+    if (!mounted) return;
+
     await showDialog(
       context: context,
       barrierDismissible:
@@ -231,7 +233,6 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: isSaving
-                              // ignore: dead_code
                               ? null // Désactive le bouton si l'enregistrement est en cours
                               : () async {
                                   setStateLocal(() {
@@ -287,20 +288,27 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
 
                                   if (success && mounted) {
                                     // Fermer le popup "Des progrès ?"
-                                    Navigator.of(context)
-                                        .pop(); // Fermer le popup
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.of(context)
+                                          .pop(); // Fermer le popup
+                                    }
 
-                                    // Naviguer vers l'écran "session de base"
-                                    Navigator.of(context)
-                                        .pop(); // Fermer ExerciseSessionPage
+                                    // Naviguer vers l'écran précédent
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.of(context)
+                                          .pop(); // Fermer ExerciseSessionPage
+                                    }
 
                                     // Afficher un message de succès
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Séance terminée, félicitations!'),
-                                      ),
-                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Séance terminée, félicitations!'),
+                                        ),
+                                      );
+                                    }
 
                                     // Appeler la fonction de rappel pour notifier que la session est complétée
                                     widget.onSessionComplete();
@@ -414,27 +422,8 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
       }
     } catch (e) {
       // Gérer les exceptions et les loguer si nécessaire
-      print('Erreur dans _checkAndUpdateStreak: $e');
+      debugPrint('Erreur dans _checkAndUpdateStreak: $e');
     }
-  }
-
-  void _showCongratulationDialog() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Séance terminée, félicitations!'),
-        actions: [
-          TextButton(
-            child: const Text('Fermer'),
-            onPressed: () {
-              // Fermer toutes les boîtes de dialogue et revenir à l'écran "session de base"
-              Navigator.of(dialogContext, rootNavigator: true)
-                  .popUntil((route) => route.isFirst);
-            },
-          ),
-        ],
-      ),
-    );
   }
 
   void _toggleTimer() {

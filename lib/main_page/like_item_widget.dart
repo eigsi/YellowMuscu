@@ -17,10 +17,10 @@ class LikeItem extends StatefulWidget {
   });
 
   @override
-  _LikeItemState createState() => _LikeItemState();
+  LikeItemState createState() => LikeItemState();
 }
 
-class _LikeItemState extends State<LikeItem>
+class LikeItemState extends State<LikeItem>
     with SingleTickerProviderStateMixin {
   late bool _isLiked;
   late AnimationController _controller;

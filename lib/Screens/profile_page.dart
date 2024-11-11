@@ -2,7 +2,6 @@
 
 // Import necessary packages for Flutter and Firebase
 import 'package:flutter/material.dart'; // Flutter material widgets library
-import 'package:flutter/cupertino.dart'; // Flutter Cupertino widgets for iOS style
 import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
 
@@ -12,11 +11,11 @@ class ProfilePage extends StatefulWidget {
 
   @override
   // Create the state associated with the ProfilePage class
-  _ProfilePageState createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
 // State associated with the ProfilePage class
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   // Instance of FirebaseAuth to manage authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user; // Variable to store the currently logged-in user
@@ -64,6 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     // Display a message if passed as an argument when navigating to this page
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return; // Ensure the widget is still mounted
       final message = ModalRoute.of(context)?.settings.arguments as String?;
       if (message != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -97,29 +97,31 @@ class _ProfilePageState extends State<ProfilePage> {
 
     if (userData.exists) {
       Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
-      setState(() {
-        // Update controllers with retrieved data
-        _lastNameController.text = data['last_name'] ?? '';
-        _firstNameController.text = data['first_name'] ?? '';
-        _weightController.text = data['weight'] ?? '';
-        _heightController.text = data['height'] ?? '';
-        _selectedProfilePicture = data['profilePicture'] ?? '';
+      if (mounted) {
+        setState(() {
+          // Update controllers with retrieved data
+          _lastNameController.text = data['last_name'] ?? '';
+          _firstNameController.text = data['first_name'] ?? '';
+          _weightController.text = data['weight'] ?? '';
+          _heightController.text = data['height'] ?? '';
+          _selectedProfilePicture = data['profilePicture'] ?? '';
 
-        // Handle birthdate
-        if (data['birthdate'] != null &&
-            data['birthdate'].toString().isNotEmpty) {
-          _selectedBirthdate = DateTime.parse(data['birthdate']);
-          _birthdateController.text =
-              '${_selectedBirthdate!.day}/${_selectedBirthdate!.month}/${_selectedBirthdate!.year}';
-        } else {
-          _selectedBirthdate = null;
-          _birthdateController.text = '';
-        }
+          // Handle birthdate
+          if (data['birthdate'] != null &&
+              data['birthdate'].toString().isNotEmpty) {
+            _selectedBirthdate = DateTime.parse(data['birthdate']);
+            _birthdateController.text =
+                '${_selectedBirthdate!.day}/${_selectedBirthdate!.month}/${_selectedBirthdate!.year}';
+          } else {
+            _selectedBirthdate = null;
+            _birthdateController.text = '';
+          }
 
-        // Retrieve the list of friends and sent requests
-        _friends = data['friends'] ?? [];
-        _sentRequests = data['sentRequests'] ?? [];
-      });
+          // Retrieve the list of friends and sent requests
+          _friends = data['friends'] ?? [];
+          _sentRequests = data['sentRequests'] ?? [];
+        });
+      }
     }
   }
 
@@ -139,9 +141,11 @@ class _ProfilePageState extends State<ProfilePage> {
       return data['fromUserId'] as String;
     }).toList();
 
-    setState(() {
-      _receivedRequests = receivedRequests;
-    });
+    if (mounted) {
+      setState(() {
+        _receivedRequests = receivedRequests;
+      });
+    }
   }
 
   // Method to get the current user's data
@@ -174,24 +178,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
     // Check if a request has already been sent
     if (_sentRequests.contains(friendId)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You have already sent a friend request to this user.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('You have already sent a friend request to this user.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
       return;
     }
 
     // Check if a request has been received from this user
     if (_receivedRequests.contains(friendId)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('You already have a pending friend request from this user.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'You already have a pending friend request from this user.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
       return;
     }
 
@@ -216,17 +225,19 @@ class _ProfilePageState extends State<ProfilePage> {
       'sentRequests': FieldValue.arrayUnion([friendId]),
     });
 
-    setState(() {
-      _sentRequests.add(friendId);
-    });
+    if (mounted) {
+      setState(() {
+        _sentRequests.add(friendId);
+      });
 
-    // Display a success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Friend request sent'),
-        backgroundColor: Colors.green,
-      ),
-    );
+      // Display a success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Friend request sent'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   // Method to save profile changes
@@ -288,12 +299,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   // Method to display an error message
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Method to sign out the user
@@ -349,16 +362,16 @@ class _ProfilePageState extends State<ProfilePage> {
       // Delete the user from Firebase Auth
       await _user!.delete();
 
-      // Display a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account deleted successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // After deletion, show a dialog to choose between signing in or creating an account
       if (mounted) {
+        // Display a success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // After deletion, show a dialog to choose between signing in or creating an account
         showDialog(
           context: context,
           barrierDismissible: false, // Prevents closing by tapping outside
@@ -394,7 +407,9 @@ class _ProfilePageState extends State<ProfilePage> {
         _showError(
             'Account deletion failed. Please log in again and try again.');
         // Optionally: Navigate to the sign-in page for re-authentication
-        Navigator.of(context).pushReplacementNamed('/signIn');
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/signIn');
+        }
       } else {
         _showError('Account deletion failed: ${e.message}');
       }
@@ -465,11 +480,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (picked != null && picked != _selectedBirthdate) {
-      setState(() {
-        _selectedBirthdate = picked;
-        _birthdateController.text =
-            '${picked.day}/${picked.month}/${picked.year}';
-      });
+      if (mounted) {
+        setState(() {
+          _selectedBirthdate = picked;
+          _birthdateController.text =
+              '${picked.day}/${picked.month}/${picked.year}';
+        });
+      }
     }
   }
 

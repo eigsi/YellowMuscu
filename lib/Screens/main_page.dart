@@ -453,6 +453,7 @@ class MainPageState extends ConsumerState<MainPage> {
                           } catch (e) {
                             // Gérer les erreurs, par exemple afficher un SnackBar
                             if (mounted) {
+                              // ignore: use_build_context_synchronously
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content:
@@ -465,6 +466,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
                           // Optionnel : Afficher un message de confirmation
                           if (mounted) {
+                            // ignore: use_build_context_synchronously
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content:
