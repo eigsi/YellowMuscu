@@ -171,14 +171,10 @@ class StatisticsPage extends ConsumerStatefulWidget {
 
 // État associé à la classe StatisticsPage
 class _StatisticsPageState extends ConsumerState<StatisticsPage> {
-  // Instances Firebase pour l'authentification et Firestore
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user; // Utilisateur actuellement connecté
-
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser; // Obtenir l'utilisateur actuellement connecté
+// Obtenir l'utilisateur actuellement connecté
   }
 
   // Méthode pour afficher le modal de personnalisation

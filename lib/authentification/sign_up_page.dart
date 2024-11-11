@@ -81,7 +81,6 @@ class _SignUpPageState extends State<SignUpPage> {
       // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
-      print("Error: $e");
       _showError('Erreur lors de la création du compte. Veuillez réessayer.');
     }
   }

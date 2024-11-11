@@ -21,11 +21,11 @@ class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
-  _MainPageState createState() => _MainPageState();
+  MainPageState createState() => MainPageState();
 }
 
 /// État associé à la classe MainPage
-class _MainPageState extends ConsumerState<MainPage> {
+class MainPageState extends ConsumerState<MainPage> {
   int _selectedIndex =
       0; // Index de l'onglet sélectionné dans la barre de navigation
   String? _userId; // Identifiant de l'utilisateur actuel
@@ -75,15 +75,19 @@ class _MainPageState extends ConsumerState<MainPage> {
           .doc(_userId)
           .get();
 
+      if (!mounted) return;
+
       // Vérifier si le document existe
       if (!userDoc.exists) {
         // Afficher un message d'erreur si l'utilisateur n'existe pas
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Utilisateur non trouvé.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Utilisateur non trouvé.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
@@ -99,8 +103,6 @@ class _MainPageState extends ConsumerState<MainPage> {
               data['hiddenEvents']); // Liste des eventId cachés
         }
       }
-
-      print('Nombre d\'amis trouvés: ${friends.length}');
 
       // Récupérer les données de chaque ami
       Map<String, Map<String, dynamic>> friendsData = {};
@@ -122,9 +124,6 @@ class _MainPageState extends ConsumerState<MainPage> {
                 .doc(friendId)
                 .collection('events')
                 .get();
-
-        print(
-            'Nombre d\'événements pour l\'ami $friendId: ${eventsSnapshot.docs.length}');
 
         for (var doc in eventsSnapshot.docs) {
           Map<String, dynamic> data = doc.data();
@@ -163,20 +162,21 @@ class _MainPageState extends ConsumerState<MainPage> {
       events.sort((a, b) =>
           (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
-      print('Nombre total d\'événements récupérés: ${events.length}');
+      if (!mounted) return;
 
       setState(() {
         likesData = events; // Mettre à jour la liste des événements likés
       });
     } catch (e) {
       // Gérer les erreurs en affichant un message à l'utilisateur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la récupération des événements: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      print('Erreur dans _fetchFriendsEvents: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la récupération des événements: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -217,12 +217,14 @@ class _MainPageState extends ConsumerState<MainPage> {
       // Vérifier si l'utilisateur a déjà liké l'événement
       List<dynamic> currentLikes = event['likes'] as List<dynamic>? ?? [];
       if (currentLikes.contains(_userId)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Vous avez déjà liké cet événement.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Vous avez déjà liké cet événement.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
         return;
       }
 
@@ -266,20 +268,24 @@ class _MainPageState extends ConsumerState<MainPage> {
       _fetchFriendsEvents();
 
       // Afficher un message de succès
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Vous avez liké une activité'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous avez liké une activité'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
       // Gérer les erreurs en affichant un message à l'utilisateur
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -446,25 +452,27 @@ class _MainPageState extends ConsumerState<MainPage> {
                             });
                           } catch (e) {
                             // Gérer les erreurs, par exemple afficher un SnackBar
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content:
-                                    Text('Erreur lors de la suppression: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            print(
-                                'Erreur lors de la mise à jour de hiddenEvents: $e');
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('Erreur lors de la suppression: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
 
                           // Optionnel : Afficher un message de confirmation
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text('Événement supprimé définitivement.'),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content:
+                                    Text('Événement supprimé définitivement.'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
                         },
                         background: Container(
                           color: Colors.red,
@@ -593,10 +601,10 @@ class NextProgramSummary extends ConsumerStatefulWidget {
   });
 
   @override
-  _NextProgramSummaryState createState() => _NextProgramSummaryState();
+  NextProgramSummaryState createState() => NextProgramSummaryState();
 }
 
-class _NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
+class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   late DateTime _nextProgramDateTime; // Date et heure du prochain programme
   late Duration _timeRemaining; // Temps restant avant le programme
   Timer? _timer; // Timer pour le compte à rebours

@@ -517,7 +517,7 @@ class _ExerciseSessionPageState extends State<ExerciseSessionPage> {
             _currentExercise['image'] != null &&
                     (_currentExercise['image'] is String) &&
                     (_currentExercise['image'] as String).isNotEmpty
-                ? Image.network(
+                ? Image.asset(
                     _currentExercise['image'],
                     height: 200,
                     errorBuilder: (context, error, stackTrace) {

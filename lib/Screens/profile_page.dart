@@ -1,58 +1,68 @@
 // profile_page.dart
 
-// Importation des packages nécessaires pour Flutter et Firebase
-import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
-import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
-import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore
+// Import necessary packages for Flutter and Firebase
+import 'package:flutter/material.dart'; // Flutter material widgets library
+import 'package:flutter/cupertino.dart'; // Flutter Cupertino widgets for iOS style
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
+import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
 
-// Définition de la classe ProfilePage, un StatefulWidget pour afficher et modifier le profil utilisateur
+// Define the ProfilePage class, a StatefulWidget to display and edit user profiles
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  // Création de l'état associé à la classe ProfilePage
+  // Create the state associated with the ProfilePage class
   _ProfilePageState createState() => _ProfilePageState();
 }
 
-// État associé à la classe ProfilePage
+// State associated with the ProfilePage class
 class _ProfilePageState extends State<ProfilePage> {
-  // Instance de FirebaseAuth pour gérer l'authentification
+  // Instance of FirebaseAuth to manage authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user; // Variable pour stocker l'utilisateur actuellement connecté
-  bool _isEditing = false; // Indique si le mode édition est activé
+  User? _user; // Variable to store the currently logged-in user
+  bool _isEditing = false; // Indicates if the edit mode is enabled
 
-  // Contrôleurs pour gérer les entrées de texte dans les TextFields
+  // Controllers to manage text inputs in TextFields
   final TextEditingController _lastNameController =
-      TextEditingController(); // Contrôleur pour le nom de famille
+      TextEditingController(); // Controller for last name
   final TextEditingController _firstNameController =
-      TextEditingController(); // Contrôleur pour le prénom
+      TextEditingController(); // Controller for first name
   final TextEditingController _weightController =
-      TextEditingController(); // Contrôleur pour le poids
+      TextEditingController(); // Controller for weight
   final TextEditingController _heightController =
-      TextEditingController(); // Contrôleur pour la taille
+      TextEditingController(); // Controller for height
   final TextEditingController _birthdateController =
-      TextEditingController(); // Contrôleur pour la date de naissance
+      TextEditingController(); // Controller for birthdate
+  final TextEditingController _searchController =
+      TextEditingController(); // Controller for search bar
 
-  DateTime?
-      _selectedBirthdate; // Variable pour stocker la date de naissance sélectionnée
-  String _selectedProfilePicture = ''; // URL de la photo de profil sélectionnée
+  DateTime? _selectedBirthdate; // Variable to store the selected birthdate
+  String _selectedProfilePicture = ''; // URL of the selected profile picture
+  String _searchQuery = ''; // Search query for filtering friends
 
-  // Listes pour stocker les données des utilisateurs, amis, et demandes d'amis
-  List<Map<String, dynamic>> _allUsers = []; // Liste de tous les utilisateurs
-  List<dynamic> _friends = []; // Liste des amis de l'utilisateur
-  List<dynamic> _sentRequests = []; // Liste des demandes d'amis envoyées
-  List<String> _receivedRequests = []; // Liste des demandes d'amis reçues
+  // Lists to store user data, friends, and friend requests
+  List<Map<String, dynamic>> _allUsers = []; // List of all users
+  List<dynamic> _friends = []; // List of user's friends
+  List<dynamic> _sentRequests = []; // List of sent friend requests
+  List<String> _receivedRequests = []; // List of received friend requests
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser; // Récupère l'utilisateur actuellement connecté
+    _user = _auth.currentUser; // Get the currently logged-in user
     if (_user != null) {
-      _fetchUserData(); // Récupère les données de l'utilisateur depuis Firestore
-      _fetchReceivedFriendRequests(); // Récupère les demandes d'amis reçues
+      _fetchUserData(); // Fetch user data from Firestore
+      _fetchReceivedFriendRequests(); // Fetch received friend requests
     }
 
-    // Affiche un message si passé en paramètre lors de la navigation vers cette page
+    // Listen to changes in the search bar
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.trim().toLowerCase();
+      });
+    });
+
+    // Display a message if passed as an argument when navigating to this page
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final message = ModalRoute.of(context)?.settings.arguments as String?;
       if (message != null) {
@@ -66,24 +76,36 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // Méthode pour récupérer les données de l'utilisateur depuis Firestore
+  @override
+  void dispose() {
+    // Dispose controllers to free up resources
+    _lastNameController.dispose();
+    _firstNameController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
+    _birthdateController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  // Method to fetch user data from Firestore
   void _fetchUserData() async {
     DocumentSnapshot userData = await FirebaseFirestore.instance
-        .collection('users') // Accède à la collection 'users' dans Firestore
-        .doc(_user!.uid) // Récupère le document de l'utilisateur actuel
-        .get(); // Obtient les données du document
+        .collection('users') // Access the 'users' collection in Firestore
+        .doc(_user!.uid) // Get the document of the current user
+        .get(); // Retrieve the document data
 
     if (userData.exists) {
       Map<String, dynamic> data = userData.data() as Map<String, dynamic>;
       setState(() {
-        // Met à jour les contrôleurs avec les données récupérées
+        // Update controllers with retrieved data
         _lastNameController.text = data['last_name'] ?? '';
         _firstNameController.text = data['first_name'] ?? '';
         _weightController.text = data['weight'] ?? '';
         _heightController.text = data['height'] ?? '';
         _selectedProfilePicture = data['profilePicture'] ?? '';
 
-        // Gère la date de naissance
+        // Handle birthdate
         if (data['birthdate'] != null &&
             data['birthdate'].toString().isNotEmpty) {
           _selectedBirthdate = DateTime.parse(data['birthdate']);
@@ -94,14 +116,14 @@ class _ProfilePageState extends State<ProfilePage> {
           _birthdateController.text = '';
         }
 
-        // Récupère la liste des amis et des demandes envoyées
+        // Retrieve the list of friends and sent requests
         _friends = data['friends'] ?? [];
         _sentRequests = data['sentRequests'] ?? [];
       });
     }
   }
 
-  // Méthode pour récupérer les demandes d'amis reçues
+  // Method to fetch received friend requests
   void _fetchReceivedFriendRequests() async {
     if (_user == null) return;
 
@@ -122,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // Méthode pour obtenir les données de l'utilisateur actuel
+  // Method to get the current user's data
   Future<Map<String, dynamic>> _getCurrentUserData() async {
     if (_user == null) {
       return {'last_name': '', 'first_name': '', 'profilePicture': ''};
@@ -139,42 +161,41 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Méthode pour envoyer une demande d'ami
+  // Method to send a friend request
   void _sendFriendRequest(String friendId) async {
     if (_user == null) return;
 
-    // Récupère les données de l'utilisateur actuel
+    // Get current user's data
     Map<String, dynamic> currentUserData = await _getCurrentUserData();
     String fromUserName =
         '${currentUserData['last_name'] ?? ''} ${currentUserData['first_name'] ?? ''}'
             .trim();
     String fromUserProfilePicture = currentUserData['profilePicture'] ?? '';
 
-    // Vérifie si une demande a déjà été envoyée
+    // Check if a request has already been sent
     if (_sentRequests.contains(friendId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              'Vous avez déjà envoyé une demande d\'ami à cet utilisateur.'),
+          content: Text('You have already sent a friend request to this user.'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Vérifie si une demande a été reçue de cet utilisateur
+    // Check if a request has been received from this user
     if (_receivedRequests.contains(friendId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              'Vous avez déjà une demande d\'ami en attente de cet utilisateur.'),
+          content:
+              Text('You already have a pending friend request from this user.'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Ajoute la demande à la collection 'notifications' de l'utilisateur cible
+    // Add the request to the target user's 'notifications' collection
     await FirebaseFirestore.instance
         .collection('users')
         .doc(friendId)
@@ -187,7 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // Met à jour la liste des demandes envoyées de l'utilisateur actuel
+    // Update the current user's sent requests list
     await FirebaseFirestore.instance
         .collection('users')
         .doc(_user!.uid)
@@ -199,46 +220,46 @@ class _ProfilePageState extends State<ProfilePage> {
       _sentRequests.add(friendId);
     });
 
-    // Affiche un message de succès
+    // Display a success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Demande d\'ami envoyée'),
+        content: Text('Friend request sent'),
         backgroundColor: Colors.green,
       ),
     );
   }
 
-  // Méthode pour enregistrer les modifications du profil
+  // Method to save profile changes
   void _saveProfile() async {
-    // Récupère et valide les valeurs des champs
+    // Retrieve and validate field values
     String lastName = _lastNameController.text.trim();
     String firstName = _firstNameController.text.trim();
     int? weight = int.tryParse(_weightController.text.trim());
     int? height = int.tryParse(_heightController.text.trim());
 
-    // Validations des champs
+    // Field validations
     if (lastName.length > 15) {
-      _showError('Le nom ne doit pas dépasser 15 caractères.');
+      _showError('Last name must not exceed 15 characters.');
       return;
     }
 
     if (firstName.length > 15) {
-      _showError('Le prénom ne doit pas dépasser 15 caractères.');
+      _showError('First name must not exceed 15 characters.');
       return;
     }
 
     if (weight == null || weight < 0 || weight > 200) {
-      _showError('Le poids doit être un entier entre 0 et 200.');
+      _showError('Weight must be an integer between 0 and 200.');
       return;
     }
 
     if (height == null || height < 0 || height > 250) {
-      _showError('La taille doit être un entier entre 0 et 250.');
+      _showError('Height must be an integer between 0 and 250.');
       return;
     }
 
     if (_user != null) {
-      // Met à jour les données de l'utilisateur dans Firestore
+      // Update user data in Firestore
       await FirebaseFirestore.instance.collection('users').doc(_user!.uid).set({
         'last_name': lastName,
         'first_name': firstName,
@@ -251,13 +272,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (mounted) {
         setState(() {
-          _isEditing = false; // Désactive le mode édition
+          _isEditing = false; // Disable edit mode
         });
-        // Rafraîchit les données de l'utilisateur
+        // Refresh user data
         _fetchUserData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Profil modifié avec succès'),
+            content: Text('Profile updated successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -265,7 +286,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Méthode pour afficher un message d'erreur
+  // Method to display an error message
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -275,7 +296,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Méthode pour déconnecter l'utilisateur
+  // Method to sign out the user
   void _signOut() async {
     await _auth.signOut();
     if (mounted) {
@@ -283,32 +304,32 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Méthode pour basculer le mode édition
+  // Method to toggle edit mode
   void _toggleEditing() {
     setState(() {
       _isEditing = !_isEditing;
     });
   }
 
-  // Méthode pour supprimer le compte utilisateur
+  // Method to delete the user account
   void _deleteAccount() async {
-    // Affiche une boîte de dialogue de confirmation
+    // Display a confirmation dialog
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Supprimer le compte'),
+          title: const Text('Delete Account'),
           content: const Text(
-              'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.'),
+              'Are you sure you want to delete your account? This action is irreversible.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Annuler'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text(
-                'Supprimer',
+                'Delete',
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -318,54 +339,50 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     if (confirm != true) {
-      return; // L'utilisateur a annulé la suppression
+      return; // The user canceled the deletion
     }
 
-    // Optionnel : Demander à l'utilisateur de se ré-authentifier
-    // Cela est recommandé pour des raisons de sécurité, surtout si l'authentification est ancienne
-    // Vous pouvez implémenter une ré-authentification ici si nécessaire
-
     try {
-      // Supprimer les données Firestore de l'utilisateur
+      // Delete Firestore data
       await _deleteUserData();
 
-      // Supprimer l'utilisateur de Firebase Auth
+      // Delete the user from Firebase Auth
       await _user!.delete();
 
-      // Afficher un message de succès
+      // Display a success message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Compte supprimé avec succès'),
+          content: Text('Account deleted successfully'),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Après la suppression, afficher une boîte de dialogue pour choisir entre se connecter ou créer un compte
+      // After deletion, show a dialog to choose between signing in or creating an account
       if (mounted) {
         showDialog(
           context: context,
-          barrierDismissible: false, // Empêche la fermeture en tapant en dehors
+          barrierDismissible: false, // Prevents closing by tapping outside
           builder: (context) {
             return AlertDialog(
-              title: const Text('Compte supprimé'),
+              title: const Text('Account Deleted'),
               content: const Text(
-                  'Votre compte a été supprimé. Que souhaitez-vous faire maintenant ?'),
+                  'Your account has been deleted. What would you like to do now?'),
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                    Navigator.of(context).pushReplacementNamed(
-                        '/signIn'); // Navigue vers la page de connexion
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context)
+                        .pushReplacementNamed('/signIn'); // Navigate to sign in
                   },
-                  child: const Text('Se connecter'),
+                  child: const Text('Sign In'),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                    Navigator.of(context).pushReplacementNamed(
-                        '/signUp'); // Navigue vers la page d'inscription
+                    Navigator.of(context).pop(); // Close the dialog
+                    Navigator.of(context)
+                        .pushReplacementNamed('/signUp'); // Navigate to sign up
                   },
-                  child: const Text('Créer un compte'),
+                  child: const Text('Create Account'),
                 ),
               ],
             );
@@ -375,25 +392,25 @@ class _ProfilePageState extends State<ProfilePage> {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
         _showError(
-            'La suppression du compte a échoué. Veuillez vous reconnecter et réessayer.');
-        // Optionnel : Naviguer vers la page de connexion pour ré-authentifier
+            'Account deletion failed. Please log in again and try again.');
+        // Optionally: Navigate to the sign-in page for re-authentication
         Navigator.of(context).pushReplacementNamed('/signIn');
       } else {
-        _showError('La suppression du compte a échoué : ${e.message}');
+        _showError('Account deletion failed: ${e.message}');
       }
     } catch (e) {
-      _showError('Une erreur est survenue : $e');
+      _showError('An error occurred: $e');
     }
   }
 
-  // Méthode pour supprimer les données utilisateur de Firestore
+  // Method to delete user data from Firestore
   Future<void> _deleteUserData() async {
     WriteBatch batch = FirebaseFirestore.instance.batch();
 
     DocumentReference userRef =
         FirebaseFirestore.instance.collection('users').doc(_user!.uid);
 
-    // Supprimer les notifications de l'utilisateur
+    // Delete user's notifications
     QuerySnapshot notificationsSnapshot =
         await userRef.collection('notifications').get();
 
@@ -401,10 +418,10 @@ class _ProfilePageState extends State<ProfilePage> {
       batch.delete(doc.reference);
     }
 
-    // Supprimer le document utilisateur
+    // Delete the user document
     batch.delete(userRef);
 
-    // Supprimer l'utilisateur de la liste des amis de tous les autres utilisateurs
+    // Remove the user from other users' friends lists
     QuerySnapshot friendsSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .where('friends', arrayContains: _user!.uid)
@@ -417,7 +434,7 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     }
 
-    // Supprimer l'utilisateur des demandes envoyées de tous les autres utilisateurs
+    // Remove the user from other users' sent requests
     QuerySnapshot sentRequestsSnapshot = await FirebaseFirestore.instance
         .collection('users')
         .where('sentRequests', arrayContains: _user!.uid)
@@ -430,18 +447,33 @@ class _ProfilePageState extends State<ProfilePage> {
       });
     }
 
-    // Supprimer les demandes reçues (notifications) de tous les autres utilisateurs
-    // Si les demandes reçues sont stockées dans une sous-collection 'notifications', il faudrait les supprimer individuellement.
-    // Cependant, cela peut être complexe et dépend de la structure exacte de vos notifications.
-
-    // Note : Nous supprimons ici les références dans les 'friends' et 'sentRequests'.
-    // Pour les notifications reçues, cela devrait être géré via Cloud Functions ou une autre logique appropriée.
-
-    // Exécute le batch
+    // Execute the batch
     await batch.commit();
   }
 
-  // Widget pour afficher la section "Ajouter des amis"
+  // Method to select birthdate using a date picker
+  void _selectBirthdate() async {
+    DateTime initialDate = _selectedBirthdate ?? DateTime.now();
+    DateTime firstDate = DateTime(1900);
+    DateTime lastDate = DateTime.now();
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (picked != null && picked != _selectedBirthdate) {
+      setState(() {
+        _selectedBirthdate = picked;
+        _birthdateController.text =
+            '${picked.day}/${picked.month}/${picked.year}';
+      });
+    }
+  }
+
+  // Widget to display the "Add Friends" section with a search bar
   Widget _buildAddFriendsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -449,8 +481,17 @@ class _ProfilePageState extends State<ProfilePage> {
         const Divider(),
         const SizedBox(height: 16),
         const Text(
-          'Ajouter des amis',
+          'Add Friends',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        // Search bar
+        TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            labelText: 'Search for friends',
+            prefixIcon: Icon(Icons.search),
+          ),
         ),
         const SizedBox(height: 8),
         FutureBuilder<QuerySnapshot>(
@@ -474,12 +515,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 .where((user) => user['uid'] != _user!.uid)
                 .toList();
 
+            // Filter users based on search query
+            List<Map<String, dynamic>> filteredUsers = _allUsers.where((user) {
+              String fullName =
+                  '${user['last_name']} ${user['first_name']}'.toLowerCase();
+              return fullName.contains(_searchQuery);
+            }).toList();
+
             return SizedBox(
               height: 300,
               child: ListView.builder(
-                itemCount: _allUsers.length,
+                itemCount: filteredUsers.length,
                 itemBuilder: (context, index) {
-                  final user = _allUsers[index];
+                  final user = filteredUsers[index];
                   bool isFriend = _friends.contains(user['uid']);
                   bool requestSent = _sentRequests.contains(user['uid']);
                   bool requestReceived =
@@ -491,15 +539,29 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     title: Text('${user['last_name']} ${user['first_name']}'),
                     trailing: isFriend
-                        ? const Text('Ami')
+                        ? const Text('Friend')
                         : requestSent
-                            ? const Text('Demande envoyée')
+                            ? const Text('Request Sent')
                             : requestReceived
-                                ? const Text('Demande reçue')
-                                : ElevatedButton(
-                                    onPressed: () =>
-                                        _sendFriendRequest(user['uid']),
-                                    child: const Text('Ajouter'),
+                                ? const Text('Request Received')
+                                : SizedBox(
+                                    height: 32,
+                                    child: ElevatedButton(
+                                      onPressed: () =>
+                                          _sendFriendRequest(user['uid']),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16.0),
+                                        minimumSize: const Size(0, 0),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: const Text(
+                                        'Add',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                    ),
                                   ),
                   );
                 },
@@ -511,189 +573,272 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget pour construire l'affichage du profil
+  // Widget to build the profile display
   Widget _buildProfile() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Affichage de la photo de profil
-        CircleAvatar(
-          backgroundImage: NetworkImage(_selectedProfilePicture.isNotEmpty
-              ? _selectedProfilePicture
-              : 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
-          radius: 50,
+        // Profile picture centered at the top
+        Center(
+          child: CircleAvatar(
+            backgroundImage: NetworkImage(_selectedProfilePicture.isNotEmpty
+                ? _selectedProfilePicture
+                : 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
+            radius: 50,
+          ),
         ),
         const SizedBox(height: 16),
-        // Affichage des champs du profil ou des champs éditables selon le mode
-        _isEditing ? _buildEditableFields() : _buildDisplayFields(),
+        if (_isEditing)
+          // Input fields for editing
+          Column(
+            children: [
+              TextField(
+                controller: _firstNameController,
+                decoration: const InputDecoration(
+                  labelText: 'First Name',
+                ),
+              ),
+              TextField(
+                controller: _lastNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Last Name',
+                ),
+              ),
+              TextField(
+                controller: _weightController,
+                decoration: const InputDecoration(
+                  labelText: 'Weight',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: _heightController,
+                decoration: const InputDecoration(
+                  labelText: 'Height',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              GestureDetector(
+                onTap: _selectBirthdate,
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _birthdateController,
+                    decoration: const InputDecoration(
+                      labelText: 'Birthdate',
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          // Display profile information
+          Column(
+            children: [
+              // First name and last name together, centered
+              Center(
+                child: Text(
+                  '${_firstNameController.text} ${_lastNameController.text}',
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Email address centered
+              Center(
+                child: Text(
+                  _user?.email ?? 'Not defined',
+                  style: const TextStyle(fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Weight, height, and birthdate in white boxes
+              _buildStatsSection(),
+            ],
+          ),
         const SizedBox(height: 16),
-        // Boutons pour modifier le profil, enregistrer, se déconnecter et supprimer le compte
+        // Buttons for editing profile, saving, signing out, and deleting account
         Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  onPressed: _toggleEditing,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow[700],
+                SizedBox(
+                  height: 36,
+                  child: ElevatedButton(
+                    onPressed: _toggleEditing,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      minimumSize: const Size(0, 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      _isEditing ? 'Cancel' : 'Edit Profile',
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
-                  child: Text(_isEditing ? 'Annuler' : 'Modifier le profil'),
                 ),
                 _isEditing
-                    ? ElevatedButton(
-                        onPressed: _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                    ? SizedBox(
+                        height: 36,
+                        child: ElevatedButton(
+                          onPressed: _saveProfile,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
-                        child: const Text('Enregistrer'),
                       )
-                    : ElevatedButton(
-                        onPressed: _signOut,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
+                    : SizedBox(
+                        height: 36,
+                        child: ElevatedButton(
+                          onPressed: _signOut,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            minimumSize: const Size(0, 0),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Sign Out',
+                            style: TextStyle(fontSize: 14),
+                          ),
                         ),
-                        child: const Text('Se déconnecter'),
                       ),
               ],
             ),
             const SizedBox(height: 16),
-            // Bouton pour supprimer le compte (visible uniquement en mode affichage)
+            // Button to delete account (visible only in display mode)
             if (!_isEditing)
-              ElevatedButton(
-                onPressed: _deleteAccount,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+              SizedBox(
+                height: 36,
+                child: ElevatedButton(
+                  onPressed: _deleteAccount,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    minimumSize: const Size(0, 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    'Delete Account',
+                    style: TextStyle(fontSize: 14),
+                  ),
                 ),
-                child: const Text('Supprimer le compte'),
               ),
           ],
         ),
-        // Affiche la section "Ajouter des amis" si le mode édition est désactivé
+        // Display the "Add Friends" section if edit mode is disabled
         if (!_isEditing) _buildAddFriendsSection(),
       ],
     );
   }
 
-  // Widget pour afficher les champs du profil en mode affichage
-  Widget _buildDisplayFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  // Modified Widget to display the stats section
+  Widget _buildStatsSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('Nom : ${_lastNameController.text}',
-            style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text('Prénom : ${_firstNameController.text}',
-            style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text('Poids : ${_weightController.text} kg',
-            style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text('Taille : ${_heightController.text} cm',
-            style: const TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        Text(
-          'Date de naissance : ${_birthdateController.text}',
-          style: const TextStyle(fontSize: 18),
-        ),
-        const SizedBox(height: 8),
-        Text('Email : ${_user?.email ?? 'Non défini'}',
-            style: const TextStyle(fontSize: 18)),
-      ],
-    );
-  }
-
-  // Widget pour afficher les champs du profil en mode édition
-  Widget _buildEditableFields() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Champ pour le nom
-        TextField(
-          controller: _lastNameController,
-          decoration: const InputDecoration(labelText: 'Nom'),
-          maxLength: 15,
-        ),
-        const SizedBox(height: 8),
-        // Champ pour le prénom
-        TextField(
-          controller: _firstNameController,
-          decoration: const InputDecoration(labelText: 'Prénom'),
-          maxLength: 15,
-        ),
-        const SizedBox(height: 8),
-        // Champ pour le poids
-        TextField(
-          controller: _weightController,
-          decoration: const InputDecoration(labelText: 'Poids (kg)'),
-          keyboardType: TextInputType.number,
-        ),
-        const SizedBox(height: 8),
-        // Champ pour la taille
-        TextField(
-          controller: _heightController,
-          decoration: const InputDecoration(labelText: 'Taille (cm)'),
-          keyboardType: TextInputType.number,
-        ),
-        const SizedBox(height: 8),
-        // Champ pour la date de naissance avec un sélecteur de date
-        TextField(
-          controller: _birthdateController,
-          decoration: const InputDecoration(labelText: 'Date de naissance'),
-          readOnly: true, // Rend le champ non modifiable manuellement
-          onTap: () async {
-            // Ouvre un sélecteur de date lorsque le champ est tapé
-            FocusScope.of(context).requestFocus(FocusNode());
-            DateTime initialDate = DateTime.now()
-                .subtract(const Duration(days: 365 * 20)); // Date par défaut
-            if (_selectedBirthdate != null) {
-              initialDate = _selectedBirthdate!;
-            }
-            DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: initialDate,
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-            );
-            if (pickedDate != null) {
-              _selectedBirthdate = pickedDate;
-              _birthdateController.text =
-                  '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
-            }
-          },
-        ),
-        const SizedBox(height: 16),
-        const Text('Photo de profil :', style: TextStyle(fontSize: 18)),
-        const SizedBox(height: 8),
-        // Options pour sélectionner une photo de profil
-        Stack(
+        // Weight
+        Column(
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: Column(
                 children: [
-                  _buildProfilePictureOption(
-                      'https://i.pinimg.com/564x/a4/54/16/a45416714096b6b224e939c2d1e6e842.jpg'),
-                  _buildProfilePictureOption(
-                      'https://i.pinimg.com/564x/a0/02/78/a0027883fe995b3bf3b44d71b355f8a8.jpg'),
-                  _buildProfilePictureOption(
-                      'https://i.pinimg.com/564x/99/dd/28/99dd28115c9a95b0c09813763a511aca.jpg'),
-                  _buildProfilePictureOption(
-                      'https://i.pinimg.com/564x/7a/52/67/7a5267576242661fbe79954bea91946c.jpg'),
-                  _buildProfilePictureOption(
-                      'https://i.pinimg.com/736x/02/4a/5b/024a5b0df5d2c2462ff8c73bebb418f3.jpg'),
+                  Text(
+                    _weightController.text.isNotEmpty
+                        ? _weightController.text
+                        : '-',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Weight',
+                    style: TextStyle(
+                      fontSize: 14, // Slightly smaller font
+                      color: Colors.grey, // Gray color
+                    ),
+                  ),
                 ],
               ),
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: SizedBox(
-                height: 4,
-                child: Container(
-                  color: Colors.grey[400],
-                ),
+          ],
+        ),
+        const SizedBox(width: 16),
+        // Height
+        Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _heightController.text.isNotEmpty
+                        ? _heightController.text
+                        : '-',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Height',
+                    style: TextStyle(
+                      fontSize: 14, // Slightly smaller font
+                      color: Colors.grey, // Gray color
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(width: 16),
+        // Birthdate
+        Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _birthdateController.text.isNotEmpty
+                        ? _birthdateController.text
+                        : '-',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Birthdate',
+                    style: TextStyle(
+                      fontSize: 14, // Slightly smaller font
+                      color: Colors.grey, // Gray color
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -702,59 +847,50 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget pour afficher une option de photo de profil
-  Widget _buildProfilePictureOption(String imageUrl) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedProfilePicture = imageUrl;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        padding: const EdgeInsets.all(8.0),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: _selectedProfilePicture == imageUrl
-                ? Colors.green
-                : Colors.transparent,
-            width: 2.0,
-          ),
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: CircleAvatar(
-          backgroundImage: NetworkImage(imageUrl),
-          radius: 30,
-        ),
-      ),
-    );
-  }
-
-  // Widget pour afficher l'écran de connexion si l'utilisateur n'est pas connecté
+  // Widget to display the sign-in screen if the user is not logged in
   Widget _buildSignIn() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Bouton pour se connecter
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/signIn');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.yellow[700],
+          // Button to sign in
+          SizedBox(
+            height: 36,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/signIn');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Sign In',
+                style: TextStyle(fontSize: 14),
+              ),
             ),
-            child: const Text('Se connecter'),
           ),
-          // Bouton pour créer un compte
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/signUp');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+          const SizedBox(height: 16),
+          // Button to create an account
+          SizedBox(
+            height: 36,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/signUp');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Create Account',
+                style: TextStyle(fontSize: 14),
+              ),
             ),
-            child: const Text('Créer un compte'),
           ),
         ],
       ),
@@ -765,7 +901,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Dégradé de fond
+        // Background gradient
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -782,7 +918,9 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: Colors.transparent,
           appBar: _isEditing
               ? AppBar(
-                  title: const Text('Modifier le profil'),
+                  title: const Text('Edit Profile'),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
                 )
               : null,
           body: SingleChildScrollView(

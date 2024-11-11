@@ -677,9 +677,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                           ),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: NetworkImage(exercises[index]
-                                      ['image'] ??
-                                  'https://via.placeholder.com/150'), // Affiche l'image de l'exercice
+                              backgroundImage: AssetImage(exercises[index]
+                                  ['image']), // Affiche l'image de l'exercice
                             ),
                             title: Text(
                               exercises[index]['name'] ??
@@ -708,8 +707,9 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                         children: [
                           ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: NetworkImage(exercise['image'] ??
-                                  'https://via.placeholder.com/150'), // Affiche l'image de l'exercice
+                              backgroundImage: AssetImage(
+                                exercise['image'],
+                              ), // Affiche l'image de l'exercice
                             ),
                             title: Text(
                               exercise['name'] ??

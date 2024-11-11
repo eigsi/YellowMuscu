@@ -1,7 +1,7 @@
 // Importation des bibliothèques nécessaires
 import 'package:flutter/material.dart'; // Widgets et thèmes Material Design
 import 'package:yellowmuscu/data/exercises_data.dart'; // Données des exercices
-import 'package:yellowmuscu/Exercise/ExerciseCategoryList.dart'; // Widget personnalisé pour la liste des catégories d'exercices
+import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Widget personnalisé pour la liste des catégories d'exercices
 import 'package:firebase_auth/firebase_auth.dart'; // Authentification Firebase
 import 'package:cloud_firestore/cloud_firestore.dart'; // Base de données Cloud Firestore
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Gestion d'état avec Riverpod
@@ -13,12 +13,12 @@ class ExercisesPage extends ConsumerStatefulWidget {
   const ExercisesPage({super.key}); // Constructeur de la classe
 
   @override
-  _ExercisesPageState createState() =>
-      _ExercisesPageState(); // Création de l'état associé
+  ExercisesPageState createState() =>
+      ExercisesPageState(); // Création de l'état associé
 }
 
 // Classe d'état pour ExercisesPage
-class _ExercisesPageState extends ConsumerState<ExercisesPage> {
+class ExercisesPageState extends ConsumerState<ExercisesPage> {
   // Liste des catégories d'exercices avec leur nom et icône
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Chest', 'icon': Icons.fitness_center},
@@ -58,6 +58,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
           .get(); // Récupération des documents
 
       // Mise à jour de l'état avec la liste des programmes
+      if (!mounted) return;
       setState(() {
         _programs = snapshot.docs.map((doc) {
           Map<String, dynamic>? data = doc.data(); // Données du document
@@ -105,6 +106,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
         }).toList();
       });
     } catch (e) {
+      if (!mounted) return;
       // En cas d'erreur, afficher un message à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -161,7 +163,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
           true, // Permet le scroll si le contenu dépasse la hauteur
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
+          builder: (BuildContext context, StateSetter setStateModal) {
             return Container(
               padding: const EdgeInsets.all(16.0), // Marges internes
               height: MediaQuery.of(context).size.height *
@@ -207,7 +209,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                     style: TextStyle(
                         color: isDarkMode ? Colors.white : Colors.black),
                     onChanged: (value) {
-                      setState(() {
+                      setStateModal(() {
                         filteredExercises = exercises
                             .where((exercise) => exercise['name']!
                                 .toLowerCase()
@@ -496,7 +498,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
           ),
           content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
+            builder: (BuildContext context, StateSetter setStateDialog) {
               return Row(
                 mainAxisAlignment:
                     MainAxisAlignment.center, // Centré horizontalement
@@ -506,7 +508,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                     icon: const Icon(Icons.remove),
                     onPressed: () {
                       if (restBetweenExercises > 10) {
-                        setState(() {
+                        setStateDialog(() {
                           restBetweenExercises -= 10; // Diminue de 10 secondes
                         });
                       }
@@ -522,7 +524,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () {
-                      setState(() {
+                      setStateDialog(() {
                         restBetweenExercises += 10; // Augmente de 10 secondes
                       });
                     },
@@ -541,11 +543,16 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                 try {
                   await _addExerciseToProgram(
                       programIndex, exercise, restBetweenExercises); // Ajout
+                  if (!mounted)
+                    return; // Vérifie que le widget est toujours monté
                   Navigator.of(context).pop(); // Ferme la boîte de dialogue
                 } catch (e) {
+                  if (!mounted) return;
                   messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Erreur lors de l\'ajout de l\'exercice.'),
+                    SnackBar(
+                      content:
+                          Text('Erreur lors de l\'ajout de l\'exercice: $e'),
+                      backgroundColor: Colors.red,
                     ),
                   );
                 }
@@ -599,7 +606,8 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
   // Méthode pour supprimer un programme
   void _deleteProgram(int index) async {
     if (_user != null) {
-      final programId = _programs[index]['id']; // Identifiant du programme
+      final program = _programs[index]; // Programme sélectionné
+      final programId = program['id']; // Identifiant du programme
       try {
         // Suppression du programme dans Firestore
         await FirebaseFirestore.instance
@@ -609,6 +617,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
             .doc(programId)
             .delete();
       } catch (e) {
+        if (!mounted) return;
         // En cas d'erreur, afficher un message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -616,6 +625,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
             backgroundColor: Colors.red,
           ),
         );
+        return;
       }
 
       if (!mounted) return; // Vérifie que le widget est toujours monté
@@ -626,8 +636,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
       // Affiche un message de confirmation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text('Programme "${_programs[index]['name']}" a été supprimé'),
+          content: Text('Programme "${program['name']}" a été supprimé'),
         ),
       );
     }
@@ -673,7 +682,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
           ),
           content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
+            builder: (BuildContext context, StateSetter setStateDialog) {
               return SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min, // Ajuste la taille
@@ -685,7 +694,19 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                         labelText: 'Nom du programme',
                         labelStyle: TextStyle(
                             color: isDarkMode ? Colors.white : Colors.black),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: isDarkMode ? Colors.white70 : Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: isDarkMode ? Colors.white : Colors.blue),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                       ),
+                      style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black),
                     ),
                     const SizedBox(height: 16), // Espacement vertical
                     // Titre "Sélectionner une catégorie"
@@ -708,7 +729,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                                 'image']; // Vérifie si l'image est sélectionnée
                         return GestureDetector(
                           onTap: () {
-                            setState(() {
+                            setStateDialog(() {
                               selectedImage = option[
                                   'image']; // Met à jour l'image sélectionnée
                               selectedLabel = option[
@@ -803,7 +824,7 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                           : Colors.white, // Couleur du menu déroulant
                       isExpanded: true,
                       onChanged: (String? newValue) {
-                        setState(() {
+                        setStateDialog(() {
                           selectedDay =
                               newValue; // Met à jour le jour sélectionné
                         });
@@ -875,6 +896,8 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                         .doc(_user!.uid)
                         .collection('programs')
                         .add(newProgram);
+                    if (!mounted)
+                      return; // Vérifie que le widget est toujours monté
                     _fetchPrograms(); // Rafraîchit la liste des programmes
                     Navigator.of(context).pop(); // Ferme la boîte de dialogue
                     messenger.showSnackBar(
@@ -884,9 +907,12 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
                       ),
                     );
                   } catch (e) {
+                    if (!mounted) return;
                     messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Erreur lors de l\'ajout du programme.'),
+                      SnackBar(
+                        content:
+                            Text('Erreur lors de l\'ajout du programme: $e'),
+                        backgroundColor: Colors.red,
                       ),
                     );
                   }
@@ -990,7 +1016,15 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
           'isFavorite': program['isFavorite'],
         });
       } catch (e) {
-        // Gestion des erreurs (non implémentée ici)
+        // Gestion des erreurs (affichage d'un message)
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la mise à jour des favoris: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
       }
 
       if (!mounted) return; // Vérifie que le widget est toujours monté
@@ -1017,11 +1051,15 @@ class _ExercisesPageState extends ConsumerState<ExercisesPage> {
         builder: (context) => ProgramDetailPage(
           program: program, // Programme à afficher
           userId: _user!.uid, // Identifiant de l'utilisateur
-          onUpdate: () {}, // Callback lors de la mise à jour
+          onUpdate: () {
+            if (mounted) {
+              _fetchPrograms(); // Rafraîchit les programmes si des changements ont été effectués
+            }
+          }, // Callback lors de la mise à jour
         ),
       ),
     );
-    if (result == true) {
+    if (result == true && mounted) {
       _fetchPrograms(); // Rafraîchit les programmes si des changements ont été effectués
     }
   }
