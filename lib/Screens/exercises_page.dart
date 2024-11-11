@@ -49,7 +49,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
   }
 
   // Méthode pour récupérer les programmes de l'utilisateur depuis Firestore
-  void _fetchPrograms() async {
+  Future<void> _fetchPrograms() async {
     try {
       final snapshot = await FirebaseFirestore.instance
           .collection('users') // Accès à la collection 'users'
@@ -57,7 +57,6 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           .collection('programs') // Sous-collection 'programs' de l'utilisateur
           .get(); // Récupération des documents
 
-      // Mise à jour de l'état avec la liste des programmes
       if (!mounted) return;
       setState(() {
         _programs = snapshot.docs.map((doc) {
@@ -543,8 +542,10 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                 try {
                   await _addExerciseToProgram(
                       programIndex, exercise, restBetweenExercises); // Ajout
-                  if (!mounted)
+                  if (!mounted) {
                     return; // Vérifie que le widget est toujours monté
+                  }
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop(); // Ferme la boîte de dialogue
                 } catch (e) {
                   if (!mounted) return;
@@ -593,7 +594,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           'exercises': program['exercises'],
         });
       } catch (e) {
-        rethrow; // Relance l'exception
+        rethrow; // Relance l'exception pour être gérée ailleurs
       }
 
       if (!mounted) return; // Vérifie que le widget est toujours monté
@@ -896,9 +897,11 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         .doc(_user!.uid)
                         .collection('programs')
                         .add(newProgram);
-                    if (!mounted)
+                    if (!mounted) {
                       return; // Vérifie que le widget est toujours monté
+                    }
                     _fetchPrograms(); // Rafraîchit la liste des programmes
+                    // ignore: use_build_context_synchronously
                     Navigator.of(context).pop(); // Ferme la boîte de dialogue
                     messenger.showSnackBar(
                       SnackBar(
@@ -1000,7 +1003,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
   }
 
   // Méthode pour basculer le statut favori d'un programme
-  void _toggleFavorite(int index) async {
+  Future<void> _toggleFavorite(int index) async {
     if (_user != null) {
       final program = _programs[index]; // Programme sélectionné
       program['isFavorite'] = !program['isFavorite']; // Inverse le statut
@@ -1044,7 +1047,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
   }
 
   // Méthode pour afficher les détails d'un programme
-  void _showProgramDetail(Map<String, dynamic> program) async {
+  Future<void> _showProgramDetail(Map<String, dynamic> program) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

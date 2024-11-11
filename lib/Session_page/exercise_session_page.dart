@@ -32,6 +32,9 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
   bool _isBetweenExercises = false;
   int _bonusTime = 0; // Variable pour le temps bonus ajouté
 
+  // Déclarer _isSaving dans la classe State
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
         (_currentExercise['restBetweenExercises'] as int?) ?? 60;
     _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
     _timerSeconds = _restTimeBetweenSets;
+    _startTimer();
   }
 
   void _startTimer() {
@@ -137,16 +141,13 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
 
     if (!mounted) return;
 
-    await showDialog(
+    bool? success = await showDialog<bool>(
       context: context,
       barrierDismissible:
           false, // L'utilisateur doit appuyer sur "Enregistrer" pour fermer
-      builder: (context) {
+      builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateLocal) {
-            bool isSaving =
-                false; // Indicateur pour empêcher les clics multiples
-
             return Dialog(
               child: Container(
                 decoration: BoxDecoration(
@@ -232,93 +233,15 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: isSaving
-                              ? null // Désactive le bouton si l'enregistrement est en cours
-                              : () async {
-                                  setStateLocal(() {
-                                    isSaving =
-                                        true; // Indique que l'enregistrement a commencé
-                                  });
-
-                                  // Mettre à jour les poids dans le programme
-                                  for (int i = 0;
-                                      i < localExercises.length;
-                                      i++) {
-                                    widget.program['exercises'][i]['weight'] =
-                                        localExercises[i]['weight'];
-                                  }
-
-                                  bool success = false; // Indicateur de succès
-
-                                  try {
-                                    // Mettre à jour la base de données avec les nouveaux poids
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(widget.userId)
-                                        .collection('programs')
-                                        .doc(widget.program['id'])
-                                        .update({
-                                      'exercises': widget.program['exercises'],
-                                      'isDone': true,
-                                    });
-
-                                    // Appeler la méthode pour mettre à jour le streak
-                                    await _checkAndUpdateStreak();
-
-                                    success = true; // Opération réussie
-                                  } catch (e) {
-                                    // Gérer les erreurs de mise à jour
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text('Erreur: $e'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  } finally {
-                                    if (mounted) {
-                                      setStateLocal(() {
-                                        isSaving =
-                                            false; // Réinitialise l'indicateur
-                                      });
-                                    }
-                                  }
-
-                                  if (success && mounted) {
-                                    // Fermer le popup "Des progrès ?"
-                                    if (Navigator.canPop(context)) {
-                                      Navigator.of(context)
-                                          .pop(); // Fermer le popup
-                                    }
-
-                                    // Naviguer vers l'écran précédent
-                                    if (Navigator.canPop(context)) {
-                                      Navigator.of(context)
-                                          .pop(); // Fermer ExerciseSessionPage
-                                    }
-
-                                    // Afficher un message de succès
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                              'Séance terminée, félicitations!'),
-                                        ),
-                                      );
-                                    }
-
-                                    // Appeler la fonction de rappel pour notifier que la session est complétée
-                                    widget.onSessionComplete();
-                                  }
-                                },
+                          onPressed: _isSaving
+                              ? null
+                              : () => _handleSaveButtonPressed(
+                                  setStateLocal, dialogContext, localExercises),
                           style: ElevatedButton.styleFrom(
                             minimumSize:
                                 const Size.fromHeight(50), // Hauteur du bouton
                           ),
-                          child: isSaving
+                          child: _isSaving
                               ? const SizedBox(
                                   width: 24,
                                   height: 24,
@@ -344,6 +267,81 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
         );
       },
     );
+
+    // Après l'attente du showDialog, vérifier le résultat
+    if (success == true && mounted) {
+      // Naviguer vers l'écran précédent
+      Navigator.of(context).pop(); // Fermer ExerciseSessionPage
+
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Séance terminée, félicitations!'),
+        ),
+      );
+
+      // Appeler la fonction de rappel pour notifier que la session est complétée
+      widget.onSessionComplete();
+    }
+  }
+
+  Future<void> _handleSaveButtonPressed(
+      Function setStateLocal,
+      BuildContext dialogContext,
+      List<Map<String, dynamic>> localExercises) async {
+    setStateLocal(() {
+      _isSaving = true; // Indicateur pour empêcher les clics multiples
+    });
+
+    // Mettre à jour les poids dans le programme
+    for (int i = 0; i < localExercises.length; i++) {
+      widget.program['exercises'][i]['weight'] = localExercises[i]['weight'];
+    }
+
+    bool success = false; // Indicateur de succès
+
+    try {
+      // Mettre à jour la base de données avec les nouveaux poids
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('programs')
+          .doc(widget.program['id'])
+          .update({
+        'exercises': widget.program['exercises'],
+        'isDone': true,
+      });
+
+      // Appeler la méthode pour mettre à jour le streak
+      await _checkAndUpdateStreak();
+
+      // Indiquer que l'opération a réussi
+      success = true;
+    } catch (e) {
+      // Gérer les erreurs de mise à jour
+      if (mounted) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(dialogContext).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setStateLocal(() {
+          _isSaving = false; // Réinitialise l'indicateur
+        });
+      }
+    }
+
+    if (success && mounted) {
+      // Fermer le popup "Des progrès ?"
+      // ignore: use_build_context_synchronously
+      Navigator.of(dialogContext)
+          .pop(true); // Fermer le popup et retourner 'true'
+    }
   }
 
   Future<void> _checkAndUpdateStreak() async {
@@ -572,7 +570,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Background color
+                color: Colors.white, // Couleur de fond
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CupertinoButton(
@@ -581,7 +579,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                 child: const Text(
                   '+10s',
                   style: TextStyle(
-                      fontSize: 16, color: Colors.black), // Black text
+                      fontSize: 16, color: Colors.black), // Texte noir
                 ),
                 onPressed: () {
                   setState(() {
@@ -594,7 +592,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
             const SizedBox(width: 8),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Background color
+                color: Colors.white, // Couleur de fond
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CupertinoButton(
@@ -603,7 +601,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                 child: const Text(
                   '+30s',
                   style: TextStyle(
-                      fontSize: 16, color: Colors.black), // Black text
+                      fontSize: 16, color: Colors.black), // Texte noir
                 ),
                 onPressed: () {
                   setState(() {

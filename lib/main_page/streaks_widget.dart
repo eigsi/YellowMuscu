@@ -11,10 +11,10 @@ class StreaksWidget extends StatefulWidget {
   const StreaksWidget({super.key, required this.userId});
 
   @override
-  _StreaksWidgetState createState() => _StreaksWidgetState();
+  StreaksWidgetState createState() => StreaksWidgetState();
 }
 
-class _StreaksWidgetState extends State<StreaksWidget> {
+class StreaksWidgetState extends State<StreaksWidget> {
   int _streakCount = 0;
   DateTime _lastStreakDate = DateTime(1970);
   List<DateTime> _completedSessions = [];
@@ -35,27 +35,40 @@ class _StreaksWidgetState extends State<StreaksWidget> {
   }
 
   void _fetchStreakData() async {
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .get();
+    try {
+      DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .get();
 
-    if (snapshot.exists) {
-      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      if (snapshot.exists) {
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
 
-      setState(() {
-        _streakCount = data['streakCount'] ?? 0;
-        _lastStreakDate = data['lastStreakDate'] != null
-            ? (data['lastStreakDate'] as Timestamp).toDate()
-            : DateTime(1970);
+        setState(() {
+          _streakCount = data['streakCount'] ?? 0;
+          _lastStreakDate = data['lastStreakDate'] != null
+              ? (data['lastStreakDate'] as Timestamp).toDate()
+              : DateTime(1970);
 
-        // Récupérer les sessions complétées
-        List<dynamic> sessions = data['completedSessions'] ?? [];
-        _completedSessions =
-            sessions.map((session) => (session as Timestamp).toDate()).toList();
-      });
+          // Récupérer les sessions complétées
+          List<dynamic> sessions = data['completedSessions'] ?? [];
+          _completedSessions = sessions
+              .map((session) => (session as Timestamp).toDate())
+              .toList();
+        });
 
-      _updateStreak();
+        _updateStreak();
+      }
+    } catch (e) {
+      // Gérer les erreurs lors de la récupération des données
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la récupération des données: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

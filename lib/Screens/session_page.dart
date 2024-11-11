@@ -1,21 +1,20 @@
-// Importation des packages nécessaires
+// session_page.dart
+
 import 'package:flutter/material.dart'; // Bibliothèque principale de widgets Flutter
 import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore de Firebase
 import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
-import 'package:yellowmuscu/Session_page/ExerciseSessionPage.dart'; // Page pour la session d'exercice
+import 'package:yellowmuscu/Session_page/exercise_session_page.dart'; // Page pour la session d'exercice
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour le thème (clair/sombre)
 
-// Définition de la classe SessionPage, un ConsumerStatefulWidget pour utiliser Riverpod
 class SessionPage extends ConsumerStatefulWidget {
   const SessionPage({super.key});
 
   @override
-  _SessionPageState createState() => _SessionPageState();
+  SessionPageState createState() => SessionPageState();
 }
 
-// État associé à la classe SessionPage
-class _SessionPageState extends ConsumerState<SessionPage> {
+class SessionPageState extends ConsumerState<SessionPage> {
   // Instance de FirebaseAuth pour l'authentification
   final FirebaseAuth _auth = FirebaseAuth.instance;
   User? _user; // Variable pour stocker l'utilisateur actuellement connecté
@@ -47,6 +46,7 @@ class _SessionPageState extends ConsumerState<SessionPage> {
           .get();
 
       if (!programSnapshot.exists) {
+        if (!mounted) return;
         // Si le programme n'existe pas, affiche un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -92,6 +92,8 @@ class _SessionPageState extends ConsumerState<SessionPage> {
         'userId': _user!.uid,
       });
 
+      if (!mounted) return;
+
       // Affiche un message de succès avec les détails de la session
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -101,6 +103,7 @@ class _SessionPageState extends ConsumerState<SessionPage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       // En cas d'erreur, affiche un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -155,6 +158,8 @@ class _SessionPageState extends ConsumerState<SessionPage> {
           .collection('programs')
           .get();
 
+      if (!mounted) return;
+
       setState(() {
         // Met à jour la liste des programmes avec les données récupérées
         _programs = snapshot.docs.map((doc) {
@@ -196,6 +201,7 @@ class _SessionPageState extends ConsumerState<SessionPage> {
         }).toList();
       });
     } catch (e) {
+      if (!mounted) return;
       // En cas d'erreur, affiche un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
