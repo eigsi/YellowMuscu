@@ -22,6 +22,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
       []; // Liste des programmes de l'utilisateur
 
   DateTime? sessionStartTime; // Heure de début de la session
+  bool _isLoading = true; // Indicateur de chargement
 
   @override
   void initState() {
@@ -104,10 +105,12 @@ class SessionPageState extends ConsumerState<SessionPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      // En cas d'erreur, affiche un message d'erreur
+      // En cas d'erreur, affiche un message d'erreur plus détaillé
+      String errorMessage =
+          'Une erreur est survenue lors de la sauvegarde de la session terminée. Veuillez réessayer.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
         ),
       );
@@ -125,24 +128,61 @@ class SessionPageState extends ConsumerState<SessionPage> {
         ),
       );
     } else {
-      sessionStartTime =
-          DateTime.now(); // Enregistre l'heure de début de la session
-      // Navigue vers la page ExerciseSessionPage en passant le programme
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ExerciseSessionPage(
-            program: program,
-            userId: _user!.uid,
-            onSessionComplete: () {
-              // Callback lorsque la session est terminée
-              DateTime sessionEndTime =
-                  DateTime.now(); // Heure de fin de la session
-              _markProgramAsDone(program['id'],
-                  sessionEndTime); // Marque le programme comme terminé
-            },
-          ),
-        ),
+      // Affiche une boîte de dialogue de confirmation
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final isDarkMode = ref.watch(themeProvider);
+          return AlertDialog(
+            backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+            title: Text(
+              'Commencer la session?',
+              style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+            ),
+            content: Text(
+              'Voulez-vous vraiment commencer la session "${program['name']}"?',
+              style: TextStyle(
+                  color: isDarkMode ? Colors.white70 : Colors.black87),
+            ),
+            actions: [
+              TextButton(
+                child: const Text(
+                  'Annuler',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Ferme le dialogue
+                },
+              ),
+              TextButton(
+                child: const Text(
+                  'Commencer',
+                  style: TextStyle(color: Colors.green),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Ferme le dialogue
+                  sessionStartTime =
+                      DateTime.now(); // Enregistre l'heure de début
+                  // Navigue vers la page ExerciseSessionPage
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ExerciseSessionPage(
+                        program: program,
+                        userId: _user!.uid,
+                        onSessionComplete: () {
+                          // Callback lorsque la session est terminée
+                          DateTime sessionEndTime = DateTime.now();
+                          _markProgramAsDone(program['id'], sessionEndTime);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       );
     }
   }
@@ -150,6 +190,10 @@ class SessionPageState extends ConsumerState<SessionPage> {
   // Méthode pour récupérer les programmes de l'utilisateur depuis Firestore
   void _fetchPrograms() async {
     if (_user == null) return;
+
+    setState(() {
+      _isLoading = true; // Démarre le chargement
+    });
 
     try {
       final snapshot = await FirebaseFirestore.instance
@@ -199,13 +243,19 @@ class SessionPageState extends ConsumerState<SessionPage> {
             'exercises': exercises,
           };
         }).toList();
+        _isLoading = false; // Termine le chargement
       });
     } catch (e) {
       if (!mounted) return;
-      // En cas d'erreur, affiche un message d'erreur
+      setState(() {
+        _isLoading = false; // Termine le chargement en cas d'erreur
+      });
+      // En cas d'erreur, affiche un message d'erreur plus détaillé
+      String errorMessage =
+          'Une erreur est survenue lors de la récupération des programmes. Veuillez réessayer.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text(errorMessage),
           backgroundColor: Colors.red,
         ),
       );
@@ -235,44 +285,59 @@ class SessionPageState extends ConsumerState<SessionPage> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: ListView.builder(
-          itemCount: _programs.length, // Nombre de programmes dans la liste
-          itemBuilder: (context, index) {
-            final program =
-                _programs[index]; // Récupère le programme à l'index donné
-            return GestureDetector(
-              onTap: () {
-                _startSession(
-                    program); // Démarre la session pour le programme sélectionné
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.0), // Coins arrondis
-                  color: isDarkMode
-                      ? Colors.black54
-                      : Colors.white, // Couleur de fond selon le thème
+        child: _isLoading
+            ? Center(
+                // Indicateur de chargement
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      isDarkMode ? Colors.white : Colors.black),
                 ),
-                margin: const EdgeInsets.all(8), // Marges autour du container
-                padding: const EdgeInsets.all(16), // Padding interne
-                child: ListTile(
-                  title: Text(
-                    program['name'] ?? 'Programme sans nom', // Nom du programme
-                    style: TextStyle(
-                        color: isDarkMode
-                            ? Colors.white
-                            : Colors.black), // Couleur du texte selon le thème
+              )
+            : _programs.isEmpty
+                ? Center(
+                    // Message si aucun programme
+                    child: Text(
+                      'Aucun programme disponible.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _programs.length, // Nombre de programmes
+                    itemBuilder: (context, index) {
+                      final program = _programs[index];
+                      return GestureDetector(
+                        onTap: () {
+                          _startSession(program);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.circular(16.0), // Coins arrondis
+                            color: isDarkMode
+                                ? Colors.black54
+                                : Colors.white, // Couleur de fond
+                          ),
+                          margin: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(16),
+                          child: ListTile(
+                            title: Text(
+                              program['name'] ?? 'Programme sans nom',
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            trailing: Checkbox(
+                              value: program['isDone'] ?? false,
+                              onChanged: null, // Désactivé pour l'affichage
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  trailing: Checkbox(
-                    value: program['isDone'] ??
-                        false, // Indique si le programme est terminé
-                    onChanged:
-                        null, // Checkbox désactivé (juste pour l'affichage)
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
       ),
     );
   }

@@ -38,9 +38,9 @@ dependencies:
   firebase_core: ^3.4.1
   cloud_firestore: ^5.0.1
   firebase_auth: ^5.3.1
-  dcdg: ^4.1.0
+  #dcdg: ^4.1.0
   shared_preferences: ^2.0.13 
-  reorderables: ^0.4.2
+  #reorderables: ^0.4.2
 
 
 

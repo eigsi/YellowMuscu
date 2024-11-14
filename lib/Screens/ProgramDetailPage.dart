@@ -54,7 +54,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       exercise['weight'] = exercise['weight']?.toDouble() ??
           0.0; // Définit une valeur par défaut de 0.0 kg
       exercise['image'] = exercise['image'] ??
-          'https://via.placeholder.com/150'; // Définit une image par défaut
+          'assets/images/default_exercise.png'; // Définit une image par défaut
       exercise['name'] =
           exercise['name'] ?? 'Exercice'; // Définit un nom par défaut
       exercise['id'] = exercise['id'] ??
@@ -74,33 +74,50 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
 
   // Méthode asynchrone pour sauvegarder les exercices modifiés dans Firestore
   Future<void> _saveExercises() async {
-    // Vérifie si le programme a un identifiant unique
-    String programId = widget.program['id'];
-    if (programId.isEmpty) {
-      // Si 'id' est absent, génère un nouvel identifiant et crée le document
-      DocumentReference newProgramRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('programs')
-          .doc(); // Génère un nouvel identifiant
-      programId = newProgramRef.id;
-      await newProgramRef.set({
-        'id': programId,
-        'name': widget.program['name'] ?? 'Nouveau Programme',
-        'exercises': exercises,
-      });
-    } else {
-      // Si 'id' existe, met à jour le document existant avec 'set' et 'merge: true'
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('programs')
-          .doc(programId)
-          .set({'exercises': exercises}, SetOptions(merge: true));
-    }
+    try {
+      // Vérifie si le programme a un identifiant unique
+      String programId = widget.program['id'];
+      if (programId.isEmpty) {
+        // Si 'id' est absent, génère un nouvel identifiant et crée le document
+        DocumentReference newProgramRef = FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.userId)
+            .collection('programs')
+            .doc(); // Génère un nouvel identifiant
+        programId = newProgramRef.id;
+        await newProgramRef.set({
+          'id': programId,
+          'name': widget.program['name'] ?? 'Nouveau Programme',
+          'exercises': exercises,
+        });
+      } else {
+        // Si 'id' existe, met à jour le document existant avec 'set' et 'merge: true'
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.userId)
+            .collection('programs')
+            .doc(programId)
+            .set({'exercises': exercises}, SetOptions(merge: true));
+      }
 
-    widget
-        .onUpdate(); // Appelle la fonction de mise à jour pour notifier les changements
+      widget
+          .onUpdate(); // Appelle la fonction de mise à jour pour notifier les changements
+
+      // Affiche une confirmation visuelle que les exercices ont été sauvegardés
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Exercices sauvegardés avec succès'),
+        ),
+      );
+    } catch (e) {
+      // Gère les erreurs de Firestore
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la sauvegarde des exercices: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Méthode pour afficher un sélecteur de temps de repos (style iOS)
@@ -114,14 +131,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Colors.white, // Couleur de fond
+          color: Theme.of(context).canvasColor, // Couleur de fond
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Picker pour les minutes
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).canvasColor,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: currentMinutes, // Valeur initiale en minutes
@@ -141,7 +158,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               // Picker pour les secondes
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).canvasColor,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: (currentSeconds / 10)
@@ -182,7 +199,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Colors.white, // Couleur de fond
+          color: Theme.of(context).canvasColor, // Couleur de fond
           child: Column(
             children: [
               // Titre du picker
@@ -194,7 +211,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               ),
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).canvasColor,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) ~/ step)
@@ -240,7 +257,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Colors.white, // Couleur de fond
+          color: Theme.of(context).canvasColor, // Couleur de fond
           child: Column(
             children: [
               // Titre du picker
@@ -252,7 +269,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               ),
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).canvasColor,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) / step)
@@ -615,6 +632,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               Navigator.of(context).pop(
                   _hasChanges); // Retourne à la page précédente en passant l'indicateur de changements
             },
+            tooltip: 'Retour',
           ),
           actions: [
             // Bouton pour basculer le mode d'édition de l'ordre
@@ -624,6 +642,9 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                   : Icons.reorder), // Icône changeante
               onPressed:
                   _toggleEditingOrder, // Appelle la méthode pour basculer le mode
+              tooltip: _isEditingOrder
+                  ? 'Terminer l\'édition'
+                  : 'Réorganiser les exercices',
             ),
           ],
         ),
@@ -676,9 +697,13 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                 color: Colors.white), // Icône de suppression
                           ),
                           child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: AssetImage(exercises[index]
-                                  ['image']), // Affiche l'image de l'exercice
+                            leading: Semantics(
+                              label:
+                                  'Image de l\'exercice ${exercises[index]['name']}',
+                              child: CircleAvatar(
+                                backgroundImage: AssetImage(exercises[index]
+                                    ['image']), // Affiche l'image de l'exercice
+                              ),
                             ),
                             title: Text(
                               exercises[index]['name'] ??
@@ -689,8 +714,11 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                             ),
                             trailing: ReorderableDragStartListener(
                               index: index, // Index de l'élément
-                              child: const Icon(Icons
-                                  .drag_handle), // Icône pour indiquer que l'élément est déplaçable
+                              child: Semantics(
+                                label: 'Déplacer l\'exercice',
+                                child: const Icon(Icons
+                                    .drag_handle), // Icône pour indiquer que l'élément est déplaçable
+                              ),
                             ),
                           ),
                         ),
@@ -706,10 +734,13 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                       return Column(
                         children: [
                           ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: AssetImage(
-                                exercise['image'],
-                              ), // Affiche l'image de l'exercice
+                            leading: Semantics(
+                              label: 'Image de l\'exercice ${exercise['name']}',
+                              child: CircleAvatar(
+                                backgroundImage: AssetImage(
+                                  exercise['image'],
+                                ), // Affiche l'image de l'exercice
+                              ),
                             ),
                             title: Text(
                               exercise['name'] ??
@@ -779,6 +810,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                   Icons.edit), // Icône pour éditer l'exercice
                               onPressed: () => _editExercise(
                                   index), // Appelle la méthode pour éditer l'exercice
+                              tooltip: 'Modifier l\'exercice',
                             ),
                           ),
                           if (index < exercises.length - 1)
@@ -795,6 +827,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                     onPressed: () =>
                                         _changeRestBetweenExercises(index,
                                             -10), // Diminue de 10 secondes
+                                    tooltip:
+                                        'Diminuer le temps de repos entre les exercices',
                                   ),
                                   Text(
                                     'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}', // Affiche le temps de repos
@@ -810,6 +844,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                     onPressed: () =>
                                         _changeRestBetweenExercises(index,
                                             10), // Augmente de 10 secondes
+                                    tooltip:
+                                        'Augmenter le temps de repos entre les exercices',
                                   ),
                                 ],
                               ),
