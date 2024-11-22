@@ -18,230 +18,69 @@ class StreaksWidgetState extends State<StreaksWidget> {
   int _streakCount = 0;
   DateTime _lastStreakDate = DateTime(1970);
   List<DateTime> _completedSessions = [];
-  Duration _timeUntilNextStreak = Duration.zero;
   Timer? _timer;
+  late StreamSubscription<DocumentSnapshot> _userSubscription;
 
   @override
   void initState() {
     super.initState();
-    _fetchStreakData();
-    _startCountdownTimer();
+    _startListeningToUserData();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _userSubscription.cancel();
     super.dispose();
   }
 
-  void _fetchStreakData() async {
-    try {
-      DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .get();
-
+  void _startListeningToUserData() {
+    _userSubscription = FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.userId)
+        .snapshots()
+        .listen((snapshot) {
       if (snapshot.exists) {
         Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
 
-        setState(() {
-          _streakCount = data['streakCount'] ?? 0;
-          _lastStreakDate = data['lastStreakDate'] != null
-              ? (data['lastStreakDate'] as Timestamp).toDate()
-              : DateTime(1970);
+        List<dynamic> sessions = data['completedSessions'] ?? [];
+        List<DateTime> newCompletedSessions =
+            sessions.map((session) => (session as Timestamp).toDate()).toList();
 
-          // Récupérer les sessions complétées
-          List<dynamic> sessions = data['completedSessions'] ?? [];
-          _completedSessions = sessions
-              .map((session) => (session as Timestamp).toDate())
-              .toList();
-        });
+        // Vérifier si une nouvelle séance a été ajoutée
+        if (newCompletedSessions.length > _completedSessions.length) {
+          // Une nouvelle séance a été complétée
+          DateTime lastSessionDate = newCompletedSessions.last;
 
-        _updateStreak();
-      }
-    } catch (e) {
-      // Gérer les erreurs lors de la récupération des données
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la récupération des données: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
+          // Optionnel : Vérifier si la dernière séance est après la dernière date enregistrée
+          if (lastSessionDate.isAfter(_lastStreakDate)) {
+            setState(() {
+              _streakCount += 1;
+              _lastStreakDate = lastSessionDate;
+              _completedSessions = newCompletedSessions;
+            });
 
-  void _updateStreak() async {
-    DateTime today = DateTime.now();
-    DateTime startOfWeek = _startOfWeek(today);
-    DateTime endOfWeek = _endOfWeek(today);
-
-    // Vérifier si la dernière vérification de streak était avant la semaine en cours
-    if (!_isSameWeek(_lastStreakDate, today)) {
-      // Vérifier si l'utilisateur a complété toutes les séances de la semaine précédente
-      DateTime lastWeekStart = startOfWeek.subtract(const Duration(days: 7));
-      DateTime lastWeekEnd = endOfWeek.subtract(const Duration(days: 7));
-
-      bool allSessionsCompleted =
-          _checkAllSessionsCompleted(lastWeekStart, lastWeekEnd);
-
-      if (allSessionsCompleted) {
-        // Incrémenter le streak
-        setState(() {
-          _streakCount += 1;
-          _lastStreakDate = today;
-        });
-
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .update({
-          'streakCount': _streakCount,
-          'lastStreakDate': Timestamp.fromDate(today),
-        });
-      } else {
-        // Réinitialiser le streak
-        if (_streakCount > 0) {
+            // Mettre à jour Firestore
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(widget.userId)
+                .update({
+              'streakCount': _streakCount,
+              'lastStreakDate': Timestamp.fromDate(_lastStreakDate),
+            });
+          }
+        } else {
+          // Pas de nouvelle séance, mettre à jour les données locales
           setState(() {
-            _streakCount = 0;
-            _lastStreakDate = today;
-          });
-
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.userId)
-              .update({
-            'streakCount': _streakCount,
-            'lastStreakDate': Timestamp.fromDate(today),
+            _streakCount = data['streakCount'] ?? 0;
+            _lastStreakDate = data['lastStreakDate'] != null
+                ? (data['lastStreakDate'] as Timestamp).toDate()
+                : DateTime(1970);
+            _completedSessions = newCompletedSessions;
           });
         }
       }
-
-      // Réinitialiser les statuts des programmes
-      await _resetProgramStatuses();
-    }
-  }
-
-  bool _checkAllSessionsCompleted(DateTime startOfWeek, DateTime endOfWeek) {
-    // Supposons que chaque semaine, l'utilisateur doit avoir 7 séances (une par jour)
-    // Ajustez cette logique en fonction de votre application
-
-    // Créer une liste de dates pour la semaine
-    List<DateTime> weekDates = [];
-    DateTime current = startOfWeek;
-    while (current.isBefore(endOfWeek) || current.isAtSameMomentAs(endOfWeek)) {
-      weekDates.add(current);
-      current = current.add(const Duration(days: 1));
-    }
-
-    // Vérifier que chaque jour a une séance complétée
-    for (DateTime date in weekDates) {
-      bool completed = _completedSessions.any((sessionDate) =>
-          sessionDate.year == date.year &&
-          sessionDate.month == date.month &&
-          sessionDate.day == date.day);
-      if (!completed) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool _isSameWeek(DateTime date1, DateTime date2) {
-    final week1 = _weekNumber(date1);
-    final week2 = _weekNumber(date2);
-    final year1 = date1.year;
-    final year2 = date2.year;
-    return week1 == week2 && year1 == year2;
-  }
-
-  int _weekNumber(DateTime date) {
-    return int.parse(DateFormat('w').format(date));
-  }
-
-  DateTime _startOfWeek(DateTime date) {
-    // Semaine commence le lundi
-    int subtractDays = date.weekday - DateTime.monday;
-    return DateTime(date.year, date.month, date.day)
-        .subtract(Duration(days: subtractDays));
-  }
-
-  DateTime _endOfWeek(DateTime date) {
-    // Semaine se termine le dimanche
-    int addDays = DateTime.sunday - date.weekday;
-    return DateTime(date.year, date.month, date.day)
-        .add(Duration(days: addDays));
-  }
-
-  Future<void> _resetProgramStatuses() async {
-    try {
-      QuerySnapshot programsSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .collection('programs')
-          .get();
-
-      for (var doc in programsSnapshot.docs) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(widget.userId)
-            .collection('programs')
-            .doc(doc.id)
-            .update({'isDone': false});
-      }
-
-      // Optionnel : Réinitialiser la liste des sessions complétées
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .update({'completedSessions': []});
-    } catch (e) {
-      // Gérer les erreurs
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('Erreur lors de la réinitialisation des programmes: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _startCountdownTimer() {
-    _updateCountdown();
-
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      _updateCountdown();
     });
-  }
-
-  void _updateCountdown() {
-    DateTime now = DateTime.now();
-    DateTime nextWeekStart = _startOfWeek(now).add(const Duration(days: 7));
-    Duration difference = nextWeekStart.difference(now);
-
-    setState(() {
-      _timeUntilNextStreak = difference;
-    });
-  }
-
-  /// Méthode pour formater la durée en jours, heures, minutes
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    if (duration.inDays > 1) {
-      return '${duration.inDays} jours';
-    } else if (duration.inDays == 1) {
-      // Si exactement 1 jour, afficher "1 jour"
-      return '1 jour';
-    } else {
-      int hours = duration.inHours.remainder(24);
-      int minutes = duration.inMinutes.remainder(60);
-      return '${twoDigits(hours)} heures ${twoDigits(minutes)} minutes';
-    }
   }
 
   @override
@@ -288,7 +127,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
                 ],
               ),
               Text(
-                '$_streakCount semaines',
+                '$_streakCount séances',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -298,8 +137,9 @@ class StreaksWidgetState extends State<StreaksWidget> {
             ],
           ),
           const SizedBox(height: 8),
+          // Optionnel : Afficher la date de la dernière séance
           Text(
-            'Temps avant la prochaine streak: ${_formatDuration(_timeUntilNextStreak)}',
+            'Dernière séance: ${DateFormat('dd/MM/yyyy').format(_lastStreakDate)}',
             style: TextStyle(
               fontSize: 16,
               color: isDarkMode ? Colors.grey[300] : Colors.black54,

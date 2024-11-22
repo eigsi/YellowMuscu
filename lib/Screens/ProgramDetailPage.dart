@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
 import 'package:flutter/cupertino.dart'; // Widgets Cupertino pour le style iOS
+import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Widget pour la liste des catégories
+import 'package:yellowmuscu/data/exercises_data.dart'; // Données des exercices
 
 // Définition de la classe ProgramDetailPage, un ConsumerStatefulWidget pour intégrer Riverpod
 class ProgramDetailPage extends ConsumerStatefulWidget {
@@ -607,6 +609,412 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     }
   }
 
+  // Méthode pour afficher le menu des catégories d'exercices
+  void _addNewExercises() {
+    final isDarkMode = ref.watch(themeProvider);
+    final List<Map<String, dynamic>> categories = [
+      {'name': 'Chest', 'icon': Icons.fitness_center},
+      {'name': 'Back', 'icon': Icons.fitness_center},
+      {'name': 'Shoulders', 'icon': Icons.fitness_center},
+      {'name': 'Biceps', 'icon': Icons.fitness_center},
+      {'name': 'Triceps', 'icon': Icons.fitness_center},
+      {'name': 'Legs & Glutes', 'icon': Icons.fitness_center},
+      {'name': 'Calves', 'icon': Icons.fitness_center},
+      {'name': 'Abs', 'icon': Icons.fitness_center},
+      {'name': 'Stretching', 'icon': Icons.fitness_center},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      isScrollControlled:
+          true, // Les modales prennent toute la hauteur de la page
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 16.0),
+          child: Column(
+            children: [
+              // Petite croix en haut à gauche
+              Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Ferme le modal
+                  },
+                ),
+              ),
+              Expanded(
+                child: ExerciseCategoryList(
+                  categories: categories,
+                  onCategoryTap: (category) {
+                    Navigator.of(context)
+                        .pop(); // Ferme le modal des catégories
+                    _showExercises(category);
+                  },
+                  isDarkMode: isDarkMode,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher la liste des exercices d'une catégorie
+  void _showExercises(String category) {
+    List<Map<String, String>> exercisesList;
+
+    // Sélection des exercices en fonction de la catégorie
+    if (category == 'Biceps') {
+      exercisesList = ExercisesData.bicepsExercises;
+    } else if (category == 'Abs') {
+      exercisesList = ExercisesData.abExercises;
+    } else if (category == 'Triceps') {
+      exercisesList = ExercisesData.tricepsExercises;
+    } else if (category == 'Legs & Glutes') {
+      exercisesList = ExercisesData.legExercises;
+    } else if (category == 'Chest') {
+      exercisesList = ExercisesData.chestExercises;
+    } else if (category == 'Back') {
+      exercisesList = ExercisesData.backExercises;
+    } else if (category == 'Shoulders') {
+      exercisesList = ExercisesData.shoulderExercises;
+    } else if (category == 'Calves') {
+      exercisesList = ExercisesData.calfExercises;
+    } else if (category == 'Stretching') {
+      exercisesList = ExercisesData.stretchingExercises;
+    } else {
+      exercisesList = [];
+    }
+
+    final isDarkMode = ref.watch(themeProvider);
+
+    TextEditingController searchController = TextEditingController();
+    List<Map<String, String>> filteredExercises = List.from(exercisesList);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      isScrollControlled:
+          true, // Les modales prennent toute la hauteur de la page
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setStateModal) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: Column(
+                children: [
+                  // Petite croix en haut à gauche
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Ferme le modal
+                      },
+                    ),
+                  ),
+                  // Titre de la catégorie
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      category,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Barre de recherche
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher un exercice',
+                        hintStyle: TextStyle(
+                            color:
+                                isDarkMode ? Colors.white70 : Colors.grey[600]),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: isDarkMode ? Colors.white : Colors.grey[600],
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: isDarkMode ? Colors.white70 : Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                              color: isDarkMode ? Colors.white : Colors.blue),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      style: TextStyle(
+                          color: isDarkMode ? Colors.white : Colors.black),
+                      onChanged: (value) {
+                        setStateModal(() {
+                          filteredExercises = exercisesList
+                              .where((exercise) => exercise['name']!
+                                  .toLowerCase()
+                                  .contains(value.toLowerCase()))
+                              .toList();
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: filteredExercises.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Aucun exercice trouvé.',
+                              style: TextStyle(
+                                  color: isDarkMode
+                                      ? Colors.white70
+                                      : Colors.grey[600]),
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: filteredExercises.length,
+                            itemBuilder: (context, index) {
+                              final exercise = filteredExercises[index];
+                              return ListTile(
+                                leading: Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: ClipOval(
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: Image.asset(
+                                        exercise['image']!,
+                                        width: 40,
+                                        height: 40,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return const Icon(
+                                              Icons.image_not_supported);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                title: Text(
+                                  exercise['name']!,
+                                  style: TextStyle(
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.info_outline,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black),
+                                      onPressed: () {
+                                        _showExerciseInfo(exercise);
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.add,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black),
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // Ferme le modal des exercices
+                                        _showRestTimePopup(exercise);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher les détails d'un exercice
+  void _showExerciseInfo(Map<String, String> exercise) {
+    final isDarkMode = ref.watch(themeProvider);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+          contentPadding: const EdgeInsets.all(16.0),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 200,
+                  child: Image.asset(
+                    exercise['image']!,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(Icons.image_not_supported, size: 100);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Description',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  exercise['description'] ?? '',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Objectifs',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  exercise['goals'] ?? '',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Fermer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher le popup de temps de repos entre exercices
+  void _showRestTimePopup(Map<String, String> exercise) {
+    int restBetweenExercises = 60;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final isDarkMode = ref.watch(themeProvider);
+        return AlertDialog(
+          backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
+          title: Text(
+            'Temps de repos entre exercices',
+            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+          ),
+          content: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateDialog) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove),
+                    onPressed: () {
+                      if (restBetweenExercises > 10) {
+                        setStateDialog(() {
+                          restBetweenExercises -= 10;
+                        });
+                      }
+                    },
+                  ),
+                  Text(
+                    '$restBetweenExercises s',
+                    style: TextStyle(
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      setStateDialog(() {
+                        restBetweenExercises += 10;
+                      });
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Ajouter'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Ferme le dialogue
+                _addExerciseToProgramWithRest(exercise, restBetweenExercises);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Méthode pour ajouter un exercice au programme avec le temps de repos
+  void _addExerciseToProgramWithRest(
+      Map<String, String> exercise, int restBetweenExercises) async {
+    // Ajout des valeurs par défaut à l'exercice
+    Map<String, dynamic> newExercise = {
+      'name': exercise['name'],
+      'image': exercise['image'],
+      'sets': 3,
+      'reps': 10,
+      'restTime': 60,
+      'restBetweenExercises': restBetweenExercises,
+      'weight': 0.0,
+      'description': exercise['description'] ?? '',
+      'goals': exercise['goals'] ?? '',
+      'id': UniqueKey().toString(),
+      'multipleWeights': false,
+    };
+
+    setState(() {
+      exercises.add(newExercise);
+      _hasChanges = true;
+    });
+
+    await _saveExercises();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode =
@@ -648,212 +1056,237 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
             ),
           ],
         ),
-        body: exercises.isEmpty
-            ? Center(
-                // Si la liste des exercices est vide, affiche un message
-                child: Text(
-                  'Aucun exercice ajouté au programme',
-                  style: TextStyle(
-                      fontSize: 18,
-                      color: isDarkMode ? Colors.white70 : Colors.black54),
-                ),
-              )
-            : _isEditingOrder
-                ? ReorderableListView(
-                    // Si en mode d'édition de l'ordre, affiche une liste réorganisable
-                    onReorder:
-                        _reorderExercises, // Méthode pour gérer le réordonnancement
-                    buildDefaultDragHandles:
-                        false, // Désactive les poignées de glissement par défaut
-                    children: [
-                      for (int index = 0; index < exercises.length; index++)
-                        Dismissible(
-                          key: ValueKey(exercises[index]['id'] ??
-                              index), // Clé unique pour chaque élément
-                          direction: DismissDirection
-                              .endToStart, // Direction du glissement pour supprimer
-                          onDismissed: (direction) {
-                            setState(() {
-                              final removedItem = exercises.removeAt(
-                                  index); // Supprime l'exercice de la liste
-                              _hasChanges =
-                                  true; // Indique que des modifications ont été effectuées
-                              _saveExercises(); // Sauvegarde les modifications
-                              // Affiche un message indiquant que l'exercice a été supprimé
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('${removedItem['name']} supprimé'),
+        body: Column(
+          children: [
+            Expanded(
+              child: exercises.isEmpty
+                  ? Center(
+                      // Si la liste des exercices est vide, affiche un message
+                      child: Text(
+                        'Aucun exercice ajouté au programme',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color:
+                                isDarkMode ? Colors.white70 : Colors.black54),
+                      ),
+                    )
+                  : _isEditingOrder
+                      ? ReorderableListView(
+                          onReorder: _reorderExercises,
+                          buildDefaultDragHandles: false,
+                          children: [
+                            for (int index = 0;
+                                index < exercises.length;
+                                index++)
+                              Dismissible(
+                                key: ValueKey(exercises[index]['id'] ?? index),
+                                direction: DismissDirection.endToStart,
+                                onDismissed: (direction) {
+                                  setState(() {
+                                    final removedItem =
+                                        exercises.removeAt(index);
+                                    _hasChanges = true;
+                                    _saveExercises();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                            '${removedItem['name']} supprimé'),
+                                      ),
+                                    );
+                                  });
+                                },
+                                background: Container(
+                                  color: Colors.red,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 16.0),
+                                  child: const Icon(Icons.delete,
+                                      color: Colors.white),
                                 ),
-                              );
-                            });
-                          },
-                          background: Container(
-                            color: Colors
-                                .red, // Couleur de fond lors du glissement
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 16.0),
-                            child: const Icon(Icons.delete,
-                                color: Colors.white), // Icône de suppression
-                          ),
-                          child: ListTile(
-                            leading: Semantics(
-                              label:
-                                  'Image de l\'exercice ${exercises[index]['name']}',
-                              child: CircleAvatar(
-                                backgroundImage: AssetImage(exercises[index]
-                                    ['image']), // Affiche l'image de l'exercice
-                              ),
-                            ),
-                            title: Text(
-                              exercises[index]['name'] ??
-                                  'Exercice', // Nom de l'exercice
-                              style: TextStyle(
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black),
-                            ),
-                            trailing: ReorderableDragStartListener(
-                              index: index, // Index de l'élément
-                              child: Semantics(
-                                label: 'Déplacer l\'exercice',
-                                child: const Icon(Icons
-                                    .drag_handle), // Icône pour indiquer que l'élément est déplaçable
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  )
-                : ListView.builder(
-                    // Si pas en mode d'édition de l'ordre, affiche une liste standard
-                    itemCount:
-                        exercises.length, // Nombre d'éléments dans la liste
-                    itemBuilder: (context, index) {
-                      final exercise = exercises[
-                          index]; // Récupère l'exercice à l'index donné
-                      return Column(
-                        children: [
-                          ListTile(
-                            leading: Semantics(
-                              label: 'Image de l\'exercice ${exercise['name']}',
-                              child: CircleAvatar(
-                                backgroundImage: AssetImage(
-                                  exercise['image'],
-                                ), // Affiche l'image de l'exercice
-                              ),
-                            ),
-                            title: Text(
-                              exercise['name'] ??
-                                  'Exercice', // Nom de l'exercice
-                              style: TextStyle(
-                                  color:
-                                      isDarkMode ? Colors.white : Colors.black),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (!exercise['multipleWeights'])
-                                  Text(
-                                    // Affiche les détails de l'exercice avec un poids unique
-                                    '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
-                                    'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
-                                    'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                child: ListTile(
+                                  leading: Semantics(
+                                    label:
+                                        'Image de l\'exercice ${exercises[index]['name']}',
+                                    child: CircleAvatar(
+                                      backgroundImage:
+                                          AssetImage(exercises[index]['image']),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    exercises[index]['name'] ?? 'Exercice',
                                     style: TextStyle(
                                         color: isDarkMode
-                                            ? Colors.white70
-                                            : Colors.black87),
+                                            ? Colors.white
+                                            : Colors.black),
                                   ),
-                                if (exercise['multipleWeights'])
-                                  Column(
+                                  trailing: ReorderableDragStartListener(
+                                    index: index,
+                                    child: Semantics(
+                                      label: 'Déplacer l\'exercice',
+                                      child: const Icon(Icons.drag_handle),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      : ListView.builder(
+                          itemCount: exercises.length,
+                          itemBuilder: (context, index) {
+                            final exercise = exercises[index];
+                            return Column(
+                              children: [
+                                ListTile(
+                                  leading: Semantics(
+                                    label:
+                                        'Image de l\'exercice ${exercise['name']}',
+                                    child: CircleAvatar(
+                                      backgroundImage: AssetImage(
+                                        exercise['image'],
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    exercise['name'] ?? 'Exercice',
+                                    style: TextStyle(
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.black),
+                                  ),
+                                  subtitle: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        '${exercise['sets']} séries x ${exercise['reps']} répétitions',
-                                        style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.white70
-                                                : Colors.black87),
-                                      ),
-                                      Text(
-                                        'Poids par série:',
-                                        style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.white70
-                                                : Colors.black87),
-                                      ),
-                                      ...List.generate(
-                                        (exercise['weightsPerSet']
-                                                as List<dynamic>)
-                                            .length,
-                                        (s) => Text(
-                                          '  Série ${s + 1}: ${((exercise['weightsPerSet'] as List<dynamic>)[s] as double).toStringAsFixed(1)} kg',
+                                      if (!exercise['multipleWeights'])
+                                        Text(
+                                          '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
+                                          'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
+                                          'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
                                           style: TextStyle(
                                               color: isDarkMode
                                                   ? Colors.white70
                                                   : Colors.black87),
                                         ),
-                                      ),
-                                      Text(
-                                        'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
-                                        style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.white70
-                                                : Colors.black87),
-                                      ),
+                                      if (exercise['multipleWeights'])
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${exercise['sets']} séries x ${exercise['reps']} répétitions',
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white70
+                                                      : Colors.black87),
+                                            ),
+                                            Text(
+                                              'Poids par série:',
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white70
+                                                      : Colors.black87),
+                                            ),
+                                            ...List.generate(
+                                              (exercise['weightsPerSet']
+                                                      as List<dynamic>)
+                                                  .length,
+                                              (s) => Text(
+                                                '  Série ${s + 1}: ${((exercise['weightsPerSet'] as List<dynamic>)[s] as double).toStringAsFixed(1)} kg',
+                                                style: TextStyle(
+                                                    color: isDarkMode
+                                                        ? Colors.white70
+                                                        : Colors.black87),
+                                              ),
+                                            ),
+                                            Text(
+                                              'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white70
+                                                      : Colors.black87),
+                                            ),
+                                          ],
+                                        ),
                                     ],
                                   ),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () => _editExercise(index),
+                                    tooltip: 'Modifier l\'exercice',
+                                  ),
+                                ),
+                                if (index < exercises.length - 1)
+                                  // Si ce n'est pas le dernier exercice, affiche le temps de repos entre exercices
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.remove),
+                                          onPressed: () =>
+                                              _changeRestBetweenExercises(
+                                                  index, -10),
+                                          tooltip:
+                                              'Diminuer le temps de repos entre les exercices',
+                                        ),
+                                        Text(
+                                          'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.add),
+                                          onPressed: () =>
+                                              _changeRestBetweenExercises(
+                                                  index, 10),
+                                          tooltip:
+                                              'Augmenter le temps de repos entre les exercices',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                               ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(
-                                  Icons.edit), // Icône pour éditer l'exercice
-                              onPressed: () => _editExercise(
-                                  index), // Appelle la méthode pour éditer l'exercice
-                              tooltip: 'Modifier l\'exercice',
-                            ),
-                          ),
-                          if (index < exercises.length - 1)
-                            // Si ce n'est pas le dernier exercice, affiche le temps de repos entre exercices
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons
-                                        .remove), // Icône pour diminuer le temps
-                                    onPressed: () =>
-                                        _changeRestBetweenExercises(index,
-                                            -10), // Diminue de 10 secondes
-                                    tooltip:
-                                        'Diminuer le temps de repos entre les exercices',
-                                  ),
-                                  Text(
-                                    'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}', // Affiche le temps de repos
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : Colors.black),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons
-                                        .add), // Icône pour augmenter le temps
-                                    onPressed: () =>
-                                        _changeRestBetweenExercises(index,
-                                            10), // Augmente de 10 secondes
-                                    tooltip:
-                                        'Augmenter le temps de repos entre les exercices',
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      );
-                    },
+                            );
+                          },
+                        ),
+            ),
+            // Bouton "Add new exercises" en bas de la page
+            GestureDetector(
+              onTap: _addNewExercises,
+              child: Container(
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey[800] : Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 4.0,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Add new exercises',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
                   ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

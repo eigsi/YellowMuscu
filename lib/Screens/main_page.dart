@@ -15,6 +15,10 @@ import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Widget personna
 import 'dart:async'; // Pour utiliser les objets Timer et gérer l'asynchronisme
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
+import 'package:flutter/cupertino.dart'; // Pour utiliser CupertinoSegmentedControl
+
+/// Énumération pour le menu des statistiques
+enum StatisticsMenu { amis, personnel }
 
 /// Classe principale de la page, qui est un ConsumerStatefulWidget pour utiliser Riverpod
 class MainPage extends ConsumerStatefulWidget {
@@ -31,6 +35,8 @@ class MainPageState extends ConsumerState<MainPage> {
   String? _userId; // Identifiant de l'utilisateur actuel
 
   List<Map<String, dynamic>> likesData = []; // Liste des données des likes
+  List<Map<String, dynamic>> personalActivities =
+      []; // Liste des activités personnelles
   List<String> hiddenEvents = []; // Liste des eventId des événements supprimés
 
   // Liste des jours de la semaine en français
@@ -43,6 +49,8 @@ class MainPageState extends ConsumerState<MainPage> {
     'Samedi',
     'Dimanche'
   ];
+
+  StatisticsMenu _selectedMenu = StatisticsMenu.amis; // Menu sélectionné
 
   @override
   void initState() {
@@ -58,6 +66,7 @@ class MainPageState extends ConsumerState<MainPage> {
       setState(() {
         _userId = user.uid; // Stocke l'ID de l'utilisateur
         _fetchFriendsEvents(); // Récupère les événements des amis de l'utilisateur
+        _fetchPersonalActivities(); // Récupère les activités personnelles
       });
     }
   }
@@ -173,6 +182,68 @@ class MainPageState extends ConsumerState<MainPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la récupération des événements: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Méthode pour récupérer les activités personnelles de l'utilisateur
+  void _fetchPersonalActivities() async {
+    if (_userId == null) {
+      return;
+    }
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> eventsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_userId)
+              .collection('events')
+              .get();
+
+      List<Map<String, dynamic>> events = [];
+
+      for (var doc in eventsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data();
+        String eventId = doc.id;
+
+        String profileImage =
+            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'; // Image par défaut
+        String description =
+            data['description']?.toString() ?? 'Description non disponible.';
+        Timestamp timestamp =
+            data['timestamp'] ?? Timestamp.fromDate(DateTime(1970));
+
+        // Récupérer les likes
+        List<dynamic> likes = data['likes'] ?? [];
+
+        events.add({
+          'eventId': eventId,
+          'profileImage': profileImage,
+          'description': description,
+          'timestamp': timestamp,
+          'likes': likes,
+        });
+      }
+
+      // Trier les événements par date décroissante
+      events.sort((a, b) =>
+          (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
+
+      if (!mounted) return;
+
+      setState(() {
+        personalActivities = events;
+      });
+    } catch (e) {
+      // Gérer les erreurs
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Erreur lors de la récupération de vos activités: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -402,7 +473,7 @@ class MainPageState extends ConsumerState<MainPage> {
         children: [
           // Titre de la section
           Text(
-            'Activités de vos amis',
+            'Activités',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -410,91 +481,188 @@ class MainPageState extends ConsumerState<MainPage> {
             ),
           ),
           const SizedBox(height: 10),
-          // Affichage des activités
-          likesData.isEmpty
-              ? Text(
-                  'Aucune activité récente.',
-                  style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Colors.black87,
-                  ),
-                )
-              : SizedBox(
-                  height: 300, // Hauteur pour rendre la liste scrollable
-                  child: ListView.builder(
-                    itemCount: likesData.length,
-                    itemBuilder: (context, index) {
-                      Map<String, dynamic> event = likesData[index];
-                      bool isLiked = (event['likes'] as List<dynamic>?)
-                              ?.contains(_userId) ??
-                          false;
-                      String activityType = event['description'];
-                      String formattedDescription =
-                          '${event['friendName']} a publié : $activityType';
-
-                      return Dismissible(
-                        key: Key(event['eventId']),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (direction) async {
-                          String dismissedEventId = event['eventId'];
-
-                          setState(() {
-                            likesData.removeAt(index);
-                          });
-
-                          // Ajouter l'eventId à hiddenEvents dans Firestore
-                          try {
-                            await FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(_userId)
-                                .update({
-                              'hiddenEvents':
-                                  FieldValue.arrayUnion([dismissedEventId])
-                            });
-                          } catch (e) {
-                            // Gérer les erreurs, par exemple afficher un SnackBar
-                            if (mounted) {
-                              // ignore: use_build_context_synchronously
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('Erreur lors de la suppression: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-
-                          // Optionnel : Afficher un message de confirmation
-                          if (mounted) {
-                            // ignore: use_build_context_synchronously
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content:
-                                    Text('Événement supprimé définitivement.'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          }
-                        },
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        child: LikeItem(
-                          profileImage: event['profileImage'] as String,
-                          description: formattedDescription,
-                          onLike: () => _likeEvent(event),
-                          isLiked: isLiked,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+          // CupertinoSegmentedControl pour choisir entre amis et personnel
+          CupertinoSegmentedControl<StatisticsMenu>(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            groupValue: _selectedMenu,
+            children: const {
+              StatisticsMenu.amis: Text('Activités de vos amis'),
+              StatisticsMenu.personnel: Text('Vos activités'),
+            },
+            onValueChanged: (StatisticsMenu value) {
+              setState(() {
+                _selectedMenu = value;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          // Affichage des activités en fonction du menu sélectionné
+          _selectedMenu == StatisticsMenu.amis
+              ? _buildFriendsActivities(isDarkMode)
+              : _buildPersonalActivities(isDarkMode),
         ],
       ),
     );
+  }
+
+  /// Méthode pour construire la liste des activités des amis
+  Widget _buildFriendsActivities(bool isDarkMode) {
+    return likesData.isEmpty
+        ? Text(
+            'Aucune activité récente.',
+            style: TextStyle(
+              color: isDarkMode ? Colors.white70 : Colors.black87,
+            ),
+          )
+        : SizedBox(
+            height: 300, // Hauteur pour rendre la liste scrollable
+            child: ListView.builder(
+              itemCount: likesData.length,
+              itemBuilder: (context, index) {
+                Map<String, dynamic> event = likesData[index];
+                bool isLiked =
+                    (event['likes'] as List<dynamic>?)?.contains(_userId) ??
+                        false;
+                String activityType = event['description'];
+                String formattedDescription =
+                    '${event['friendName']} a publié : $activityType';
+
+                return Dismissible(
+                  key: Key(event['eventId']),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (direction) async {
+                    String dismissedEventId = event['eventId'];
+
+                    setState(() {
+                      likesData.removeAt(index);
+                    });
+
+                    // Ajouter l'eventId à hiddenEvents dans Firestore
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(_userId)
+                          .update({
+                        'hiddenEvents':
+                            FieldValue.arrayUnion([dismissedEventId])
+                      });
+                    } catch (e) {
+                      // Gérer les erreurs, par exemple afficher un SnackBar
+                      if (mounted) {
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Erreur lors de la suppression: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+
+                    // Optionnel : Afficher un message de confirmation
+                    if (mounted) {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Événement supprimé définitivement.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete, color: Colors.white),
+                  ),
+                  child: LikeItem(
+                    profileImage: event['profileImage'] as String,
+                    description: formattedDescription,
+                    onLike: () => _likeEvent(event),
+                    isLiked: isLiked,
+                  ),
+                );
+              },
+            ),
+          );
+  }
+
+  /// Méthode pour construire la liste des activités personnelles
+  Widget _buildPersonalActivities(bool isDarkMode) {
+    return personalActivities.isEmpty
+        ? Text(
+            'Vous n\'avez aucune activité récente.',
+            style: TextStyle(
+              color: isDarkMode ? Colors.white70 : Colors.black87,
+            ),
+          )
+        : SizedBox(
+            height: 300,
+            child: ListView.builder(
+              itemCount: personalActivities.length,
+              itemBuilder: (context, index) {
+                Map<String, dynamic> event = personalActivities[index];
+                List<dynamic> likes = event['likes'] ?? [];
+                int likesCount = likes.length;
+                bool isLiked = likes.contains(_userId);
+                String description = event['description'];
+
+                return PersonalActivityItem(
+                  profileImage: event['profileImage'] as String,
+                  description: description,
+                  likesCount: likesCount,
+                  isLiked: isLiked,
+                  onLike: () => _likePersonalEvent(event),
+                );
+              },
+            ),
+          );
+  }
+
+  /// Méthode pour liker une activité personnelle
+  void _likePersonalEvent(Map<String, dynamic> event) async {
+    if (_userId == null) return;
+
+    try {
+      String eventId = event['eventId'] as String;
+
+      List<dynamic> currentLikes = event['likes'] as List<dynamic>? ?? [];
+      if (currentLikes.contains(_userId)) {
+        // Si déjà liké, retirer le like
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_userId)
+            .collection('events')
+            .doc(eventId)
+            .update({
+          'likes': FieldValue.arrayRemove([_userId])
+        });
+      } else {
+        // Ajouter un like
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_userId)
+            .collection('events')
+            .doc(eventId)
+            .update({
+          'likes': FieldValue.arrayUnion([_userId])
+        });
+      }
+
+      // Rafraîchir les activités personnelles
+      _fetchPersonalActivities();
+    } catch (e) {
+      // Gérer les erreurs
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// Méthode pour construire la page d'accueil avec le dégradé
@@ -583,6 +751,7 @@ class MainPageState extends ConsumerState<MainPage> {
             _selectedIndex = index;
             if (_selectedIndex == 0) {
               _fetchFriendsEvents(); // Rafraîchit les événements si l'onglet Accueil est sélectionné
+              _fetchPersonalActivities(); // Rafraîchit les activités personnelles
             }
           });
         },
@@ -828,5 +997,117 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
       int minutes = duration.inMinutes.remainder(60);
       return '${twoDigits(hours)} heures ${twoDigits(minutes)} minutes';
     }
+  }
+}
+
+/// Widget pour les activités personnelles avec le nombre de likes
+class PersonalActivityItem extends StatefulWidget {
+  final String profileImage;
+  final String description;
+  final int likesCount;
+  final VoidCallback onLike;
+  final bool isLiked;
+
+  const PersonalActivityItem({
+    super.key,
+    required this.profileImage,
+    required this.description,
+    required this.likesCount,
+    required this.onLike,
+    required this.isLiked,
+  });
+
+  @override
+  PersonalActivityItemState createState() => PersonalActivityItemState();
+}
+
+class PersonalActivityItemState extends State<PersonalActivityItem>
+    with SingleTickerProviderStateMixin {
+  late bool _isLiked;
+  late int _likesCount;
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = widget.isLiked;
+    _likesCount = widget.likesCount;
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    if (_isLiked) {
+      _controller.forward();
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant PersonalActivityItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isLiked != widget.isLiked) {
+      setState(() {
+        _isLiked = widget.isLiked;
+        if (_isLiked) {
+          _controller.forward();
+        } else {
+          _controller.reverse();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleLike() {
+    widget.onLike();
+    setState(() {
+      _isLiked = !_isLiked;
+      if (_isLiked) {
+        _likesCount++;
+        _controller.forward();
+      } else {
+        _likesCount--;
+        _controller.reverse();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundImage: NetworkImage(widget.profileImage),
+      ),
+      title: Text(widget.description),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          GestureDetector(
+            onTap: _handleLike,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Icon(
+                _isLiked ? Icons.favorite : Icons.favorite_border,
+                color: _isLiked ? Colors.red : Colors.grey,
+                size: 24,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text('${widget.likesCount}'),
+        ],
+      ),
+    );
   }
 }

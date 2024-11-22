@@ -614,6 +614,11 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
           ],
         ),
         const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: _endRest,
+          child: const Text('Passer le repos'),
+        ),
+        const SizedBox(height: 16),
         if (!_isBetweenExercises)
           Column(
             children: [
