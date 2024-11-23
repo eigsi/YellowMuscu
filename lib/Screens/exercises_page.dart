@@ -1069,7 +1069,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider);
 
     return Stack(
       children: [
@@ -1080,10 +1080,10 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: isDarkMode
-                  ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                  ? [darkTop, darkBottom]
                   : [
-                      const Color.fromRGBO(255, 204, 0, 1.0),
-                      const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+                      lightTop,
+                      lightBottom,
                     ],
             ),
           ),

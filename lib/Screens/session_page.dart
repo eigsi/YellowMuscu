@@ -273,14 +273,11 @@ class SessionPageState extends ConsumerState<SessionPage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isDarkMode
-                ? [
-                    const Color.fromRGBO(255, 204, 0, 1.0),
-                    Colors.black
-                  ] // Dégradé pour le mode sombre
+                ? [darkTop, darkBottom]
                 : [
-                    const Color.fromRGBO(255, 204, 0, 1.0),
-                    const Color.fromRGBO(255, 204, 0, 0.3),
-                  ], // Dégradé pour le mode clair
+                    lightTop,
+                    lightBottom,
+                  ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -294,13 +291,13 @@ class SessionPageState extends ConsumerState<SessionPage> {
                 ),
               )
             : _programs.isEmpty
-                ? Center(
+                ? const Center(
                     // Message si aucun programme
                     child: Text(
                       'Aucun programme disponible.',
                       style: TextStyle(
                         fontSize: 18,
-                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                        color: Colors.black54,
                       ),
                     ),
                   )
@@ -316,17 +313,15 @@ class SessionPageState extends ConsumerState<SessionPage> {
                           decoration: BoxDecoration(
                             borderRadius:
                                 BorderRadius.circular(16.0), // Coins arrondis
-                            color: isDarkMode
-                                ? Colors.black54
-                                : Colors.white, // Couleur de fond
+                            color: isDarkMode ? darkWidget : lightWidget,
                           ),
                           margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(8),
                           child: ListTile(
                             title: Text(
                               program['name'] ?? 'Programme sans nom',
-                              style: TextStyle(
-                                color: isDarkMode ? Colors.white : Colors.black,
+                              style: const TextStyle(
+                                color: Colors.black,
                               ),
                             ),
                             trailing: Checkbox(

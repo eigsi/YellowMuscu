@@ -40,7 +40,7 @@ class BottomNavBarWidget extends StatelessWidget {
           ),
         ],
         currentIndex: selectedIndex,
-        selectedItemColor: isDarkMode ? lightTop : Colors.black,
+        selectedItemColor: isDarkMode ? lightTop : Colors.white,
         unselectedItemColor: Colors.grey,
         backgroundColor: isDarkMode ? darkNavBar : lightNavBar,
         onTap: onItemTapped,

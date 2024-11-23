@@ -456,10 +456,8 @@ class MainPageState extends ConsumerState<MainPage> {
       padding: const EdgeInsets.all(16.0),
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
-        color: isDarkMode
-            ? darkWidget
-            : lightWidget, // Couleur de fond en fonction du thème
-        borderRadius: BorderRadius.circular(16.0), // Bordures arrondies
+        color: isDarkMode ? darkWidget : lightWidget,
+        borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.7),
@@ -528,10 +526,9 @@ class MainPageState extends ConsumerState<MainPage> {
                   _selectedMenu = value;
                 });
               },
-              selectedColor: lightTop, // Couleur de l'option sélectionnée
-              unselectedColor:
-                  Colors.white, // Couleur des options non sélectionnées
-              borderColor: lightTop, // Couleur de la bordure
+              selectedColor: lightTop,
+              unselectedColor: Colors.white,
+              borderColor: lightTop,
             ),
           ),
           const SizedBox(height: 16),

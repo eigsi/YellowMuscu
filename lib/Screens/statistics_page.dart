@@ -315,8 +315,8 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     return CupertinoListTile(
       title: Text(
         title,
-        style: TextStyle(
-          color: isDarkMode ? Colors.white : Colors.black,
+        style: const TextStyle(
+          color: Colors.black,
           fontSize: 16,
         ),
       ),
@@ -342,13 +342,10 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDarkMode
-                    ? [
-                        const Color.fromRGBO(255, 204, 0, 1.0),
-                        Colors.black
-                      ] // Couleurs pour le thème sombre
+                    ? [darkTop, darkBottom]
                     : [
-                        const Color.fromRGBO(255, 204, 0, 1.0),
-                        const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
+                        lightTop,
+                        lightBottom,
                       ], // Couleurs pour le thème clair
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -514,14 +511,36 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
 
                       // Segmented Control pour les menus
                       CupertinoSegmentedControl<StatisticsMenu>(
-                        children: const {
+                        children: {
                           StatisticsMenu.general: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text('  General  '),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 12.0),
+                            child: Text(
+                              'General',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                                fontWeight: settings.selectedMenu ==
+                                        StatisticsMenu.general
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
                           ),
                           StatisticsMenu.week: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text('  Week  '),
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 12.0),
+                            child: Text(
+                              ' Week',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                                fontWeight: settings.selectedMenu ==
+                                        StatisticsMenu.general
+                                    ? FontWeight.normal
+                                    : FontWeight.bold,
+                              ),
+                            ),
                           ),
                         },
                         groupValue: settings.selectedMenu,
@@ -530,6 +549,9 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                               .read(statisticsSettingsProvider.notifier)
                               .setSelectedMenu(value);
                         },
+                        selectedColor: lightTop,
+                        unselectedColor: Colors.white,
+                        borderColor: isDarkMode ? lightTop : darkBottom,
                       ),
                       const SizedBox(height: 16), // Espacement
 
@@ -608,9 +630,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
     return Container(
       padding: const EdgeInsets.all(16.0), // Padding interne
       decoration: BoxDecoration(
-        color: isDarkMode
-            ? Colors.grey[900]
-            : Colors.white, // Couleur de fond selon le thème
+        color: isDarkMode ? darkWidget : lightWidget,
         borderRadius: BorderRadius.circular(12.0), // Coins arrondis
         boxShadow: [
           BoxShadow(
@@ -629,8 +649,8 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-              borderRadius: BorderRadius.circular(12.0),
+              color: isDarkMode ? lightTop : Colors.grey[200],
+              borderRadius: BorderRadius.circular(32),
             ),
             child: Icon(cupertinoIcon, size: 30, color: color),
           ),
@@ -643,20 +663,20 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                 // Titre de la statistique
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: isDarkMode ? Colors.white : Colors.black,
+                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 4),
                 // Valeur de la statistique
                 Text(
                   value,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
+                    color: Colors.black,
                   ),
                 ),
               ],

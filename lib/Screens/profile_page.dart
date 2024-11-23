@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart'; // Flutter material widgets library
 import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 // Define the ProfilePage class, a StatefulWidget to display and edit user profiles
 class ProfilePage extends StatefulWidget {
@@ -916,18 +917,21 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Stack(
       children: [
-        // Background gradient
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color.fromRGBO(255, 204, 0, 1.0),
-                const Color.fromRGBO(255, 204, 0, 1.0).withOpacity(0.3),
-              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDarkMode
+                  ? [darkTop, darkBottom]
+                  : [
+                      lightTop,
+                      lightBottom,
+                    ],
             ),
           ),
         ),
