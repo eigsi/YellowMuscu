@@ -41,13 +41,13 @@ class MainPageState extends ConsumerState<MainPage> {
 
   // Liste des jours de la semaine en français
   final List<String> _daysOfWeek = [
-    'Lundi',
-    'Mardi',
-    'Mercredi',
-    'Jeudi',
-    'Vendredi',
-    'Samedi',
-    'Dimanche'
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
   ];
 
   StatisticsMenu _selectedMenu = StatisticsMenu.amis; // Menu sélectionné
@@ -457,9 +457,9 @@ class MainPageState extends ConsumerState<MainPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: isDarkMode
-            ? Colors.black54
-            : Colors.white, // Couleur de fond en fonction du thème
-        borderRadius: BorderRadius.circular(16.0),
+            ? darkWidget
+            : lightWidget, // Couleur de fond en fonction du thème
+        borderRadius: BorderRadius.circular(16.0), // Bordures arrondies
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.7),
@@ -469,31 +469,70 @@ class MainPageState extends ConsumerState<MainPage> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment
+            .stretch, // Assure que les enfants occupent toute la largeur
         children: [
           // Titre de la section
-          Text(
-            'Activités',
+          const Text(
+            'Activity',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : Colors.black54,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 10),
-          // CupertinoSegmentedControl pour choisir entre amis et personnel
-          CupertinoSegmentedControl<StatisticsMenu>(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            groupValue: _selectedMenu,
-            children: const {
-              StatisticsMenu.amis: Text('Activités de vos amis'),
-              StatisticsMenu.personnel: Text('Vos activités'),
-            },
-            onValueChanged: (StatisticsMenu value) {
-              setState(() {
-                _selectedMenu = value;
-              });
-            },
+          // Container avec borderRadius pour le CupertinoSegmentedControl
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.0), // Rayon de la bordure
+              border:
+                  Border.all(color: lightTop), // Bordure de la couleur lightTop
+            ),
+            child: CupertinoSegmentedControl<StatisticsMenu>(
+              padding:
+                  EdgeInsets.zero, // Supprime le padding interne par défaut
+              groupValue: _selectedMenu,
+              children: {
+                StatisticsMenu.amis: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Friends activity',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: _selectedMenu == StatisticsMenu.amis
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                StatisticsMenu.personnel: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Your Activity',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: _selectedMenu == StatisticsMenu.amis
+                          ? FontWeight.normal
+                          : FontWeight.bold,
+                    ),
+                  ),
+                ),
+              },
+              onValueChanged: (StatisticsMenu value) {
+                setState(() {
+                  _selectedMenu = value;
+                });
+              },
+              selectedColor: lightTop, // Couleur de l'option sélectionnée
+              unselectedColor:
+                  Colors.white, // Couleur des options non sélectionnées
+              borderColor: lightTop, // Couleur de la bordure
+            ),
           ),
           const SizedBox(height: 16),
           // Affichage des activités en fonction du menu sélectionné
@@ -508,15 +547,20 @@ class MainPageState extends ConsumerState<MainPage> {
   /// Méthode pour construire la liste des activités des amis
   Widget _buildFriendsActivities(bool isDarkMode) {
     return likesData.isEmpty
-        ? Text(
-            'Aucune activité récente.',
-            style: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.black87,
+        ? const Center(
+            child: Text(
+              'No recent activity',
+              style: TextStyle(
+                color: Colors.black87,
+              ),
             ),
           )
-        : SizedBox(
-            height: 300, // Hauteur pour rendre la liste scrollable
+        : Container(
+            padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
+            width: double.infinity, // Utiliser toute la largeur disponible
             child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: likesData.length,
               itemBuilder: (context, index) {
                 Map<String, dynamic> event = likesData[index];
@@ -547,9 +591,7 @@ class MainPageState extends ConsumerState<MainPage> {
                             FieldValue.arrayUnion([dismissedEventId])
                       });
                     } catch (e) {
-                      // Gérer les erreurs, par exemple afficher un SnackBar
                       if (mounted) {
-                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Erreur lors de la suppression: $e'),
@@ -559,9 +601,8 @@ class MainPageState extends ConsumerState<MainPage> {
                       }
                     }
 
-                    // Optionnel : Afficher un message de confirmation
+                    // Afficher un message de confirmation
                     if (mounted) {
-                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Événement supprimé définitivement.'),
@@ -591,15 +632,23 @@ class MainPageState extends ConsumerState<MainPage> {
   /// Méthode pour construire la liste des activités personnelles
   Widget _buildPersonalActivities(bool isDarkMode) {
     return personalActivities.isEmpty
-        ? Text(
-            'Vous n\'avez aucune activité récente.',
-            style: TextStyle(
-              color: isDarkMode ? Colors.white70 : Colors.black87,
+        ? Container(
+            width: double.infinity, // Assure une largeur constante
+            child: const Center(
+              child: Text(
+                'No recent activity',
+                style: TextStyle(
+                  color: Colors.black87,
+                ),
+              ),
             ),
           )
-        : SizedBox(
-            height: 300,
+        : Container(
+            padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
+            width: double.infinity, // Utiliser toute la largeur disponible
             child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: personalActivities.length,
               itemBuilder: (context, index) {
                 Map<String, dynamic> event = personalActivities[index];
@@ -677,13 +726,13 @@ class MainPageState extends ConsumerState<MainPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDarkMode
-                    ? [const Color.fromRGBO(255, 204, 0, 1.0), Colors.black]
+                    ? [darkTop, darkBottom]
                     : [
-                        const Color.fromRGBO(255, 204, 0, 1.0),
-                        const Color.fromRGBO(255, 204, 0, 0.3),
+                        lightTop,
+                        lightBottom,
                       ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
             ),
           ),
@@ -740,7 +789,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
     return Scaffold(
       backgroundColor: isDarkMode
-          ? Colors.grey[900]
+          ? lightTop
           : Colors.white, // Couleur de fond en fonction du thème
       body: currentPage, // Affiche la page actuelle
       appBar: const AppBarWidget(), // Barre d'application personnalisée
@@ -876,12 +925,12 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       decoration: BoxDecoration(
         color: isDarkMode
-            ? Colors.black54 // Couleur de fond en mode sombre
-            : Colors.white, // Couleur de fond en mode clair
-        borderRadius: BorderRadius.circular(16.0),
+            ? darkWidget
+            : lightWidget, // Couleur de fond en fonction du thème
+        borderRadius: BorderRadius.circular(16.0), // Bordures arrondies
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDarkMode ? 0.5 : 0.1),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -892,10 +941,10 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
         children: [
           // Compte à rebours en haut
           Text(
-            'Prochain programme dans : $countdownText',
-            style: TextStyle(
+            'Next session in $countdownText',
+            style: const TextStyle(
               fontSize: 16,
-              color: isDarkMode ? Colors.red[300] : Colors.red,
+              color: Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -919,10 +968,10 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                   const SizedBox(height: 8),
                   Text(
                     programName,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
+                      color: Colors.black, // Couleur dynamique
                     ),
                   ),
                 ],
@@ -931,10 +980,10 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
               // Liste des exercices
               Expanded(
                 child: exercises.isEmpty
-                    ? Text(
-                        'Aucun exercice disponible.',
+                    ? const Text(
+                        'No exercice available',
                         style: TextStyle(
-                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                          color: Colors.black87,
                         ),
                       )
                     : ListView.builder(
@@ -956,22 +1005,18 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                               children: [
                                 Text(
                                   exerciseName,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Colors.black,
+                                    color: Colors.black, // Couleur dynamique
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: isDarkMode
-                                        ? Colors.white70
-                                        : Colors.black87,
+                                    color: Colors.black87,
                                   ),
                                 ),
                               ],
@@ -991,11 +1036,11 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     if (duration.inDays > 1) {
-      return '${duration.inDays} jours';
+      return '${duration.inDays} days';
     } else {
       int hours = duration.inHours.remainder(24);
       int minutes = duration.inMinutes.remainder(60);
-      return '${twoDigits(hours)} heures ${twoDigits(minutes)} minutes';
+      return '${twoDigits(hours)} hours ${twoDigits(minutes)} minutes';
     }
   }
 }
@@ -1085,11 +1130,18 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
 
   @override
   Widget build(BuildContext context) {
+    Brightness.dark; // Assure que le texte s'adapte au thème
+
     return ListTile(
       leading: CircleAvatar(
         backgroundImage: NetworkImage(widget.profileImage),
       ),
-      title: Text(widget.description),
+      title: Text(
+        widget.description,
+        style: const TextStyle(
+          color: Colors.black, // Couleur dynamique
+        ),
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1105,7 +1157,12 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
             ),
           ),
           const SizedBox(width: 8),
-          Text('${widget.likesCount}'),
+          Text(
+            '${widget.likesCount}',
+            style: const TextStyle(
+              color: Colors.black87, // Couleur dynamique
+            ),
+          ),
         ],
       ),
     );

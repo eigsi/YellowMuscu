@@ -108,7 +108,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       // Afficher un message de succès à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Ami accepté'),
+          content: Text('Request accepted'),
           backgroundColor: Colors.green,
         ),
       );
@@ -116,7 +116,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       // En cas d'erreur, afficher un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('Error: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -149,7 +149,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       // Afficher un message de refus à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Demande d\'ami refusée'),
+          content: Text('Request refused'),
           backgroundColor: Colors.red,
         ),
       );
@@ -157,7 +157,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       // En cas d'erreur, afficher un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur: $e'),
+          content: Text('Error: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -168,7 +168,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget build(BuildContext context) {
     if (_user == null) {
       // Si aucun utilisateur n'est connecté, afficher un message
-      return const Center(child: Text('Utilisateur non connecté'));
+      return const Center(child: Text('User offline'));
     }
 
     return Scaffold(
@@ -181,7 +181,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'Demandes d\'ami',
+              'Friend Requests',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -189,7 +189,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           _friendRequests.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Aucune demande d\'ami'),
+                  child: Text('No friend requests'),
                 )
               : ListView.builder(
                   shrinkWrap:
@@ -286,7 +286,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           _likes.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('Aucune notification'),
+                  child: Text('No like'),
                 )
               : ListView.builder(
                   shrinkWrap:

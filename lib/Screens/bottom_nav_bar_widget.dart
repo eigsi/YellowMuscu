@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 class BottomNavBarWidget extends StatelessWidget {
   final int selectedIndex;
@@ -12,37 +13,40 @@ class BottomNavBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Container(
       color: Colors.yellow[300], // Set background color to yellow
       child: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Accueil',
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center),
-            label: 'Exercices',
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
-            label: 'Statistiques',
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
-            label: 'Séance', // New Seance menu item
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
-            label: 'Profil',
+            label: '',
           ),
         ],
         currentIndex: selectedIndex,
-        selectedItemColor: Colors.black,
+        selectedItemColor: isDarkMode ? lightTop : Colors.black,
         unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.black.withOpacity(0.7),
+        backgroundColor: isDarkMode ? darkNavBar : lightNavBar,
         onTap: onItemTapped,
         type: BottomNavigationBarType.fixed,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
       ),
     );
   }

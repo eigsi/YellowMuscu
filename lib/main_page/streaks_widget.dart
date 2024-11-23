@@ -2,8 +2,24 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 import 'dart:async';
+
+import 'package:yellowmuscu/Provider/theme_provider.dart';
+
+String getTimeAgo(DateTime lastSessionDate) {
+  final now = DateTime.now();
+  final difference = now.difference(lastSessionDate);
+
+  if (difference.inDays >= 1) {
+    return '${difference.inDays} day${difference.inDays > 1 ? 's' : ''} ago';
+  } else if (difference.inHours >= 1) {
+    return '${difference.inHours} hour${difference.inHours > 1 ? 's' : ''} ago';
+  } else if (difference.inMinutes >= 1) {
+    return '${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''} ago';
+  } else {
+    return 'just now';
+  }
+}
 
 class StreaksWidget extends StatefulWidget {
   final String userId;
@@ -92,7 +108,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.black54 : Colors.white,
+        color: isDarkMode ? darkWidget : lightWidget,
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
@@ -116,33 +132,32 @@ class StreaksWidgetState extends State<StreaksWidget> {
                     size: 30,
                   ),
                   const SizedBox(width: 10),
-                  Text(
+                  const Text(
                     'Streaks',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
+                      color: Colors.black,
                     ),
                   ),
                 ],
               ),
               Text(
-                '$_streakCount séances',
-                style: TextStyle(
+                '$_streakCount Sessions',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black54,
+                  color: Colors.black54,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          // Optionnel : Afficher la date de la dernière séance
           Text(
-            'Dernière séance: ${DateFormat('dd/MM/yyyy').format(_lastStreakDate)}',
-            style: TextStyle(
+            'Last: ${getTimeAgo(_lastStreakDate)}',
+            style: const TextStyle(
               fontSize: 16,
-              color: isDarkMode ? Colors.grey[300] : Colors.black54,
+              color: Colors.black54,
             ),
           ),
         ],

@@ -1,31 +1,27 @@
-// lib/theme_provider.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Définir les couleurs personnalisées pour l'AppBar
-// Couleur de l'AppBar en mode clair
-const Color appBarLightColor = Color.fromRGBO(154, 123, 24, 1.0);
+// Light mode
+const Color lightTop = Color.fromRGBO(255, 212, 41, 1);
+const Color lightBottom = Color.fromRGBO(255, 227, 134, 1);
+const Color lightNavBar = Color.fromRGBO(255, 243, 187, 1);
+const Color lightWidget = Color.fromRGBO(255, 255, 255, 1);
 
-// Couleur de l'AppBar en mode sombre
-Color appBarDarkColor = const Color.fromRGBO(66, 53, 4, 1); // Gris foncé
+// Dark mode
+const Color darkTop = Color.fromRGBO(20, 20, 20, 1);
+const Color darkBottom = Color.fromRGBO(30, 30, 30, 1);
+const Color darkNavBar = Color.fromRGBO(20, 20, 20, 1);
+const Color darkWidget = Color.fromRGBO(255, 227, 134, 1);
 
-// Fournisseur d'état pour le thème
-// `themeProvider` est un `StateNotifierProvider` qui gère l'état du thème de l'application
-// Il utilise `ThemeNotifier` pour notifier les modifications de thème
 final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {
   return ThemeNotifier();
 });
 
 // Classe qui gère l'état du thème
 class ThemeNotifier extends StateNotifier<bool> {
-  // Initialise le thème en mode clair (false)
   ThemeNotifier() : super(false);
 
-  // Méthode pour basculer le thème
-  // `isDarkMode` est un booléen qui, lorsqu'il est vrai, active le mode sombre
   void toggleTheme(bool isDarkMode) {
-    state =
-        isDarkMode; // Met à jour l'état pour activer/désactiver le mode sombre
+    state = isDarkMode;
   }
 }

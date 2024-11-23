@@ -36,12 +36,10 @@ class MyApp extends ConsumerWidget {
       title: 'YellowMuscu',
       theme: ThemeData(
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        primaryColor: isDarkMode
-            ? Colors.grey[900]
-            : const Color.fromRGBO(255, 204, 0, 1.0),
+        primaryColor: isDarkMode ? darkTop : lightTop,
         scaffoldBackgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
         appBarTheme: AppBarTheme(
-          backgroundColor: isDarkMode ? appBarDarkColor : appBarLightColor,
+          backgroundColor: isDarkMode ? darkTop : lightTop,
           titleTextStyle: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 22,
