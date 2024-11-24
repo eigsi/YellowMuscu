@@ -601,7 +601,7 @@ class ProfilePageState extends State<ProfilePage> {
           child: CircleAvatar(
             backgroundImage: NetworkImage(_selectedProfilePicture.isNotEmpty
                 ? _selectedProfilePicture
-                : 'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'),
+                : 'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg'),
             radius: 50,
           ),
         ),

@@ -145,7 +145,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
           // S'assurer que les champs nécessaires existent
           String profileImage = friendsData[friendId]?['profilePicture'] ??
-              'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg';
+              'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg';
           String description =
               data['description']?.toString() ?? 'Description non disponible.';
           Timestamp timestamp =
@@ -210,7 +210,7 @@ class MainPageState extends ConsumerState<MainPage> {
         String eventId = doc.id;
 
         String profileImage =
-            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg'; // Image par défaut
+            'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg'; // Image par défaut
         String description =
             data['description']?.toString() ?? 'Description non disponible.';
         Timestamp timestamp =
@@ -261,7 +261,7 @@ class MainPageState extends ConsumerState<MainPage> {
         'last_name': data['last_name'] ?? 'Inconnu',
         'first_name': data['first_name'] ?? 'Utilisateur',
         'profilePicture': data['profilePicture'] ??
-            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg',
+            'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg',
       };
     } else {
       // Si l'utilisateur n'existe pas, retourner des valeurs par défaut
@@ -269,7 +269,7 @@ class MainPageState extends ConsumerState<MainPage> {
         'last_name': 'Inconnu',
         'first_name': 'Utilisateur',
         'profilePicture':
-            'https://i.pinimg.com/564x/17/da/45/17da453e3d8aa5e13bbb12c3b5bb7211.jpg',
+            'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg',
       };
     }
   }
@@ -856,9 +856,28 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
 
   /// Méthode pour calculer la prochaine DateTime du programme basé sur le jour
   DateTime _calculateNextProgramDateTime() {
-    String programDay = widget.program['day'];
-    int programWeekday =
-        widget.daysOfWeek.indexOf(programDay) + 1; // 1 = Lundi, 7 = Dimanche
+    String programDay =
+        widget.program['day']; // Exemple: 'Mercredi' ou 'Wednesday'
+
+    // Carte pour mapper les noms des jours en anglais et en français aux numéros de jour
+    final Map<String, int> dayNameToWeekday = {
+      'Monday': 1,
+      'Tuesday': 2,
+      'Wednesday': 3,
+      'Thursday': 4,
+      'Friday': 5,
+      'Saturday': 6,
+      'Sunday': 7,
+      'Lundi': 1,
+      'Mardi': 2,
+      'Mercredi': 3,
+      'Jeudi': 4,
+      'Vendredi': 5,
+      'Samedi': 6,
+      'Dimanche': 7,
+    };
+
+    int programWeekday = dayNameToWeekday[programDay] ?? 0;
 
     if (programWeekday == 0) {
       // Si le jour n'est pas trouvé, retourner une date lointaine
@@ -867,27 +886,24 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
 
     DateTime now = DateTime.now();
     int currentWeekday = now.weekday; // 1 = Lundi, 7 = Dimanche
-    int daysUntilNext = programWeekday - currentWeekday;
 
-    if (daysUntilNext < 0 || (daysUntilNext == 0 && now.hour >= 0)) {
-      daysUntilNext += 7;
-    }
+    // Calculer le nombre de jours jusqu'au prochain jour du programme
+    int daysUntilNext = (programWeekday - currentWeekday + 7) % 7 + 1;
 
+    // Calculer la date du prochain programme
     DateTime nextProgramDate = DateTime(
       now.year,
       now.month,
       now.day,
+      8, // Heure spécifique pour le début du programme (8h00)
+      0,
+      0,
     ).add(Duration(days: daysUntilNext));
 
-    // Définir une heure spécifique pour le début du programme (ex: 8h00)
-    nextProgramDate = DateTime(
-      nextProgramDate.year,
-      nextProgramDate.month,
-      nextProgramDate.day,
-      8,
-      0,
-      0,
-    );
+    // Si la date du prochain programme est déjà passée aujourd'hui, la planifier pour la semaine suivante
+    if (nextProgramDate.isBefore(now)) {
+      nextProgramDate = nextProgramDate.add(const Duration(days: 7));
+    }
 
     return nextProgramDate;
   }

@@ -1,10 +1,5 @@
-// streaks_widget.dart
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:async';
-
-import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 String getTimeAgo(DateTime lastSessionDate) {
   final now = DateTime.now();
@@ -33,70 +28,46 @@ class StreaksWidget extends StatefulWidget {
 class StreaksWidgetState extends State<StreaksWidget> {
   int _streakCount = 0;
   DateTime _lastStreakDate = DateTime(1970);
-  List<DateTime> _completedSessions = [];
-  Timer? _timer;
-  late StreamSubscription<DocumentSnapshot> _userSubscription;
 
   @override
   void initState() {
     super.initState();
-    _startListeningToUserData();
+    _fetchCompletedSessions();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _userSubscription.cancel();
-    super.dispose();
-  }
+  /// Méthode pour récupérer les données de la sous-collection `completedSessions`
+  Future<void> _fetchCompletedSessions() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .collection('completedSessions')
+          .orderBy('date', descending: true)
+          .get();
 
-  void _startListeningToUserData() {
-    _userSubscription = FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.userId)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists) {
-        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+      if (querySnapshot.docs.isNotEmpty) {
+        final sessions = querySnapshot.docs;
 
-        List<dynamic> sessions = data['completedSessions'] ?? [];
-        List<DateTime> newCompletedSessions =
-            sessions.map((session) => (session as Timestamp).toDate()).toList();
-
-        // Vérifier si une nouvelle séance a été ajoutée
-        if (newCompletedSessions.length > _completedSessions.length) {
-          // Une nouvelle séance a été complétée
-          DateTime lastSessionDate = newCompletedSessions.last;
-
-          // Optionnel : Vérifier si la dernière séance est après la dernière date enregistrée
-          if (lastSessionDate.isAfter(_lastStreakDate)) {
-            setState(() {
-              _streakCount += 1;
-              _lastStreakDate = lastSessionDate;
-              _completedSessions = newCompletedSessions;
-            });
-
-            // Mettre à jour Firestore
-            FirebaseFirestore.instance
-                .collection('users')
-                .doc(widget.userId)
-                .update({
-              'streakCount': _streakCount,
-              'lastStreakDate': Timestamp.fromDate(_lastStreakDate),
-            });
-          }
-        } else {
-          // Pas de nouvelle séance, mettre à jour les données locales
-          setState(() {
-            _streakCount = data['streakCount'] ?? 0;
-            _lastStreakDate = data['lastStreakDate'] != null
-                ? (data['lastStreakDate'] as Timestamp).toDate()
-                : DateTime(1970);
-            _completedSessions = newCompletedSessions;
-          });
-        }
+        setState(() {
+          _streakCount = sessions.length;
+          _lastStreakDate = (sessions.first['date'] as Timestamp).toDate();
+        });
+      } else {
+        setState(() {
+          _streakCount = 0;
+          _lastStreakDate = DateTime(1970);
+        });
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fetching streaks: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -108,7 +79,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isDarkMode ? darkWidget : lightWidget,
+        color: isDarkMode ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
@@ -154,7 +125,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Last: ${getTimeAgo(_lastStreakDate)}',
+            'Last: ${_lastStreakDate.year > 1970 ? getTimeAgo(_lastStreakDate) : "No sessions yet"}',
             style: const TextStyle(
               fontSize: 16,
               color: Colors.black54,
