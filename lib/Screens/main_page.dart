@@ -1066,7 +1066,6 @@ class PersonalActivityItem extends StatefulWidget {
 class PersonalActivityItemState extends State<PersonalActivityItem>
     with SingleTickerProviderStateMixin {
   late bool _isLiked;
-  late int _likesCount;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
 
@@ -1074,7 +1073,6 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
   void initState() {
     super.initState();
     _isLiked = widget.isLiked;
-    _likesCount = widget.likesCount;
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -1116,10 +1114,8 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
     setState(() {
       _isLiked = !_isLiked;
       if (_isLiked) {
-        _likesCount++;
         _controller.forward();
       } else {
-        _likesCount--;
         _controller.reverse();
       }
     });
