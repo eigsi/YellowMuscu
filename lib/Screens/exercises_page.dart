@@ -1,25 +1,25 @@
-// Importation des bibliothèques nécessaires
-import 'package:flutter/material.dart'; // Widgets et thèmes Material Design
-import 'package:yellowmuscu/data/exercises_data.dart'; // Données des exercices
-import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Widget personnalisé pour la liste des catégories d'exercices
-import 'package:firebase_auth/firebase_auth.dart'; // Authentification Firebase
-import 'package:cloud_firestore/cloud_firestore.dart'; // Base de données Cloud Firestore
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Gestion d'état avec Riverpod
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour le thème (mode clair/sombre)
-import 'package:yellowmuscu/Screens/ProgramDetailPage.dart'; // Page de détail d'un programme
+// Import necessary libraries
+import 'package:flutter/material.dart'; // Material Design widgets and themes
+import 'package:yellowmuscu/data/exercises_data.dart'; // Exercise data
+import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Custom widget for the exercise category list
+import 'package:firebase_auth/firebase_auth.dart'; // Firebase authentication
+import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Firestore database
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // State management with Riverpod
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider for theme (light/dark mode)
+import 'package:yellowmuscu/Screens/ProgramDetailPage.dart'; // Program detail page
 
-// Déclaration de la classe principale de la page des exercices
+// Declaration of the main class for the exercises page
 class ExercisesPage extends ConsumerStatefulWidget {
-  const ExercisesPage({super.key}); // Constructeur de la classe
+  const ExercisesPage({super.key}); // Class constructor
 
   @override
   ExercisesPageState createState() =>
-      ExercisesPageState(); // Création de l'état associé
+      ExercisesPageState(); // Create the associated state
 }
 
-// Classe d'état pour ExercisesPage
+// State class for ExercisesPage
 class ExercisesPageState extends ConsumerState<ExercisesPage> {
-  // Liste des catégories d'exercices avec leur nom et icône
+  // List of exercise categories with their name and icon
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Chest', 'icon': Icons.fitness_center},
     {'name': 'Back', 'icon': Icons.fitness_center},
@@ -32,44 +32,44 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     {'name': 'Stretching', 'icon': Icons.fitness_center},
   ];
 
-  // Liste des programmes de l'utilisateur
+  // List of user's programs
   List<Map<String, dynamic>> _programs = [];
 
-  // Instance de FirebaseAuth pour l'authentification
+  // Instance of FirebaseAuth for authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user; // Utilisateur actuellement connecté
+  User? _user; // Currently logged-in user
 
   @override
   void initState() {
-    super.initState(); // Appel de la méthode initState de la classe parente
-    _user = _auth.currentUser; // Récupération de l'utilisateur connecté
+    super.initState(); // Call the parent class's initState method
+    _user = _auth.currentUser; // Retrieve the logged-in user
     if (_user != null) {
-      _fetchPrograms(); // Si un utilisateur est connecté, récupération de ses programmes
+      _fetchPrograms(); // If a user is logged in, fetch their programs
     }
   }
 
-  // Méthode pour récupérer les programmes de l'utilisateur depuis Firestore
+  // Method to fetch the user's programs from Firestore
   Future<void> _fetchPrograms() async {
     try {
       final snapshot = await FirebaseFirestore.instance
-          .collection('users') // Accès à la collection 'users'
-          .doc(_user!.uid) // Document correspondant à l'utilisateur connecté
-          .collection('programs') // Sous-collection 'programs' de l'utilisateur
-          .get(); // Récupération des documents
+          .collection('users') // Access the 'users' collection
+          .doc(_user!.uid) // Document corresponding to the logged-in user
+          .collection('programs') // User's 'programs' subcollection
+          .get(); // Retrieve the documents
 
       if (!mounted) return;
       setState(() {
         _programs = snapshot.docs.map((doc) {
-          Map<String, dynamic>? data = doc.data(); // Données du document
+          Map<String, dynamic>? data = doc.data(); // Document data
 
-          // Récupération des exercices du programme
+          // Retrieve the exercises of the program
           List<dynamic> exercisesData = data['exercises'] ?? [];
 
-          // Transformation des exercices en liste de Map<String, dynamic>
+          // Transform exercises into a list of Map<String, dynamic>
           List<Map<String, dynamic>> exercises = exercisesData
               .map((exercise) {
                 if (exercise is String) {
-                  // Si l'exercice est une chaîne, création d'une Map par défaut
+                  // If the exercise is a string, create a default Map
                   return {
                     'name': exercise,
                     'image': '',
@@ -82,45 +82,45 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                     'goals': '',
                   };
                 } else if (exercise is Map<String, dynamic>) {
-                  // Si c'est déjà une Map, la convertir
+                  // If it's already a Map, convert it
                   return Map<String, dynamic>.from(exercise);
                 } else {
-                  return null; // Sinon, ignorer
+                  return null; // Otherwise, ignore
                 }
               })
-              .whereType<Map<String, dynamic>>() // Filtrer les null
+              .whereType<Map<String, dynamic>>() // Filter out nulls
               .toList();
 
-          // Retourner une Map représentant le programme
+          // Return a Map representing the program
           return {
-            'id': doc.id, // Identifiant du document
-            'name': data['name'] ?? 'Programme sans nom', // Nom du programme
+            'id': doc.id, // Document identifier
+            'name': data['name'] ?? 'Unnamed Program', // Program name
             'icon':
-                data['icon'] ?? 'lib/data/icon_images/chest_part.png', // Icône
-            'iconName': data['iconName'] ?? 'Chest part', // Nom de l'icône
-            'day': data['day'] ?? '', // Jour associé au programme
-            'isFavorite': data['isFavorite'] ?? false, // Statut favori
-            'exercises': exercises, // Liste des exercices
+                data['icon'] ?? 'lib/data/icon_images/chest_part.png', // Icon
+            'iconName': data['iconName'] ?? 'Chest part', // Icon name
+            'day': data['day'] ?? '', // Day associated with the program
+            'isFavorite': data['isFavorite'] ?? false, // Favorite status
+            'exercises': exercises, // List of exercises
           };
         }).toList();
       });
     } catch (e) {
       if (!mounted) return;
-      // En cas d'erreur, afficher un message à l'utilisateur
+      // In case of error, display a message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de la récupération des programmes: $e'),
+          content: Text('Error fetching programs: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  // Méthode pour afficher les exercices d'une catégorie sélectionnée
+  // Method to display exercises of a selected category
   void _showExercises(String category) {
-    List<Map<String, String>> exercises; // Liste des exercices à afficher
+    List<Map<String, String>> exercises; // List of exercises to display
 
-    // Sélection des exercices en fonction de la catégorie
+    // Select exercises based on the category
     if (category == 'Biceps') {
       exercises = ExercisesData.bicepsExercises;
     } else if (category == 'Abs') {
@@ -140,38 +140,36 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     } else if (category == 'Stretching') {
       exercises = ExercisesData.stretchingExercises;
     } else {
-      exercises = []; // Si la catégorie n'est pas reconnue, liste vide
+      exercises = []; // If the category is not recognized, empty list
     }
 
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider); // Check the theme
 
-    // Ajout d'un contrôleur pour la recherche
+    // Add a controller for the search
     TextEditingController searchController = TextEditingController();
     List<Map<String, String>> filteredExercises = List.from(exercises);
 
-    // Affichage d'une feuille de bas (modal bottom sheet) avec la liste des exercices
+    // Display a modal bottom sheet with the list of exercises
     showModalBottomSheet(
       context: context,
       backgroundColor:
-          isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
+          isDarkMode ? Colors.black54 : Colors.white, // Background color
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(16.0)), // Coins arrondis
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16.0)), // Rounded corners
       ),
-      isScrollControlled:
-          true, // Permet le scroll si le contenu dépasse la hauteur
+      isScrollControlled: true, // Allows scrolling if content exceeds height
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateModal) {
             return Container(
-              padding: const EdgeInsets.all(16.0), // Marges internes
+              padding: const EdgeInsets.all(16.0), // Padding
               height: MediaQuery.of(context).size.height *
-                  0.8, // Hauteur de 80% de l'écran
+                  0.8, // 80% of screen height
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Alignement à gauche
+                crossAxisAlignment: CrossAxisAlignment.start, // Left alignment
                 children: [
-                  // Titre de la catégorie
+                  // Category title
                   Text(
                     category,
                     style: TextStyle(
@@ -180,16 +178,16 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                       color: isDarkMode ? Colors.white : Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 16), // Espacement vertical
-                  // Barre de recherche
+                  const SizedBox(height: 16), // Vertical spacing
+                  // Search bar
                   TextField(
                     controller: searchController,
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un exercice',
+                      hintText: 'Search an exercise',
                       hintStyle: TextStyle(
                           color: isDarkMode
                               ? Colors.white70
-                              : Colors.grey[600]), // Couleur du placeholder
+                              : Colors.grey[600]), // Placeholder color
                       prefixIcon: Icon(
                         Icons.search,
                         color: isDarkMode ? Colors.white : Colors.grey[600],
@@ -217,13 +215,13 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                       });
                     },
                   ),
-                  const SizedBox(height: 16), // Espacement vertical
-                  // Liste des exercices
+                  const SizedBox(height: 16), // Vertical spacing
+                  // List of exercises
                   Expanded(
                     child: filteredExercises.isEmpty
                         ? Center(
                             child: Text(
-                              'Aucun exercice trouvé.',
+                              'No exercises found.',
                               style: TextStyle(
                                   color: isDarkMode
                                       ? Colors.white70
@@ -233,12 +231,12 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         : ListView.builder(
                             shrinkWrap: true,
                             physics:
-                                const BouncingScrollPhysics(), // Effet de rebond
+                                const BouncingScrollPhysics(), // Bounce effect
                             itemCount:
-                                filteredExercises.length, // Nombre d'éléments
+                                filteredExercises.length, // Number of items
                             itemBuilder: (context, index) {
                               final exercise =
-                                  filteredExercises[index]; // Exercice actuel
+                                  filteredExercises[index]; // Current exercise
                               return ListTile(
                                 leading: Container(
                                   width: 50,
@@ -251,8 +249,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                     child: FittedBox(
                                       fit: BoxFit.contain,
                                       child: Image.asset(
-                                        exercise[
-                                            'image']!, // Image de l'exercice
+                                        exercise['image']!, // Exercise image
                                         width: 40,
                                         height: 40,
                                         errorBuilder:
@@ -265,17 +262,16 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   ),
                                 ),
                                 title: Text(
-                                  exercise['name']!, // Nom de l'exercice
+                                  exercise['name']!, // Exercise name
                                   style: TextStyle(
                                       color: isDarkMode
                                           ? Colors.white
                                           : Colors.black),
                                 ),
                                 trailing: Row(
-                                  mainAxisSize:
-                                      MainAxisSize.min, // Ajuste la taille
+                                  mainAxisSize: MainAxisSize.min, // Adjust size
                                   children: [
-                                    // Bouton pour afficher les détails de l'exercice
+                                    // Button to display exercise details
                                     IconButton(
                                       icon: Icon(Icons.info_outline,
                                           color: isDarkMode
@@ -283,10 +279,10 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                               : Colors.black),
                                       onPressed: () {
                                         _showExerciseInfo(
-                                            exercise); // Affiche les infos
+                                            exercise); // Show info
                                       },
                                     ),
-                                    // Bouton pour ajouter l'exercice à un programme
+                                    // Button to add exercise to a program
                                     IconButton(
                                       icon: Icon(Icons.add,
                                           color: isDarkMode
@@ -294,7 +290,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                               : Colors.black),
                                       onPressed: () {
                                         _showProgramSelection(
-                                            exercise); // Sélection du programme
+                                            exercise); // Select program
                                       },
                                     ),
                                   ],
@@ -312,25 +308,24 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     );
   }
 
-  // Méthode pour afficher les informations détaillées d'un exercice
+  // Method to display detailed information of an exercise
   void _showExerciseInfo(Map<String, String> exercise) {
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider); // Check the theme
 
-    // Affichage d'une boîte de dialogue avec les détails de l'exercice
+    // Display a dialog with exercise details
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
-          contentPadding: const EdgeInsets.all(16.0), // Marges internes
+              isDarkMode ? Colors.black54 : Colors.white, // Background color
+          contentPadding: const EdgeInsets.all(16.0), // Padding
           content: SingleChildScrollView(
             child: Column(
-              mainAxisSize: MainAxisSize.min, // Ajuste la taille
-              crossAxisAlignment:
-                  CrossAxisAlignment.start, // Alignement à gauche
+              mainAxisSize: MainAxisSize.min, // Adjust size
+              crossAxisAlignment: CrossAxisAlignment.start, // Left alignment
               children: [
-                // Affichage de l'image de l'exercice
+                // Display the exercise image
                 SizedBox(
                   width: double.infinity,
                   height: 200,
@@ -342,8 +337,8 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                     },
                   ),
                 ),
-                const SizedBox(height: 16), // Espacement vertical
-                // Titre "Description"
+                const SizedBox(height: 16), // Vertical spacing
+                // Title "Description"
                 Text(
                   'Description',
                   style: TextStyle(
@@ -352,15 +347,15 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                     color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                const SizedBox(height: 8), // Espacement vertical
-                // Texte de la description
+                const SizedBox(height: 8), // Vertical spacing
+                // Description text
                 Text(
                   exercise['description'] ?? '',
                   style: TextStyle(
                       color: isDarkMode ? Colors.white : Colors.black),
                 ),
-                const SizedBox(height: 16), // Espacement vertical
-                // Titre "Objectifs"
+                const SizedBox(height: 16), // Vertical spacing
+                // Title "Goals"
                 Text(
                   'Goals',
                   style: TextStyle(
@@ -369,8 +364,8 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                     color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                const SizedBox(height: 8), // Espacement vertical
-                // Texte des objectifs
+                const SizedBox(height: 8), // Vertical spacing
+                // Goals text
                 Text(
                   exercise['goals'] ?? '',
                   style: TextStyle(
@@ -380,11 +375,11 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             ),
           ),
           actions: [
-            // Bouton pour fermer la boîte de dialogue
+            // Button to close the dialog
             TextButton(
-              child: const Text('Fermer'),
+              child: const Text('Close'),
               onPressed: () {
-                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
           ],
@@ -393,69 +388,69 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     );
   }
 
-  // Méthode pour sélectionner un programme auquel ajouter l'exercice
+  // Method to select a program to which to add the exercise
   void _showProgramSelection(Map<String, String> exercise) {
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider); // Check the theme
 
-    // Tri des programmes par ordre alphabétique
+    // Sort programs alphabetically
     List<Map<String, dynamic>> sortedPrograms = List.from(_programs);
     sortedPrograms.sort((a, b) => a['name'].compareTo(b['name']));
 
-    // Affichage d'une feuille de bas avec la liste des programmes
+    // Display a bottom sheet with the list of programs
     showModalBottomSheet(
       context: context,
       backgroundColor:
-          isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
+          isDarkMode ? Colors.black54 : Colors.white, // Background color
       shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(16.0)), // Coins arrondis
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(16.0)), // Rounded corners
       ),
       builder: (BuildContext context) {
         return Padding(
-          padding: const EdgeInsets.all(16.0), // Marges internes
+          padding: const EdgeInsets.all(16.0), // Padding
           child: _user == null
               ? Center(
-                  // Message si l'utilisateur n'est pas connecté
+                  // Message if the user is not logged in
                   child: Text(
-                    'Veuillez vous connecter pour ajouter des exercices aux programmes.',
+                    'Please log in to add exercises to programs.',
                     style: TextStyle(
                         color: isDarkMode ? Colors.white : Colors.black),
                   ),
                 )
               : Column(
                   crossAxisAlignment:
-                      CrossAxisAlignment.start, // Alignement à gauche
-                  mainAxisSize: MainAxisSize.min, // Ajuste la taille
+                      CrossAxisAlignment.start, // Left alignment
+                  mainAxisSize: MainAxisSize.min, // Adjust size
                   children: [
-                    // Titre
+                    // Title
                     Text(
-                      'Sélectionnez un programme',
+                      'Select a program',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 16), // Espacement vertical
+                    const SizedBox(height: 16), // Vertical spacing
                     sortedPrograms.isEmpty
                         ? Text(
-                            // Message si aucun programme n'est disponible
-                            'Aucun programme disponible. Ajoutez-en un nouveau.',
+                            // Message if no programs are available
+                            'No programs available. Add a new one.',
                             style: TextStyle(
                                 color:
                                     isDarkMode ? Colors.white : Colors.black),
                           )
                         : Expanded(
-                            // Liste des programmes disponibles
+                            // List of available programs
                             child: ListView.builder(
                               shrinkWrap: true,
                               itemCount: sortedPrograms.length,
                               itemBuilder: (context, index) {
                                 final program =
-                                    sortedPrograms[index]; // Programme actuel
+                                    sortedPrograms[index]; // Current program
                                 return ListTile(
                                   title: Text(
-                                    program['name'], // Nom du programme
+                                    program['name'], // Program name
                                     style: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
@@ -463,13 +458,13 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   ),
                                   onTap: () {
                                     Navigator.of(context)
-                                        .pop(); // Ferme la feuille de bas
+                                        .pop(); // Close the bottom sheet
                                     _showRestTimePopup(
                                         exercise,
                                         _programs.indexWhere((p) =>
                                             p['id'] ==
                                             program[
-                                                'id'])); // Demande le temps de repos
+                                                'id'])); // Ask for rest time
                                   },
                                 );
                               },
@@ -482,49 +477,49 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     );
   }
 
-  // Méthode pour demander le temps de repos entre les exercices
+  // Method to ask for rest time between exercises
   void _showRestTimePopup(Map<String, String> exercise, int programIndex) {
-    int restBetweenExercises = 60; // Temps de repos par défaut
+    int restBetweenExercises = 60; // Default rest time
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+        final isDarkMode = ref.watch(themeProvider); // Check the theme
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
+              isDarkMode ? Colors.black54 : Colors.white, // Background color
           title: Text(
-            'Temps de repos entre exercices',
+            'Rest time between exercises',
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
           ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
               return Row(
                 mainAxisAlignment:
-                    MainAxisAlignment.center, // Centré horizontalement
+                    MainAxisAlignment.center, // Centered horizontally
                 children: [
-                  // Bouton pour diminuer le temps de repos
+                  // Button to decrease rest time
                   IconButton(
                     icon: const Icon(Icons.remove),
                     onPressed: () {
                       if (restBetweenExercises > 10) {
                         setStateDialog(() {
-                          restBetweenExercises -= 10; // Diminue de 10 secondes
+                          restBetweenExercises -= 10; // Decrease by 10 seconds
                         });
                       }
                     },
                   ),
-                  // Affichage du temps de repos actuel
+                  // Display current rest time
                   Text(
                     '$restBetweenExercises s',
                     style: TextStyle(
                         color: isDarkMode ? Colors.white : Colors.black),
                   ),
-                  // Bouton pour augmenter le temps de repos
+                  // Button to increase rest time
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () {
                       setStateDialog(() {
-                        restBetweenExercises += 10; // Augmente de 10 secondes
+                        restBetweenExercises += 10; // Increase by 10 seconds
                       });
                     },
                   ),
@@ -533,26 +528,25 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             },
           ),
           actions: [
-            // Bouton pour ajouter l'exercice au programme
+            // Button to add the exercise to the program
             TextButton(
-              child: const Text('Ajouter'),
+              child: const Text('Add'),
               onPressed: () async {
                 final messenger =
-                    ScaffoldMessenger.of(context); // Pour afficher des messages
+                    ScaffoldMessenger.of(context); // To display messages
                 try {
                   await _addExerciseToProgram(
-                      programIndex, exercise, restBetweenExercises); // Ajout
+                      programIndex, exercise, restBetweenExercises); // Add
                   if (!mounted) {
-                    return; // Vérifie que le widget est toujours monté
+                    return; // Check if the widget is still mounted
                   }
                   // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                  Navigator.of(context).pop(); // Close the dialog
                 } catch (e) {
                   if (!mounted) return;
                   messenger.showSnackBar(
                     SnackBar(
-                      content:
-                          Text('Erreur lors de l\'ajout de l\'exercice: $e'),
+                      content: Text('Error adding exercise: $e'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -565,12 +559,12 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     );
   }
 
-  // Méthode pour ajouter l'exercice au programme sélectionné
+  // Method to add the exercise to the selected program
   Future<void> _addExerciseToProgram(int programIndex,
       Map<String, String> exercise, int restBetweenExercises) async {
     if (_user != null) {
-      final program = _programs[programIndex]; // Programme sélectionné
-      // Ajout de l'exercice à la liste des exercices du programme
+      final program = _programs[programIndex]; // Selected program
+      // Add the exercise to the program's exercise list
       program['exercises'].add({
         'name': exercise['name'],
         'image': exercise['image'],
@@ -584,7 +578,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       });
 
       try {
-        // Mise à jour du programme dans Firestore
+        // Update the program in Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user!.uid)
@@ -594,23 +588,23 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           'exercises': program['exercises'],
         });
       } catch (e) {
-        rethrow; // Relance l'exception pour être gérée ailleurs
+        rethrow; // Rethrow the exception to be handled elsewhere
       }
 
-      if (!mounted) return; // Vérifie que le widget est toujours monté
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
-        _programs[programIndex] = program; // Mise à jour de l'état local
+        _programs[programIndex] = program; // Update local state
       });
     }
   }
 
-  // Méthode pour supprimer un programme
+  // Method to delete a program
   void _deleteProgram(int index) async {
     if (_user != null) {
-      final program = _programs[index]; // Programme sélectionné
-      final programId = program['id']; // Identifiant du programme
+      final program = _programs[index]; // Selected program
+      final programId = program['id']; // Program identifier
       try {
-        // Suppression du programme dans Firestore
+        // Delete the program in Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user!.uid)
@@ -619,80 +613,80 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             .delete();
       } catch (e) {
         if (!mounted) return;
-        // En cas d'erreur, afficher un message
+        // In case of error, display a message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la suppression: $e'),
+            content: Text('Error deleting program: $e'),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      if (!mounted) return; // Vérifie que le widget est toujours monté
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
-        _programs.removeAt(index); // Retire le programme de la liste locale
+        _programs.removeAt(index); // Remove the program from the local list
       });
 
-      // Affiche un message de confirmation
+      // Display a confirmation message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Programme "${program['name']}" a été supprimé'),
+          content: Text('Program "${program['name']}" has been deleted'),
         ),
       );
     }
   }
 
-  // Méthode pour ajouter un nouveau programme
+  // Method to add a new program
   void _addNewProgram(BuildContext context) {
     final TextEditingController programController =
-        TextEditingController(); // Contrôleur pour le champ de texte
-    String? selectedDay; // Jour sélectionné
-    String? selectedImage; // Image sélectionnée
-    String? selectedLabel; // Nom de l'image sélectionnée
+        TextEditingController(); // Controller for the text field
+    String? selectedDay; // Selected day
+    String? selectedImage; // Selected image
+    String? selectedLabel; // Name of the selected image
 
-    // Liste des options d'images disponibles
+    // List of available image options
     final List<Map<String, dynamic>> imageOptions = [
       {'name': 'Chest part', 'image': 'lib/data/icon_images/chest_part.png'},
       {'name': 'Back part', 'image': 'lib/data/icon_images/back_part.png'},
       {'name': 'Leg part', 'image': 'lib/data/icon_images/leg_part.png'},
     ];
 
-    // Liste des jours de la semaine
+    // List of days of the week
     final List<String> daysOfWeek = [
-      'Lundi',
-      'Mardi',
-      'Mercredi',
-      'Jeudi',
-      'Vendredi',
-      'Samedi',
-      'Dimanche'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
 
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider); // Check the theme
 
-    // Affichage d'une boîte de dialogue pour ajouter un programme
+    // Display a dialog to add a program
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
+              isDarkMode ? Colors.black54 : Colors.white, // Background color
           title: Text(
-            'Ajouter un nouveau programme',
+            'Add a new program',
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
           ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
               return SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min, // Ajuste la taille
+                  mainAxisSize: MainAxisSize.min, // Adjust size
                   children: [
-                    // Champ de texte pour le nom du programme
+                    // Text field for the program name
                     TextField(
                       controller: programController,
                       decoration: InputDecoration(
-                        labelText: 'Nom du programme',
+                        labelText: 'Program name',
                         labelStyle: TextStyle(
                             color: isDarkMode ? Colors.white : Colors.black),
                         enabledBorder: OutlineInputBorder(
@@ -709,38 +703,37 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                       style: TextStyle(
                           color: isDarkMode ? Colors.white : Colors.black),
                     ),
-                    const SizedBox(height: 16), // Espacement vertical
-                    // Titre "Sélectionner une catégorie"
+                    const SizedBox(height: 16), // Vertical spacing
+                    // Title "Select a category"
                     Text(
-                      'Sélectionner une catégorie',
+                      'Select a category',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8), // Espacement vertical
-                    // Options d'images
+                    const SizedBox(height: 8), // Vertical spacing
+                    // Image options
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
                       children: imageOptions.map((option) {
                         final isSelected = selectedImage ==
-                            option[
-                                'image']; // Vérifie si l'image est sélectionnée
+                            option['image']; // Check if the image is selected
                         return GestureDetector(
                           onTap: () {
                             setStateDialog(() {
-                              selectedImage = option[
-                                  'image']; // Met à jour l'image sélectionnée
-                              selectedLabel = option[
-                                  'name']; // Met à jour le nom de l'image
+                              selectedImage =
+                                  option['image']; // Update selected image
+                              selectedLabel =
+                                  option['name']; // Update image name
                             });
                           },
                           child: Column(
-                            mainAxisSize: MainAxisSize.min, // Ajuste la taille
+                            mainAxisSize: MainAxisSize.min, // Adjust size
                             children: [
-                              // Image de la catégorie
+                              // Category image
                               Container(
                                 width: 80,
                                 height: 80,
@@ -748,7 +741,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   border: isSelected
                                       ? Border.all(
                                           color: Colors.black,
-                                          width: 3) // Bordure si sélectionnée
+                                          width: 3) // Border if selected
                                       : null,
                                   shape: BoxShape.circle,
                                   color: Colors.white,
@@ -766,15 +759,15 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 4), // Espacement vertical
-                              // Nom de la catégorie
+                              const SizedBox(height: 4), // Vertical spacing
+                              // Category name
                               Text(
                                 option['name'],
                                 style: TextStyle(
                                   color: isSelected
                                       ? Colors.black
                                       : Colors.black.withOpacity(
-                                          0.3), // Opacité réduite si non sélectionnée
+                                          0.3), // Reduced opacity if not selected
                                 ),
                               ),
                             ],
@@ -782,14 +775,14 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 16), // Espacement vertical
-                    // Menu déroulant pour sélectionner le jour
+                    const SizedBox(height: 16), // Vertical spacing
+                    // Dropdown menu to select the day
                     DropdownButtonFormField<String>(
-                      value: selectedDay, // Jour actuellement sélectionné
+                      value: selectedDay, // Currently selected day
                       decoration: InputDecoration(
                         labelText: selectedDay == null
-                            ? 'Sélectionner un jour'
-                            : 'Jour sélectionné',
+                            ? 'Select a day'
+                            : 'Selected day',
                         labelStyle: TextStyle(
                           color: selectedDay == null
                               ? Colors.red
@@ -816,23 +809,22 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         ),
                       ),
                       hint: Text(
-                        'Sélectionner un jour',
+                        'Select a day',
                         style: TextStyle(
                             color: isDarkMode ? Colors.white : Colors.black),
                       ),
                       dropdownColor: isDarkMode
                           ? Colors.black54
-                          : Colors.white, // Couleur du menu déroulant
+                          : Colors.white, // Dropdown menu color
                       isExpanded: true,
                       onChanged: (String? newValue) {
                         setStateDialog(() {
-                          selectedDay =
-                              newValue; // Met à jour le jour sélectionné
+                          selectedDay = newValue; // Update selected day
                         });
                       },
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Sélectionner un jour'; // Message d'erreur si aucun jour sélectionné
+                          return 'Select a day'; // Error message if no day selected
                         }
                         return null;
                       },
@@ -855,26 +847,26 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             },
           ),
           actions: [
-            // Bouton "Annuler"
+            // "Cancel" button
             TextButton(
-              child: const Text('Annuler'),
+              child: const Text('Cancel'),
               onPressed: () {
-                Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                Navigator.of(context).pop(); // Close the dialog
               },
             ),
-            // Bouton "Ajouter"
+            // "Add" button
             TextButton(
-              child: const Text('Ajouter'),
+              child: const Text('Add'),
               onPressed: () async {
                 final messenger =
-                    ScaffoldMessenger.of(context); // Pour afficher des messages
-                // Vérifie que tous les champs sont remplis
+                    ScaffoldMessenger.of(context); // To display messages
+                // Check that all fields are filled
                 if (programController.text.isEmpty ||
                     selectedImage == null ||
                     selectedDay == null) {
                   messenger.showSnackBar(
                     const SnackBar(
-                      content: Text('Veuillez remplir tous les champs.'),
+                      content: Text('Please fill in all fields.'),
                     ),
                   );
                   return;
@@ -882,39 +874,38 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
                 if (_user != null) {
                   final newProgram = {
-                    'name': programController.text, // Nom du programme
-                    'icon': selectedImage, // Image sélectionnée
-                    'iconName': selectedLabel, // Nom de l'image
-                    'day': selectedDay, // Jour sélectionné
-                    'isFavorite': false, // Par défaut, non favori
-                    'exercises': [], // Liste vide d'exercices
+                    'name': programController.text, // Program name
+                    'icon': selectedImage, // Selected image
+                    'iconName': selectedLabel, // Image name
+                    'day': selectedDay, // Selected day
+                    'isFavorite': false, // Default to not favorite
+                    'exercises': [], // Empty list of exercises
                   };
 
                   try {
-                    // Ajoute le nouveau programme à Firestore
+                    // Add the new program to Firestore
                     await FirebaseFirestore.instance
                         .collection('users')
                         .doc(_user!.uid)
                         .collection('programs')
                         .add(newProgram);
                     if (!mounted) {
-                      return; // Vérifie que le widget est toujours monté
+                      return; // Check if the widget is still mounted
                     }
-                    _fetchPrograms(); // Rafraîchit la liste des programmes
+                    _fetchPrograms(); // Refresh the list of programs
                     // ignore: use_build_context_synchronously
-                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                    Navigator.of(context).pop(); // Close the dialog
                     messenger.showSnackBar(
                       SnackBar(
                         content: Text(
-                            "Programme '${programController.text}' ajouté avec succès."),
+                            "Program '${programController.text}' added successfully."),
                       ),
                     );
                   } catch (e) {
                     if (!mounted) return;
                     messenger.showSnackBar(
                       SnackBar(
-                        content:
-                            Text('Erreur lors de l\'ajout du programme: $e'),
+                        content: Text('Error adding program: $e'),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -928,25 +919,25 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     );
   }
 
-  // Méthode pour construire l'élément visuel d'un programme dans la liste
+  // Method to build the visual element of a program in the list
   Widget _buildProgramItem(String programName, String iconPath, String day,
       bool isFavorite, VoidCallback onFavoriteToggle) {
-    final isDarkMode = ref.watch(themeProvider); // Vérification du thème
+    final isDarkMode = ref.watch(themeProvider); // Check the theme
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0), // Marges externes
-      padding: const EdgeInsets.all(12.0), // Marges internes
+      margin: const EdgeInsets.symmetric(vertical: 8.0), // External margins
+      padding: const EdgeInsets.all(12.0), // Padding
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.black54 : Colors.white, // Couleur de fond
-        borderRadius: BorderRadius.circular(16.0), // Coins arrondis
+        color: isDarkMode ? Colors.black54 : Colors.white, // Background color
+        borderRadius: BorderRadius.circular(16.0), // Rounded corners
       ),
       child: Row(
         mainAxisAlignment:
-            MainAxisAlignment.spaceBetween, // Répartition horizontale
+            MainAxisAlignment.spaceBetween, // Horizontal distribution
         children: [
           Row(
             children: [
-              // Image du programme
+              // Program image
               Container(
                 width: 50,
                 height: 50,
@@ -959,14 +950,13 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16), // Espacement horizontal
-              // Nom et jour du programme
+              const SizedBox(width: 16), // Horizontal spacing
+              // Program name and day
               Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start, // Alignement à gauche
+                crossAxisAlignment: CrossAxisAlignment.start, // Left alignment
                 children: [
                   Text(
-                    programName, // Nom du programme
+                    programName, // Program name
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -974,7 +964,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                     ),
                   ),
                   Text(
-                    day, // Jour du programme
+                    day, // Program day
                     style: TextStyle(
                       color: isDarkMode ? Colors.white70 : Colors.grey,
                     ),
@@ -983,33 +973,33 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
               ),
             ],
           ),
-          // Bouton pour marquer le programme comme favori
+          // Button to mark the program as favorite
           IconButton(
             icon: Icon(
               isFavorite
                   ? Icons.star
-                  : Icons.star_border, // Icône en fonction du statut
+                  : Icons.star_border, // Icon based on status
               color: isFavorite
                   ? Colors.yellow[700]
                   : isDarkMode
                       ? Colors.white
                       : Colors.black,
             ),
-            onPressed: onFavoriteToggle, // Action lors de l'appui
+            onPressed: onFavoriteToggle, // Action when pressed
           ),
         ],
       ),
     );
   }
 
-  // Méthode pour basculer le statut favori d'un programme
+  // Method to toggle the favorite status of a program
   Future<void> _toggleFavorite(int index) async {
     if (_user != null) {
-      final program = _programs[index]; // Programme sélectionné
-      program['isFavorite'] = !program['isFavorite']; // Inverse le statut
+      final program = _programs[index]; // Selected program
+      program['isFavorite'] = !program['isFavorite']; // Invert status
 
       try {
-        // Mise à jour dans Firestore
+        // Update in Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_user!.uid)
@@ -1019,20 +1009,20 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           'isFavorite': program['isFavorite'],
         });
       } catch (e) {
-        // Gestion des erreurs (affichage d'un message)
+        // Error handling (display a message)
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la mise à jour des favoris: $e'),
+            content: Text('Error updating favorites: $e'),
             backgroundColor: Colors.red,
           ),
         );
         return;
       }
 
-      if (!mounted) return; // Vérifie que le widget est toujours monté
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
-        // Trie les programmes pour que les favoris apparaissent en premier
+        // Sort programs so that favorites appear first
         _programs.sort((a, b) {
           if (a['isFavorite'] && !b['isFavorite']) {
             return -1;
@@ -1046,24 +1036,24 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     }
   }
 
-  // Méthode pour afficher les détails d'un programme
+  // Method to display program details
   Future<void> _showProgramDetail(Map<String, dynamic> program) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ProgramDetailPage(
-          program: program, // Programme à afficher
-          userId: _user!.uid, // Identifiant de l'utilisateur
+          program: program, // Program to display
+          userId: _user!.uid, // User ID
           onUpdate: () {
             if (mounted) {
-              _fetchPrograms(); // Rafraîchit les programmes si des changements ont été effectués
+              _fetchPrograms(); // Refresh programs if changes have been made
             }
-          }, // Callback lors de la mise à jour
+          }, // Callback when updated
         ),
       ),
     );
     if (result == true && mounted) {
-      _fetchPrograms(); // Rafraîchit les programmes si des changements ont été effectués
+      _fetchPrograms(); // Refresh programs if changes have been made
     }
   }
 
@@ -1073,7 +1063,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
     return Stack(
       children: [
-        // Dégradé de fond
+        // Background gradient
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -1089,93 +1079,91 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           ),
         ),
         Scaffold(
-          backgroundColor: Colors.transparent, // Fond transparent
+          backgroundColor: Colors.transparent, // Transparent background
           body: Padding(
-            padding: const EdgeInsets.all(16.0), // Marges internes
+            padding: const EdgeInsets.all(16.0), // Padding
             child: _user == null
                 ? Center(
-                    // Si l'utilisateur n'est pas connecté, afficher un bouton de connexion
+                    // If the user is not logged in, display a sign-in button
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context,
-                            '/signIn'); // Navigation vers la page de connexion
+                        Navigator.pushNamed(
+                            context, '/signIn'); // Navigate to the sign-in page
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            Colors.yellow[700], // Couleur du bouton
+                        backgroundColor: Colors.yellow[700], // Button color
                       ),
-                      child: const Text('Se connecter'),
+                      child: const Text('Sign in'),
                     ),
                   )
                 : Column(
                     crossAxisAlignment:
-                        CrossAxisAlignment.start, // Alignement à gauche
+                        CrossAxisAlignment.start, // Left alignment
                     children: [
-                      // Titre "Bibliothèque"
+                      // Title "Library"
                       Text(
-                        'Bibliothèque',
+                        'Library',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
-                      const SizedBox(height: 16), // Espacement vertical
-                      // Liste des catégories d'exercices
+                      const SizedBox(height: 16), // Vertical spacing
+                      // List of exercise categories
                       Expanded(
-                        flex: 1, // Prend l'espace disponible
+                        flex: 1, // Take available space
                         child: Card(
                           color: isDarkMode
                               ? Colors.black54
-                              : Colors.white, // Couleur de fond
-                          elevation: 4.0, // Élévation pour l'ombre
+                              : Colors.white, // Background color
+                          elevation: 4.0, // Elevation for shadow
                           shape: RoundedRectangleBorder(
                             borderRadius:
-                                BorderRadius.circular(16.0), // Coins arrondis
+                                BorderRadius.circular(16.0), // Rounded corners
                           ),
                           child: ExerciseCategoryList(
-                            categories: _categories, // Liste des catégories
+                            categories: _categories, // List of categories
                             onCategoryTap:
-                                _showExercises, // Action lors de la sélection d'une catégorie
-                            isDarkMode: isDarkMode, // Thème
+                                _showExercises, // Action when a category is selected
+                            isDarkMode: isDarkMode, // Theme
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16), // Espacement vertical
-                      // Titre "Mes Programmes" avec bouton d'ajout
+                      const SizedBox(height: 16), // Vertical spacing
+                      // Title "My Programs" with add button
                       Row(
                         mainAxisAlignment: MainAxisAlignment
-                            .spaceBetween, // Répartition horizontale
+                            .spaceBetween, // Horizontal distribution
                         children: [
                           Text(
-                            'Mes Programmes',
+                            'My Programs',
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
-                          // Bouton pour ajouter un nouveau programme
+                          // Button to add a new program
                           IconButton(
                             icon: Icon(Icons.add,
                                 color:
                                     isDarkMode ? Colors.white : Colors.black),
                             onPressed: () {
-                              _addNewProgram(
-                                  context); // Appel de la méthode d'ajout
+                              _addNewProgram(context); // Call the add method
                             },
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16), // Espacement vertical
-                      // Liste des programmes
+                      const SizedBox(height: 16), // Vertical spacing
+                      // List of programs
                       Expanded(
-                        flex: 1, // Prend l'espace disponible
+                        flex: 1, // Take available space
                         child: _programs.isEmpty
                             ? Center(
-                                // Message si aucun programme n'est disponible
+                                // Message if no programs are available
                                 child: Text(
-                                  'Aucun programme disponible. Ajoutez-en un nouveau.',
+                                  'No programs available. Add a new one.',
                                   style: TextStyle(
                                       color: isDarkMode
                                           ? Colors.white
@@ -1184,23 +1172,22 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                               )
                             : ListView.builder(
                                 itemCount:
-                                    _programs.length, // Nombre de programmes
+                                    _programs.length, // Number of programs
                                 itemBuilder: (context, index) {
                                   final program =
-                                      _programs[index]; // Programme actuel
+                                      _programs[index]; // Current program
                                   return Dismissible(
-                                    key:
-                                        UniqueKey(), // Clé unique pour l'élément
+                                    key: UniqueKey(), // Unique key for the item
                                     direction: DismissDirection
-                                        .startToEnd, // Direction du swipe
+                                        .startToEnd, // Swipe direction
                                     onDismissed: (direction) {
                                       _deleteProgram(
-                                          index); // Suppression du programme
+                                          index); // Delete the program
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                              '${program['name']} a été supprimé'),
+                                              '${program['name']} has been deleted'),
                                         ),
                                       );
                                     },
@@ -1208,7 +1195,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                       padding: const EdgeInsets.only(left: 16),
                                       alignment: Alignment.centerLeft,
                                       color: Colors
-                                          .red, // Couleur de fond lors du swipe
+                                          .red, // Background color when swiped
                                       child: const Icon(
                                         Icons.delete,
                                         color: Colors.white,
@@ -1216,14 +1203,14 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                     ),
                                     child: GestureDetector(
                                       onTap: () => _showProgramDetail(
-                                          program), // Affiche les détails du programme
+                                          program), // Display program details
                                       child: _buildProgramItem(
                                         program['name'],
                                         program['icon'],
                                         program['day'] ?? '',
                                         program['isFavorite'],
                                         () => _toggleFavorite(
-                                            index), // Bascule le statut favori
+                                            index), // Toggle favorite status
                                       ),
                                     ),
                                   );
