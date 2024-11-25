@@ -1255,31 +1255,24 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                           },
                         ),
             ),
-            // Bouton "Add new exercises" en bas de la page
-            GestureDetector(
-              onTap: _addNewExercises,
-              child: Container(
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey[800] : Colors.white,
-                  borderRadius: BorderRadius.circular(8.0),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4.0,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    'Add new exercises',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 24.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  child: CupertinoButton.filled(
+                    //color: CupertinoColors.systemYellow,
+                    borderRadius: BorderRadius.circular(30.0),
+                    onPressed: _addNewExercises,
+                    child: const Text(
+                      'Add new exercises',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: CupertinoColors.white,
+                      ),
                     ),
                   ),
                 ),
