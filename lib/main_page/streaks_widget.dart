@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 String getTimeAgo(DateTime lastSessionDate) {
   final now = DateTime.now();
@@ -79,7 +80,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.white,
+        color: isDarkMode ? darkWidget : lightWidget,
         borderRadius: BorderRadius.circular(16.0),
         boxShadow: [
           BoxShadow(
@@ -118,7 +119,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black54,
+                  color: Colors.black,
                 ),
               ),
             ],
@@ -128,7 +129,7 @@ class StreaksWidgetState extends State<StreaksWidget> {
             'Last: ${_lastStreakDate.year > 1970 ? getTimeAgo(_lastStreakDate) : "No sessions yet"}',
             style: const TextStyle(
               fontSize: 16,
-              color: Colors.black54,
+              color: Colors.black,
             ),
           ),
         ],

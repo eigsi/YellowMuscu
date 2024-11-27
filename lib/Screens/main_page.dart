@@ -484,8 +484,6 @@ class MainPageState extends ConsumerState<MainPage> {
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12.0), // Rayon de la bordure
-              border:
-                  Border.all(color: lightTop), // Bordure de la couleur lightTop
             ),
             child: CupertinoSegmentedControl<StatisticsMenu>(
               padding:
@@ -498,7 +496,9 @@ class MainPageState extends ConsumerState<MainPage> {
                   child: Text(
                     'Friends activity',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: _selectedMenu == StatisticsMenu.amis
+                          ? Colors.white
+                          : Colors.black,
                       fontSize: 14,
                       fontWeight: _selectedMenu == StatisticsMenu.amis
                           ? FontWeight.bold
@@ -512,7 +512,9 @@ class MainPageState extends ConsumerState<MainPage> {
                   child: Text(
                     'Your Activity',
                     style: TextStyle(
-                      color: Colors.black,
+                      color: _selectedMenu == StatisticsMenu.amis
+                          ? Colors.black
+                          : Colors.white,
                       fontSize: 14,
                       fontWeight: _selectedMenu == StatisticsMenu.amis
                           ? FontWeight.normal
@@ -526,9 +528,9 @@ class MainPageState extends ConsumerState<MainPage> {
                   _selectedMenu = value;
                 });
               },
-              selectedColor: lightTop,
+              selectedColor: darkBottom,
               unselectedColor: Colors.white,
-              borderColor: lightTop,
+              borderColor: darkBottom,
             ),
           ),
           const SizedBox(height: 16),
@@ -548,80 +550,81 @@ class MainPageState extends ConsumerState<MainPage> {
             child: Text(
               'No recent activity',
               style: TextStyle(
-                color: Colors.black87,
+                color: Colors.black,
               ),
             ),
           )
         : Container(
             padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
             width: double.infinity, // Utiliser toute la largeur disponible
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: likesData.length,
-              itemBuilder: (context, index) {
-                Map<String, dynamic> event = likesData[index];
-                bool isLiked =
-                    (event['likes'] as List<dynamic>?)?.contains(_userId) ??
-                        false;
-                String activityType = event['description'];
-                String formattedDescription =
-                    '${event['friendName']} a publié : $activityType';
+            child: SizedBox(
+              height: 300,
+              child: ListView.builder(
+                itemCount: likesData.length,
+                itemBuilder: (context, index) {
+                  Map<String, dynamic> event = likesData[index];
+                  bool isLiked =
+                      (event['likes'] as List<dynamic>?)?.contains(_userId) ??
+                          false;
+                  String activityType = event['description'];
+                  String formattedDescription = activityType;
 
-                return Dismissible(
-                  key: Key(event['eventId']),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) async {
-                    String dismissedEventId = event['eventId'];
+                  return Dismissible(
+                    key: Key(event['eventId']),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) async {
+                      String dismissedEventId = event['eventId'];
 
-                    setState(() {
-                      likesData.removeAt(index);
-                    });
-
-                    // Ajouter l'eventId à hiddenEvents dans Firestore
-                    try {
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(_userId)
-                          .update({
-                        'hiddenEvents':
-                            FieldValue.arrayUnion([dismissedEventId])
+                      setState(() {
+                        likesData.removeAt(index);
                       });
-                    } catch (e) {
+
+                      // Ajouter l'eventId à hiddenEvents dans Firestore
+                      try {
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(_userId)
+                            .update({
+                          'hiddenEvents':
+                              FieldValue.arrayUnion([dismissedEventId])
+                        });
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Erreur lors de la suppression: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+
+                      // Afficher un message de confirmation
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Erreur lors de la suppression: $e'),
-                            backgroundColor: Colors.red,
+                          const SnackBar(
+                            content: Text('Événement supprimé définitivement.'),
+                            backgroundColor: Colors.green,
                           ),
                         );
                       }
-                    }
-
-                    // Afficher un message de confirmation
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Événement supprimé définitivement.'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  child: LikeItem(
-                    profileImage: event['profileImage'] as String,
-                    description: formattedDescription,
-                    onLike: () => _likeEvent(event),
-                    isLiked: isLiked,
-                  ),
-                );
-              },
+                    },
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: LikeItem(
+                      profileImage: event['profileImage'] as String,
+                      description: formattedDescription,
+                      onLike: () => _likeEvent(event),
+                      isLiked: isLiked,
+                    ),
+                  );
+                },
+              ),
             ),
           );
   }
@@ -643,25 +646,26 @@ class MainPageState extends ConsumerState<MainPage> {
         : Container(
             padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
             width: double.infinity, // Utiliser toute la largeur disponible
-            child: ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: personalActivities.length,
-              itemBuilder: (context, index) {
-                Map<String, dynamic> event = personalActivities[index];
-                List<dynamic> likes = event['likes'] ?? [];
-                int likesCount = likes.length;
-                bool isLiked = likes.contains(_userId);
-                String description = event['description'];
+            child: SizedBox(
+              height: 300,
+              child: ListView.builder(
+                itemCount: personalActivities.length,
+                itemBuilder: (context, index) {
+                  Map<String, dynamic> event = personalActivities[index];
+                  List<dynamic> likes = event['likes'] ?? [];
+                  int likesCount = likes.length;
+                  bool isLiked = likes.contains(_userId);
+                  String description = event['description'];
 
-                return PersonalActivityItem(
-                  profileImage: event['profileImage'] as String,
-                  description: description,
-                  likesCount: likesCount,
-                  isLiked: isLiked,
-                  onLike: () => _likePersonalEvent(event),
-                );
-              },
+                  return PersonalActivityItem(
+                    profileImage: event['profileImage'] as String,
+                    description: description,
+                    likesCount: likesCount,
+                    isLiked: isLiked,
+                    onLike: () => _likePersonalEvent(event),
+                  );
+                },
+              ),
             ),
           );
   }

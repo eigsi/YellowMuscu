@@ -326,7 +326,8 @@ class SessionPageState extends ConsumerState<SessionPage> {
                             ),
                             trailing: Checkbox(
                               value: program['isDone'] ?? false,
-                              onChanged: null, // Désactivé pour l'affichage
+                              onChanged: null,
+                              checkColor: Colors.black,
                             ),
                           ),
                         ),

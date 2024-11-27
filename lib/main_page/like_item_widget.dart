@@ -289,7 +289,12 @@ class LikeItemState extends State<LikeItem>
       leading: CircleAvatar(
         backgroundImage: NetworkImage(widget.profileImage),
       ),
-      title: Text(widget.description),
+      title: Text(
+        widget.description,
+        style: const TextStyle(
+          color: Colors.black,
+        ),
+      ),
       trailing: GestureDetector(
         onTap: _handleLike,
         child: ScaleTransition(
