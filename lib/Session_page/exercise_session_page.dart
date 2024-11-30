@@ -3,8 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
-class ExerciseSessionPage extends StatefulWidget {
+class ExerciseSessionPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> program;
   final String userId;
   final VoidCallback onSessionComplete;
@@ -20,7 +22,7 @@ class ExerciseSessionPage extends StatefulWidget {
   ExerciseSessionPageState createState() => ExerciseSessionPageState();
 }
 
-class ExerciseSessionPageState extends State<ExerciseSessionPage> {
+class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
   int _currentExerciseIndex = 0;
   int _currentSet = 0;
   bool _isResting = false;
@@ -148,11 +150,14 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateLocal) {
+            final isDarkMode = ref.watch(themeProvider);
             return Dialog(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.yellow.shade200, Colors.yellow.shade600],
+                    colors: isDarkMode
+                        ? [darkTop, darkBottom]
+                        : [lightTop, lightBottom],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -164,10 +169,12 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Des progrès ?',
                           style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: isDarkMode ? Colors.white : Colors.black),
                         ),
                         const SizedBox(height: 16),
                         ListView.builder(
@@ -182,7 +189,7 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                             }
                             return Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode ? darkBottom : Colors.white,
                                 borderRadius:
                                     BorderRadius.circular(12), // Coins arrondis
                               ),
@@ -196,15 +203,21 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                                   Expanded(
                                     child: Text(
                                       exercise['name'] ?? '',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w500),
+                                          fontWeight: FontWeight.w500,
+                                          color: isDarkMode
+                                              ? Colors.white
+                                              : Colors.black),
                                     ),
                                   ),
                                   Row(
                                     children: [
                                       IconButton(
                                         icon: const Icon(Icons.edit),
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
                                         onPressed: () {
                                           _showDecimalInputPicker(
                                             context,
@@ -223,7 +236,12 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                                         },
                                       ),
                                       Text(
-                                          '${exercise['weight'].toStringAsFixed(1)} kg'),
+                                        '${exercise['weight'].toStringAsFixed(1)} kg',
+                                        style: TextStyle(
+                                            color: isDarkMode
+                                                ? Colors.white
+                                                : Colors.black),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -240,20 +258,30 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                           style: ElevatedButton.styleFrom(
                             minimumSize:
                                 const Size.fromHeight(50), // Hauteur du bouton
+                            backgroundColor:
+                                isDarkMode ? darkWidget : lightWidget,
+                            foregroundColor:
+                                isDarkMode ? Colors.black : Colors.white,
                           ),
                           child: _isSaving
-                              ? const SizedBox(
+                              ? SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
+                                        isDarkMode
+                                            ? Colors.black
+                                            : Colors.white),
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(
+                              : Text(
                                   'Enregistrer',
-                                  style: TextStyle(fontSize: 18),
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      color: isDarkMode
+                                          ? Colors.black
+                                          : Colors.white),
                                 ),
                         ),
                         const SizedBox(height: 16),
@@ -442,25 +470,28 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
       double step,
       ValueChanged<double> onValueChanged) {
     double currentValue = initialValue; // Valeur courante initialisée
+    final isDarkMode = ref.watch(themeProvider);
 
     showModalBottomSheet(
       context: context,
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Colors.white, // Couleur de fond
+          color: isDarkMode ? darkBottom : Colors.white, // Couleur de fond
           child: Column(
             children: [
               // Titre du picker
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black)),
               ),
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Colors.white,
+                  backgroundColor: isDarkMode ? darkBottom : Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) / step)
@@ -477,7 +508,10 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
                     (int index) {
                       double value = minValue + index * step;
                       return Text(
-                          '${value.toStringAsFixed(1)} kg'); // Affiche chaque valeur
+                        '${value.toStringAsFixed(1)} kg',
+                        style: TextStyle(
+                            color: isDarkMode ? Colors.white : Colors.black),
+                      ); // Affiche chaque valeur
                     },
                   ),
                 ),
@@ -493,11 +527,12 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
   }
 
   Widget _buildExerciseView() {
+    final isDarkMode = ref.watch(themeProvider);
     return SingleChildScrollView(
       child: Container(
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(16),
-        color: Colors.white,
+        color: isDarkMode ? darkWidget : lightWidget,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -515,23 +550,41 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
             const SizedBox(height: 16),
             Text(
               _currentExercise['name'] ?? '',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               _currentExercise['description'] ?? '',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               'Objectifs:\n${_currentExercise['goals'] ?? ''}',
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDarkMode ? Colors.white70 : Colors.black87,
+              ),
             ),
             const SizedBox(height: 16),
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: _completeSet,
-              child: Text('Terminer la série ${_currentSet + 1}'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDarkMode ? darkWidget : lightWidget,
+                foregroundColor: isDarkMode ? Colors.black : Colors.white,
+              ),
+              child: Text(
+                'Terminer la série ${_currentSet + 1}',
+                style:
+                    TextStyle(color: isDarkMode ? Colors.black : Colors.white),
+              ),
             ),
           ],
         ),
@@ -540,29 +593,41 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
   }
 
   Widget _buildRestView() {
+    final isDarkMode = ref.watch(themeProvider);
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           _isBetweenExercises ? 'Repos entre exercices' : 'Repos entre séries',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
           '${(_timerSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timerSeconds % 60).toString().padLeft(2, '0')}',
-          style: const TextStyle(fontSize: 36),
+          style: TextStyle(
+            fontSize: 36,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(height: 8),
         IconButton(
           icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
           iconSize: 48,
+          color: isDarkMode ? Colors.white : Colors.black,
           onPressed: _toggleTimer,
         ),
         const SizedBox(height: 16),
         if (_bonusTime > 0)
           Text(
             'Bonus temps ajouté: ${_bonusTime}s',
-            style: const TextStyle(fontSize: 16),
+            style: TextStyle(
+              fontSize: 16,
+              color: isDarkMode ? Colors.white70 : Colors.black87,
+            ),
           ),
         const SizedBox(height: 8),
         Row(
@@ -570,16 +635,18 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Couleur de fond
+                color: isDarkMode ? darkWidget : Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CupertinoButton(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: const Text(
+                child: Text(
                   '+10s',
                   style: TextStyle(
-                      fontSize: 16, color: Colors.black), // Texte noir
+                    fontSize: 16,
+                    color: isDarkMode ? Colors.black : Colors.black,
+                  ),
                 ),
                 onPressed: () {
                   setState(() {
@@ -592,16 +659,18 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
             const SizedBox(width: 8),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white, // Couleur de fond
+                color: isDarkMode ? darkWidget : Colors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: CupertinoButton(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: const Text(
+                child: Text(
                   '+30s',
                   style: TextStyle(
-                      fontSize: 16, color: Colors.black), // Texte noir
+                    fontSize: 16,
+                    color: isDarkMode ? Colors.black : Colors.black,
+                  ),
                 ),
                 onPressed: () {
                   setState(() {
@@ -616,6 +685,10 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
         const SizedBox(height: 16),
         ElevatedButton(
           onPressed: _endRest,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isDarkMode ? darkWidget : lightWidget,
+            foregroundColor: isDarkMode ? Colors.black : Colors.white,
+          ),
           child: const Text('Passer le repos'),
         ),
         const SizedBox(height: 16),
@@ -624,12 +697,18 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
             children: [
               Text(
                 'Séries complétées: $_currentSet / ${_currentExercise['sets']}',
-                style: const TextStyle(fontSize: 18),
+                style: TextStyle(
+                  fontSize: 18,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Répétitions: ${_currentExercise['reps']}  Poids: ${_currentExercise['weight'].toStringAsFixed(1)} kg',
-                style: const TextStyle(fontSize: 16),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                ),
               ),
             ],
           ),
@@ -639,14 +718,17 @@ class ExerciseSessionPageState extends State<ExerciseSessionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = ref.watch(themeProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(_currentExercise['name'] ?? ''),
+        backgroundColor: isDarkMode ? darkNavBar : lightNavBar,
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.yellow.shade200, Colors.yellow.shade600],
+            colors:
+                isDarkMode ? [darkTop, darkBottom] : [lightTop, lightBottom],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
