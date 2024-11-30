@@ -676,10 +676,10 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black : Colors.white, // Background color
-          title: Text(
+              isDarkMode ? darkWidget : lightWidget, // Background color
+          title: const Text(
             'Add a new program',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+            style: TextStyle(color: Colors.black),
           ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
@@ -692,11 +692,9 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                       controller: programController,
                       decoration: InputDecoration(
                         labelText: 'Program name',
-                        labelStyle: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black),
+                        labelStyle: const TextStyle(color: Colors.black),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                              color: isDarkMode ? Colors.white70 : Colors.grey),
+                          borderSide: const BorderSide(color: Colors.black87),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         focusedBorder: OutlineInputBorder(
@@ -705,24 +703,23 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                      style: TextStyle(
-                          color: isDarkMode ? Colors.white : Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                     const SizedBox(height: 16), // Vertical spacing
                     // Title "Select a category"
-                    Text(
+                    const Text(
                       'Select a category',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8), // Vertical spacing
                     // Image options
                     Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: imageOptions.map((option) {
                         final isSelected = selectedImage ==
                             option['image']; // Check if the image is selected
@@ -740,8 +737,8 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                             children: [
                               // Category image
                               Container(
-                                width: 80,
-                                height: 80,
+                                width: 70,
+                                height: 70,
                                 decoration: BoxDecoration(
                                   border: isSelected
                                       ? Border.all(
@@ -764,17 +761,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 4), // Vertical spacing
-                              // Category name
-                              Text(
-                                option['name'],
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.black
-                                      : Colors.black.withOpacity(
-                                          0.3), // Reduced opacity if not selected
-                                ),
-                              ),
+                              const SizedBox(height: 7), // Vertical spacing
                             ],
                           ),
                         );
@@ -788,35 +775,25 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         labelText: selectedDay == null
                             ? 'Select a day'
                             : 'Selected day',
-                        labelStyle: TextStyle(
-                          color: selectedDay == null
-                              ? Colors.red
-                              : isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
+                        labelStyle: const TextStyle(
+                          color: Colors.black,
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: selectedDay == null
-                                ? Colors.red
-                                : isDarkMode
-                                    ? Colors.white
-                                    : Colors.grey,
+                          borderSide: const BorderSide(
+                            color: Colors.black87,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color:
-                                selectedDay == null ? Colors.red : Colors.blue,
+                          borderSide: const BorderSide(
+                            color: Colors.black,
                           ),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                       ),
-                      hint: Text(
+                      hint: const Text(
                         'Select a day',
-                        style: TextStyle(
-                            color: isDarkMode ? Colors.white : Colors.black),
+                        style: TextStyle(color: Colors.black),
                       ),
                       dropdownColor: isDarkMode
                           ? Colors.black
@@ -854,6 +831,9 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           actions: [
             // "Cancel" button
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
               child: const Text('Cancel'),
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
@@ -861,6 +841,9 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             ),
             // "Add" button
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+              ),
               child: const Text('Add'),
               onPressed: () async {
                 final messenger =

@@ -1003,43 +1003,51 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                           color: Colors.black87,
                         ),
                       )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: exercises.length,
-                        itemBuilder: (context, index) {
-                          var exercise = exercises[index];
-                          String exerciseName = exercise['name'] ?? 'Exercice';
-                          int sets = exercise['sets'] ?? 0;
-                          int reps = exercise['reps'] ?? 0;
-                          double weight = (exercise['weight'] ?? 0).toDouble();
-                          int rest = exercise['restBetweenExercises'] ?? 0;
+                    : Container(
+                        constraints: const BoxConstraints(
+                          maxHeight: 300, // Hauteur maximale (en pixels)
+                        ),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: exercises.length,
+                          itemBuilder: (context, index) {
+                            var exercise = exercises[index];
+                            String exerciseName =
+                                exercise['name'] ?? 'Exercice';
+                            int sets = exercise['sets'] ?? 0;
+                            int reps = exercise['reps'] ?? 0;
+                            double weight =
+                                (exercise['weight'] ?? 0).toDouble();
+                            int rest = exercise['restBetweenExercises'] ?? 0;
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  exerciseName,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black, // Couleur dynamique
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    exerciseName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black, // Couleur dynamique
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black87,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black87,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
               ),
             ],

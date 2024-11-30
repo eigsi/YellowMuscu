@@ -327,6 +327,7 @@ class ProfilePageState extends State<ProfilePage> {
 
   // Method to delete the user account
   void _deleteAccount() async {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // Display a confirmation dialog
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -338,7 +339,11 @@ class ProfilePageState extends State<ProfilePage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style:
+                    TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
@@ -493,6 +498,7 @@ class ProfilePageState extends State<ProfilePage> {
 
   // Widget to display the "Add Friends" section with a search bar
   Widget _buildAddFriendsSection() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -568,7 +574,9 @@ class ProfilePageState extends State<ProfilePage> {
                                       onPressed: () =>
                                           _sendFriendRequest(user['uid']),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
+                                        backgroundColor: isDarkMode
+                                            ? darkWidget
+                                            : Colors.white,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 16.0),
                                         minimumSize: const Size(0, 0),
@@ -577,7 +585,8 @@ class ProfilePageState extends State<ProfilePage> {
                                       ),
                                       child: const Text(
                                         'Add',
-                                        style: TextStyle(fontSize: 14),
+                                        style: TextStyle(
+                                            fontSize: 14, color: Colors.black),
                                       ),
                                     ),
                                   ),
@@ -593,6 +602,7 @@ class ProfilePageState extends State<ProfilePage> {
 
   // Widget to build the profile display
   Widget _buildProfile() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -674,36 +684,41 @@ class ProfilePageState extends State<ProfilePage> {
               _buildStatsSection(),
             ],
           ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         // Buttons for editing profile, saving, signing out, and deleting account
+
         Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
-                  height: 36,
+                  height: 38,
                   child: ElevatedButton(
                     onPressed: _toggleEditing,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: lightWidget,
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     child: Text(
                       _isEditing ? 'Cancel' : 'Edit Profile',
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),
                 _isEditing
                     ? SizedBox(
-                        height: 36,
+                        height: 38,
                         child: ElevatedButton(
                           onPressed: _saveProfile,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor:
+                                isDarkMode ? darkWidget : Colors.white,
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             minimumSize: const Size(0, 0),
@@ -711,50 +726,67 @@ class ProfilePageState extends State<ProfilePage> {
                           ),
                           child: const Text(
                             'Save',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
                       )
                     : SizedBox(
-                        height: 36,
+                        height: 38,
                         child: ElevatedButton(
                           onPressed: _signOut,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent,
+                            backgroundColor: Colors.black,
                             padding:
                                 const EdgeInsets.symmetric(horizontal: 16.0),
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            side: BorderSide(
+                              color: Colors.white,
+                              width: isDarkMode ? 1.5 : 0,
+                            ),
                           ),
                           child: const Text(
                             'Sign Out',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: lightWidget,
+                            ),
                           ),
                         ),
                       ),
+                // Bouton Delete Account
+                if (!_isEditing)
+                  SizedBox(
+                    height: 38,
+                    child: ElevatedButton(
+                      onPressed: _deleteAccount,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        side: BorderSide(
+                          color: Colors.white,
+                          width: isDarkMode ? 1.5 : 0,
+                        ),
+                      ),
+                      child: const Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: lightWidget,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
-            const SizedBox(height: 16),
-            // Button to delete account (visible only in display mode)
-            if (!_isEditing)
-              SizedBox(
-                height: 36,
-                child: ElevatedButton(
-                  onPressed: _deleteAccount,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    minimumSize: const Size(0, 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Delete Account',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                ),
-              ),
           ],
         ),
+        const SizedBox(height: 16),
         // Display the "Add Friends" section if edit mode is disabled
         if (!_isEditing) _buildAddFriendsSection(),
       ],
@@ -763,110 +795,33 @@ class ProfilePageState extends State<ProfilePage> {
 
   // Modified Widget to display the stats section
   Widget _buildStatsSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Weight
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0), // Rounded corners
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    _weightController.text.isNotEmpty
-                        ? _weightController.text
-                        : '-',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Weight',
-                    style: TextStyle(
-                      fontSize: 14, // Slightly smaller font
-                      color: Colors.grey, // Gray color
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        decoration: BoxDecoration(
+          color: isDarkMode ? darkWidget : lightWidget, // Fond jaune
+          borderRadius: BorderRadius.circular(16.0), // Coins arrondis
         ),
-        const SizedBox(width: 16),
-        // Height
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0), // Rounded corners
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    _heightController.text.isNotEmpty
-                        ? _heightController.text
-                        : '-',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Height',
-                    style: TextStyle(
-                      fontSize: 14, // Slightly smaller font
-                      color: Colors.grey, // Gray color
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        child: Text(
+          '${_weightController.text.isNotEmpty ? '${_weightController.text} Kg' : '-'} ·  '
+          '${_heightController.text.isNotEmpty ? '${_heightController.text} cm' : '-'} ·  '
+          '${_birthdateController.text.isNotEmpty ? _birthdateController.text : '-'}',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.black : Colors.black, // Texte noir
+          ),
+          textAlign: TextAlign.center, // Texte centré
         ),
-        const SizedBox(width: 16),
-        // Birthdate
-        Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0), // Rounded corners
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    _birthdateController.text.isNotEmpty
-                        ? _birthdateController.text
-                        : '-',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Birthdate',
-                    style: TextStyle(
-                      fontSize: 14, // Slightly smaller font
-                      color: Colors.grey, // Gray color
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
   // Widget to display the sign-in screen if the user is not logged in
   Widget _buildSignIn() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -879,7 +834,7 @@ class ProfilePageState extends State<ProfilePage> {
                 Navigator.pushNamed(context, '/signIn');
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: isDarkMode ? darkWidget : Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 minimumSize: const Size(0, 0),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,

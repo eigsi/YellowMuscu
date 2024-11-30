@@ -1,5 +1,6 @@
 //display the list of categories in 'bibliotheque'
 import 'package:flutter/material.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 class ExerciseCategoryList extends StatelessWidget {
   final List<Map<String, dynamic>> categories;
@@ -22,7 +23,7 @@ class ExerciseCategoryList extends StatelessWidget {
         return ListTile(
           leading: Icon(
             category['icon'],
-            color: isDarkMode ? Colors.white : Colors.black,
+            color: isDarkMode ? darkWidget : Colors.black,
           ),
           title: Text(
             category['name'],
