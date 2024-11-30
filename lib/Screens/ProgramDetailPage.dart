@@ -89,7 +89,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         programId = newProgramRef.id;
         await newProgramRef.set({
           'id': programId,
-          'name': widget.program['name'] ?? 'Nouveau Programme',
+          'name': widget.program['name'] ?? 'New Program',
           'exercises': exercises,
         });
       } else {
@@ -108,14 +108,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       // Affiche une confirmation visuelle que les exercices ont été sauvegardés
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Exercices sauvegardés avec succès'),
+          content: Text('Exercices saved'),
         ),
       );
     } catch (e) {
       // Gère les erreurs de Firestore
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de la sauvegarde des exercices: $e'),
+          content: Text('Error : $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -128,19 +128,21 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     int currentMinutes = currentRestTime ~/ 60; // Calcule les minutes initiales
     int currentSeconds = currentRestTime % 60; // Calcule les secondes initiales
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Theme.of(context).canvasColor, // Couleur de fond
+          color: isDarkMode ? Colors.black : Colors.white, // Couleur de fond
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Picker pour les minutes
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Theme.of(context).canvasColor,
+                  backgroundColor: isDarkMode ? Colors.black : Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: currentMinutes, // Valeur initiale en minutes
@@ -160,7 +162,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               // Picker pour les secondes
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Theme.of(context).canvasColor,
+                  backgroundColor: isDarkMode ? Colors.black : Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: (currentSeconds / 10)
@@ -196,12 +198,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       int minValue, int maxValue, int step, ValueChanged<int> onValueChanged) {
     int currentValue = initialValue; // Valeur courante initialisée
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Theme.of(context).canvasColor, // Couleur de fond
+          color: isDarkMode ? Colors.black : Colors.white, // Couleur de fond
           child: Column(
             children: [
               // Titre du picker
@@ -213,7 +217,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               ),
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Theme.of(context).canvasColor,
+                  backgroundColor: isDarkMode ? Colors.black : Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) ~/ step)
@@ -254,12 +258,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       ValueChanged<double> onValueChanged) {
     double currentValue = initialValue; // Valeur courante initialisée
 
+    final isDarkMode = ref.watch(themeProvider);
+
     showModalBottomSheet(
       context: context,
       builder: (BuildContext builder) {
         return Container(
           height: 250, // Hauteur du modal
-          color: Theme.of(context).canvasColor, // Couleur de fond
+          color: isDarkMode ? Colors.black : Colors.white,
           child: Column(
             children: [
               // Titre du picker
@@ -271,7 +277,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               ),
               Expanded(
                 child: CupertinoPicker(
-                  backgroundColor: Theme.of(context).canvasColor,
+                  backgroundColor: isDarkMode ? Colors.black : Colors.white,
                   itemExtent: 32.0, // Hauteur de chaque élément
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) / step)
@@ -330,7 +336,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           // Utilise un StatefulBuilder pour gérer l'état local dans le dialogue
           return AlertDialog(
             backgroundColor: isDarkMode
-                ? Colors.black54
+                ? Colors.black
                 : Colors.white, // Couleur de fond selon le thème
             title: Text(
               'Modifier ${exercise['name']}', // Titre du dialogue
@@ -516,12 +522,18 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
             actions: [
               // Bouton pour annuler les modifications
               TextButton(
-                child: const Text('Annuler'),
+                style: TextButton.styleFrom(
+                  foregroundColor: isDarkMode ? Colors.white : Colors.black,
+                ),
+                child: const Text('Cancel'),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               // Bouton pour enregistrer les modifications
               TextButton(
-                child: const Text('Enregistrer'),
+                style: TextButton.styleFrom(
+                  foregroundColor: isDarkMode ? Colors.white : Colors.black,
+                ),
+                child: const Text('Save'),
                 onPressed: () async {
                   setState(() {
                     // Met à jour les valeurs de l'exercice dans la liste
@@ -940,7 +952,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         return AlertDialog(
           backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
           title: Text(
-            'Temps de repos entre exercices',
+            'Rest time',
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
           ),
           content: StatefulBuilder(
@@ -1228,11 +1240,10 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                           onPressed: () =>
                                               _changeRestBetweenExercises(
                                                   index, -10),
-                                          tooltip:
-                                              'Diminuer le temps de repos entre les exercices',
+                                          tooltip: 'Change Rest time',
                                         ),
                                         Text(
-                                          'Repos entre exercices: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}',
+                                          'Rest time: ${_formatDuration(exercises[index]['restBetweenExercises'] ?? 60)}',
                                           style: TextStyle(
                                               fontSize: 16,
                                               color: isDarkMode
@@ -1262,8 +1273,8 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  child: CupertinoButton.filled(
-                    //color: CupertinoColors.systemYellow,
+                  child: CupertinoButton(
+                    color: darkWidget,
                     borderRadius: BorderRadius.circular(30.0),
                     onPressed: _addNewExercises,
                     child: const Text(
@@ -1271,7 +1282,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: CupertinoColors.white,
+                        color: CupertinoColors.black,
                       ),
                     ),
                   ),

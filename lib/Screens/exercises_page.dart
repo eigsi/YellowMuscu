@@ -153,7 +153,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor:
-          isDarkMode ? Colors.black54 : Colors.white, // Background color
+          isDarkMode ? Colors.black : Colors.white, // Background color
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
             top: Radius.circular(16.0)), // Rounded corners
@@ -318,7 +318,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Background color
+              isDarkMode ? Colors.black : Colors.white, // Background color
           contentPadding: const EdgeInsets.all(16.0), // Padding
           content: SingleChildScrollView(
             child: Column(
@@ -400,7 +400,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     showModalBottomSheet(
       context: context,
       backgroundColor:
-          isDarkMode ? Colors.black54 : Colors.white, // Background color
+          isDarkMode ? Colors.black : Colors.white, // Background color
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
             top: Radius.circular(16.0)), // Rounded corners
@@ -486,10 +486,10 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
         final isDarkMode = ref.watch(themeProvider); // Check the theme
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Background color
-          title: Text(
-            'Rest time between exercises',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+              isDarkMode ? darkWidget : Colors.white, // Background color
+          title: const Text(
+            'Rest time',
+            style: TextStyle(color: Colors.black),
           ),
           content: StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateDialog) {
@@ -499,7 +499,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                 children: [
                   // Button to decrease rest time
                   IconButton(
-                    icon: const Icon(Icons.remove),
+                    icon: const Icon(Icons.remove, color: Colors.black),
                     onPressed: () {
                       if (restBetweenExercises > 10) {
                         setStateDialog(() {
@@ -511,12 +511,14 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                   // Display current rest time
                   Text(
                     '$restBetweenExercises s',
-                    style: TextStyle(
-                        color: isDarkMode ? Colors.white : Colors.black),
+                    style: const TextStyle(color: Colors.black),
                   ),
                   // Button to increase rest time
                   IconButton(
-                    icon: const Icon(Icons.add),
+                    icon: const Icon(
+                      Icons.add,
+                      color: Colors.black,
+                    ),
                     onPressed: () {
                       setStateDialog(() {
                         restBetweenExercises += 10; // Increase by 10 seconds
@@ -530,6 +532,9 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
           actions: [
             // Button to add the exercise to the program
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.black, // Couleur du texte
+              ),
               child: const Text('Add'),
               onPressed: () async {
                 final messenger =
@@ -671,7 +676,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor:
-              isDarkMode ? Colors.black54 : Colors.white, // Background color
+              isDarkMode ? Colors.black : Colors.white, // Background color
           title: Text(
             'Add a new program',
             style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
@@ -814,7 +819,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                             color: isDarkMode ? Colors.white : Colors.black),
                       ),
                       dropdownColor: isDarkMode
-                          ? Colors.black54
+                          ? Colors.black
                           : Colors.white, // Dropdown menu color
                       isExpanded: true,
                       onChanged: (String? newValue) {
@@ -928,7 +933,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       margin: const EdgeInsets.symmetric(vertical: 8.0), // External margins
       padding: const EdgeInsets.all(12.0), // Padding
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.black54 : Colors.white, // Background color
+        color: isDarkMode ? Colors.black : Colors.white, // Background color
         borderRadius: BorderRadius.circular(16.0), // Rounded corners
       ),
       child: Row(
@@ -1115,7 +1120,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                         flex: 1, // Take available space
                         child: Card(
                           color: isDarkMode
-                              ? Colors.black54
+                              ? Colors.black
                               : Colors.white, // Background color
                           elevation: 4.0, // Elevation for shadow
                           shape: RoundedRectangleBorder(

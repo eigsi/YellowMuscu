@@ -518,7 +518,10 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                             child: Text(
                               'General',
                               style: TextStyle(
-                                color: Colors.black,
+                                color: settings.selectedMenu ==
+                                        StatisticsMenu.general
+                                    ? Colors.white
+                                    : Colors.black,
                                 fontSize: 14,
                                 fontWeight: settings.selectedMenu ==
                                         StatisticsMenu.general
@@ -533,7 +536,10 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                             child: Text(
                               ' Week',
                               style: TextStyle(
-                                color: Colors.black,
+                                color: settings.selectedMenu ==
+                                        StatisticsMenu.general
+                                    ? Colors.black
+                                    : Colors.white,
                                 fontSize: 14,
                                 fontWeight: settings.selectedMenu ==
                                         StatisticsMenu.general
@@ -549,7 +555,7 @@ class _StatisticsPageState extends ConsumerState<StatisticsPage> {
                               .read(statisticsSettingsProvider.notifier)
                               .setSelectedMenu(value);
                         },
-                        selectedColor: lightTop,
+                        selectedColor: isDarkMode ? lightTop : darkTop,
                         unselectedColor: Colors.white,
                         borderColor: isDarkMode ? lightTop : darkBottom,
                       ),

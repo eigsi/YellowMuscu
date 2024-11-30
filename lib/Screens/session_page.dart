@@ -319,7 +319,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
                           padding: const EdgeInsets.all(8),
                           child: ListTile(
                             title: Text(
-                              program['name'] ?? 'Programme sans nom',
+                              program['name'] ?? 'Untilted Program',
                               style: const TextStyle(
                                 color: Colors.black,
                               ),
@@ -328,6 +328,10 @@ class SessionPageState extends ConsumerState<SessionPage> {
                               value: program['isDone'] ?? false,
                               onChanged: null,
                               checkColor: Colors.black,
+                              side: const BorderSide(
+                                color: Colors.black,
+                                width: 2.0,
+                              ),
                             ),
                           ),
                         ),
