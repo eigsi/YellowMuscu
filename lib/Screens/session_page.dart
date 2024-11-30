@@ -147,7 +147,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
             actions: [
               TextButton(
                 child: const Text(
-                  'Annuler',
+                  'Cancel',
                   style: TextStyle(color: Colors.red),
                 ),
                 onPressed: () {
@@ -155,9 +155,10 @@ class SessionPageState extends ConsumerState<SessionPage> {
                 },
               ),
               TextButton(
-                child: const Text(
-                  'Commencer',
-                  style: TextStyle(color: Colors.green),
+                child: Text(
+                  'Start',
+                  style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop(); // Ferme le dialogue
@@ -324,13 +325,21 @@ class SessionPageState extends ConsumerState<SessionPage> {
                                 color: Colors.black,
                               ),
                             ),
-                            trailing: Checkbox(
-                              value: program['isDone'] ?? false,
-                              onChanged: null,
-                              checkColor: Colors.black,
-                              side: const BorderSide(
-                                color: Colors.black,
-                                width: 2.0,
+                            trailing: CheckboxTheme(
+                              data: CheckboxThemeData(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                      4.0), // Définir le BorderRadius
+                                ),
+                                side: const BorderSide(
+                                  color: Colors.black,
+                                  width: 2.0,
+                                ),
+                              ),
+                              child: Checkbox(
+                                value: program['isDone'] ?? false,
+                                onChanged: null,
+                                checkColor: Colors.black,
                               ),
                             ),
                           ),

@@ -532,19 +532,26 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
       child: Container(
         margin: const EdgeInsets.all(16),
         padding: const EdgeInsets.all(16),
-        color: isDarkMode ? darkWidget : lightWidget,
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.black : lightWidget, // Couleur de fond
+          borderRadius: BorderRadius.circular(16.0), // Coins arrondis
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _currentExercise['image'] != null &&
                     (_currentExercise['image'] is String) &&
                     (_currentExercise['image'] as String).isNotEmpty
-                ? Image.asset(
-                    _currentExercise['image'],
-                    height: 200,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.image_not_supported, size: 200);
-                    },
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0), // Coins arrondis
+                    child: Image.asset(
+                      _currentExercise['image'],
+                      height: 200,
+                      fit: BoxFit.cover, // Ajuste l'image à l'espace disponible
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.image_not_supported, size: 200);
+                      },
+                    ),
                   )
                 : const Icon(Icons.image_not_supported, size: 200),
             const SizedBox(height: 16),
@@ -577,13 +584,12 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
             ElevatedButton(
               onPressed: _completeSet,
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDarkMode ? darkWidget : lightWidget,
-                foregroundColor: isDarkMode ? Colors.black : Colors.white,
+                backgroundColor: darkWidget,
+                foregroundColor: Colors.black,
               ),
               child: Text(
                 'Terminer la série ${_currentSet + 1}',
-                style:
-                    TextStyle(color: isDarkMode ? Colors.black : Colors.white),
+                style: const TextStyle(color: Colors.black),
               ),
             ),
           ],
@@ -689,7 +695,12 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
             backgroundColor: isDarkMode ? darkWidget : lightWidget,
             foregroundColor: isDarkMode ? Colors.black : Colors.white,
           ),
-          child: const Text('Passer le repos'),
+          child: const Text(
+            'Passer le repos',
+            style: TextStyle(
+              color: Colors.black,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         if (!_isBetweenExercises)
