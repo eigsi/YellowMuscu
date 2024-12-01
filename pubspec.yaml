@@ -38,9 +38,8 @@ dependencies:
   firebase_core: ^3.4.1
   cloud_firestore: ^5.0.1
   firebase_auth: ^5.3.1
-  #dcdg: ^4.1.0
   shared_preferences: ^2.0.13 
-  #reorderables: ^0.4.2
+ 
 
 
 
@@ -53,16 +52,16 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  flutter_launcher_icons: ^0.9.2
   flutter_lints: ^4.0.0
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "lib/data/logo.png"
+  adaptive_icon_background: "#FFFFFF" # Couleur de fond ou image pour l'icône adaptative
+  adaptive_icon_foreground: "lib/data/logo.png" # Utilisez une version agrandie de votre logo ici
+
 
 # The following section is specific to Flutter packages.
 flutter:
