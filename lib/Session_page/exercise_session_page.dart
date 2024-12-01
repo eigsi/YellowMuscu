@@ -410,6 +410,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     } catch (e) {
       // Gérer les erreurs de mise à jour
       if (mounted) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
@@ -1249,7 +1250,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_currentExercise['name'] ?? ''),
-        backgroundColor: isDarkMode ? darkNavBar : lightNavBar,
+        backgroundColor: isDarkMode ? darkNavBar : lightTop,
       ),
       body: Container(
         decoration: BoxDecoration(

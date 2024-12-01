@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart'; // Flutter material widgets library
 import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
-import 'package:yellowmuscu/Provider/theme_provider.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import your theme provider
 
 // Define the ProfilePage class, a StatefulWidget to display and edit user profiles
 class ProfilePage extends StatefulWidget {
@@ -325,7 +325,7 @@ class ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // Method to delete the user account
+  // Modified Method to delete the user account
   void _deleteAccount() async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // Display a confirmation dialog
@@ -362,6 +362,9 @@ class ProfilePageState extends State<ProfilePage> {
     }
 
     try {
+      // Always re-authenticate the user by asking for their password
+      await _reauthenticateUser();
+
       // Delete Firestore data
       await _deleteUserData();
 
@@ -409,10 +412,11 @@ class ProfilePageState extends State<ProfilePage> {
         );
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
+      if (e.code == 'wrong-password') {
+        _showError('Incorrect password. Please try again.');
+      } else if (e.code == 'requires-recent-login') {
         _showError(
             'Account deletion failed. Please log in again and try again.');
-        // Optionally: Navigate to the sign-in page for re-authentication
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/signIn');
         }
@@ -422,6 +426,67 @@ class ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       _showError('An error occurred: $e');
     }
+  }
+
+  // Method to re-authenticate the user
+  Future<void> _reauthenticateUser() async {
+    if (_user == null) return;
+
+    String? password = await _promptForPassword();
+
+    if (password == null) {
+      throw Exception('Password not provided');
+    }
+
+    // Create a credential
+    AuthCredential credential = EmailAuthProvider.credential(
+      email: _user!.email!,
+      password: password,
+    );
+
+    // Reauthenticate
+    await _user!.reauthenticateWithCredential(credential);
+  }
+
+  // Method to prompt the user for their password
+  Future<String?> _promptForPassword() async {
+    String? password;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        String passwordInput = '';
+        return AlertDialog(
+          title: const Text('Confirm Password'),
+          content: TextField(
+            onChanged: (value) {
+              passwordInput = value;
+            },
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Enter your password',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                password = passwordInput;
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return password;
   }
 
   // Method to delete user data from Firestore
@@ -680,13 +745,12 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Weight, height, and birthdate in white boxes
+              // Weight, height, and birthdate in a styled container
               _buildStatsSection(),
             ],
           ),
         const SizedBox(height: 20),
         // Buttons for editing profile, saving, signing out, and deleting account
-
         Column(
           children: [
             Row(
@@ -757,7 +821,6 @@ class ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                // Bouton Delete Account
                 if (!_isEditing)
                   SizedBox(
                     height: 38,
@@ -793,7 +856,7 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Modified Widget to display the stats section
+  // Widget to display the stats section
   Widget _buildStatsSection() {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -801,8 +864,8 @@ class ProfilePageState extends State<ProfilePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         decoration: BoxDecoration(
-          color: isDarkMode ? darkWidget : lightWidget, // Fond jaune
-          borderRadius: BorderRadius.circular(16.0), // Coins arrondis
+          color: isDarkMode ? darkWidget : lightWidget, // Background color
+          borderRadius: BorderRadius.circular(16.0), // Rounded corners
         ),
         child: Text(
           '${_weightController.text.isNotEmpty ? '${_weightController.text} Kg' : '-'} ·  '
@@ -811,9 +874,9 @@ class ProfilePageState extends State<ProfilePage> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.black : Colors.black, // Texte noir
+            color: isDarkMode ? Colors.black : Colors.black, // Text color
           ),
-          textAlign: TextAlign.center, // Texte centré
+          textAlign: TextAlign.center, // Centered text
         ),
       ),
     );

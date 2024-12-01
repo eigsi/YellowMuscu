@@ -86,10 +86,44 @@ class SessionPageState extends ConsumerState<SessionPage> {
           .collection('completedSessions')
           .add({
         'programName': programData['name'] ?? 'Untitled Program',
+        'programId': programId, // Add programId to identify the program
         'date': sessionEndTime,
         'duration': durationFormatted,
         'totalWeight': totalWeight,
         'userId': _user!.uid,
+      });
+
+      // **Add an event to the user's events subcollection**
+      // Retrieve the user's name from their document
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .get();
+
+      String userName = 'User';
+      if (userSnapshot.exists) {
+        Map<String, dynamic>? userData =
+            userSnapshot.data() as Map<String, dynamic>?;
+        if (userData != null) {
+          String firstName = userData['first_name'] ?? '';
+          String lastName = userData['last_name'] ?? '';
+          userName = '$firstName $lastName'.trim();
+        }
+      }
+
+      // Add the event to the user's events subcollection
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('events')
+          .add({
+        'type': 'program_completed',
+        'timestamp': FieldValue.serverTimestamp(),
+        'programName': programData['name'] ?? 'Untitled Program',
+        'totalWeight': totalWeight,
+        'description':
+            '$userName lifted ${totalWeight.toStringAsFixed(2)} kg during the session "${programData['name']}"',
+        'likes': [], // Initialize likes as empty list
       });
 
       if (!mounted) return;
@@ -102,6 +136,9 @@ class SessionPageState extends ConsumerState<SessionPage> {
           backgroundColor: Colors.green,
         ),
       );
+
+      // Refresh the programs list to update the checkboxes
+      _fetchPrograms();
     } catch (e) {
       if (!mounted) return;
       // In case of an error, display a more detailed error message
@@ -118,12 +155,12 @@ class SessionPageState extends ConsumerState<SessionPage> {
 
   // Method to start a training session
   void _startSession(Map<String, dynamic> program) {
-    if (program['exercises'].isEmpty) {
-      // If the program contains no exercises, display a message
+    if (program['exercises'].length < 2) {
+      // If the program has zero or one exercise, display a message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'This program contains no exercises. Go to the program page to add some!'),
+              'You have to add more than one exercise to the program to begin a session!'),
         ),
       );
     } else {
@@ -186,7 +223,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
     }
   }
 
-  // Method to fetch the user's programs from Firestore
+  // Method to fetch the user's programs and their completion status for this week
   void _fetchPrograms() async {
     if (_user == null) return;
 
@@ -195,17 +232,57 @@ class SessionPageState extends ConsumerState<SessionPage> {
     });
 
     try {
-      final snapshot = await FirebaseFirestore.instance
+      // Fetch programs and completed sessions in parallel
+      final userProgramsFuture = FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
           .collection('programs')
           .get();
 
+      // Get the start and end of the current week
+      DateTime now = DateTime.now();
+      DateTime startOfWeek =
+          now.subtract(Duration(days: now.weekday - 1)); // Start on Monday
+      DateTime endOfWeek =
+          startOfWeek.add(Duration(days: 7)); // End on next Monday
+
+      Timestamp startTimestamp = Timestamp.fromDate(DateTime(
+          startOfWeek.year, startOfWeek.month, startOfWeek.day, 0, 0, 0));
+      Timestamp endTimestamp = Timestamp.fromDate(
+          DateTime(endOfWeek.year, endOfWeek.month, endOfWeek.day, 0, 0, 0));
+
+      final completedSessionsFuture = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.uid)
+          .collection('completedSessions')
+          .where('date', isGreaterThanOrEqualTo: startTimestamp)
+          .where('date', isLessThan: endTimestamp)
+          .get();
+
+      // Wait for both futures
+      final results = await Future.wait([
+        userProgramsFuture,
+        completedSessionsFuture,
+      ]);
+
+      final userProgramsSnapshot = results[0] as QuerySnapshot;
+      final completedSessionsSnapshot = results[1] as QuerySnapshot;
+
       if (!mounted) return;
+
+      // Build set of program IDs for which the user has completed sessions this week
+      Set<String> completedProgramIdsThisWeek = {};
+      for (var doc in completedSessionsSnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        String programId = data['programId'] ?? '';
+        if (programId.isNotEmpty) {
+          completedProgramIdsThisWeek.add(programId);
+        }
+      }
 
       setState(() {
         // Updates the list of programs with the retrieved data
-        _programs = snapshot.docs.map((doc) {
+        _programs = userProgramsSnapshot.docs.map((doc) {
           Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
 
           if (data == null) {
@@ -216,6 +293,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
               'isFavorite': false,
               'isDone': false,
               'exercises': [],
+              'isCompletedThisWeek': false,
             };
           }
 
@@ -233,6 +311,10 @@ class SessionPageState extends ConsumerState<SessionPage> {
               .cast<Map<String, dynamic>>()
               .toList();
 
+          // Check if the program has been completed this week
+          bool isCompletedThisWeek =
+              completedProgramIdsThisWeek.contains(doc.id);
+
           // Returns the program with its details
           return {
             'id': doc.id,
@@ -240,6 +322,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
             'isFavorite': data['isFavorite'] ?? false,
             'isDone': data['isDone'] ?? false,
             'exercises': exercises,
+            'isCompletedThisWeek': isCompletedThisWeek,
           };
         }).toList();
         _isLoading = false; // Ends loading
@@ -320,7 +403,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
                             title: Text(
                               program['name'] ?? 'Untitled Program',
                               style: const TextStyle(
-                                color: Colors.black,
+                                color: darkTop,
                               ),
                             ),
                             trailing: CheckboxTheme(
@@ -330,14 +413,15 @@ class SessionPageState extends ConsumerState<SessionPage> {
                                       4.0), // Define the BorderRadius
                                 ),
                                 side: const BorderSide(
-                                  color: Colors.black,
+                                  color: darkTop,
                                   width: 2.0,
                                 ),
                               ),
                               child: Checkbox(
-                                value: program['isDone'] ?? false,
+                                value: program['isCompletedThisWeek'] ?? false,
                                 onChanged: null,
-                                checkColor: Colors.black,
+                                checkColor:
+                                    isDarkMode ? Colors.black : Colors.white,
                               ),
                             ),
                           ),

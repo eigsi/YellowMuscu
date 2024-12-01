@@ -1,3 +1,5 @@
+// exercises_page.dart
+
 // Import necessary libraries
 import 'package:flutter/material.dart'; // Material Design widgets and themes
 import 'package:yellowmuscu/data/exercises_data.dart'; // Exercise data
@@ -533,7 +535,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
             // Button to add the exercise to the program
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.black, // Couleur du texte
+                foregroundColor: Colors.black, // Text color
               ),
               child: const Text('Add'),
               onPressed: () async {
@@ -871,12 +873,27 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
                   };
 
                   try {
-                    // Add the new program to Firestore
-                    await FirebaseFirestore.instance
+                    // Add the new program to Firestore and get the document ID
+                    DocumentReference programRef = await FirebaseFirestore
+                        .instance
                         .collection('users')
                         .doc(_user!.uid)
                         .collection('programs')
                         .add(newProgram);
+
+                    // **Add event to user's events subcollection**
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(_user!.uid)
+                        .collection('events')
+                        .add({
+                      'programName': programController.text, // Program name
+                      'programId': programRef.id, // Program document ID
+                      'timestamp': FieldValue.serverTimestamp(),
+                      'type': 'program_creation',
+                      'likes': [], // Initialize likes as empty list
+                    });
+
                     if (!mounted) {
                       return; // Check if the widget is still mounted
                     }

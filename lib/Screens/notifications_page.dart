@@ -1,63 +1,61 @@
 // notifications_page.dart
 
-// Importation des packages nécessaires pour Flutter et Firebase
-import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
-import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore
-import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
+// Import necessary packages for Flutter and Firebase
+import 'package:flutter/material.dart'; // Flutter material widgets library
+import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 
-// Définition de la classe NotificationsPage qui est un StatefulWidget
+// Define the NotificationsPage class, which is a StatefulWidget
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
 
   @override
-  _NotificationsPageState createState() => _NotificationsPageState();
+  NotificationsPageState createState() => NotificationsPageState();
 }
 
-// État associé à la classe NotificationsPage
-class _NotificationsPageState extends State<NotificationsPage> {
-  // Instance de FirebaseAuth pour gérer l'authentification
+// State associated with the NotificationsPage class
+class NotificationsPageState extends State<NotificationsPage> {
+  // Instance of FirebaseAuth to manage authentication
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? _user; // Variable pour stocker l'utilisateur actuellement connecté
-  List<Map<String, dynamic>> _friendRequests = []; // Liste des demandes d'amis
-  List<Map<String, dynamic>> _likes = []; // Liste des likes reçus
+  User? _user; // Variable to store the currently logged-in user
+  List<Map<String, dynamic>> _friendRequests = []; // List of friend requests
+  List<Map<String, dynamic>> _likes = []; // List of received likes
 
   @override
   void initState() {
     super.initState();
-    _user = _auth.currentUser; // Récupère l'utilisateur actuellement connecté
+    _user = _auth.currentUser; // Get the currently logged-in user
     if (_user != null) {
-      // Si l'utilisateur est connecté, on écoute les changements en temps réel dans les notifications
+      // If the user is logged in, listen to real-time changes in notifications
       FirebaseFirestore.instance
-          .collection('users') // Accès à la collection 'users' dans Firestore
-          .doc(_user!.uid) // Accès au document de l'utilisateur actuel
+          .collection('users') // Access the 'users' collection in Firestore
+          .doc(_user!.uid) // Access the current user's document
           .collection(
-              'notifications') // Accès à la sous-collection 'notifications'
+              'notifications') // Access the 'notifications' subcollection
           .orderBy('timestamp',
-              descending: true) // Trie les notifications par date décroissante
-          .snapshots() // Obtient un flux en temps réel des données
+              descending: true) // Order notifications by descending date
+          .snapshots() // Get a real-time stream of data
           .listen((snapshot) {
-        // Écoute les changements dans les notifications
+        // Listen to changes in notifications
         List<Map<String, dynamic>> friendRequests =
-            []; // Liste temporaire pour les demandes d'amis
-        List<Map<String, dynamic>> likes =
-            []; // Liste temporaire pour les likes
+            []; // Temporary list for friend requests
+        List<Map<String, dynamic>> likes = []; // Temporary list for likes
 
-        // Parcourt chaque document de notification
+        // Iterate over each notification document
         for (var doc in snapshot.docs) {
           Map<String, dynamic> data =
-              doc.data(); // Récupère les données du document
-          data['notificationId'] =
-              doc.id; // Ajoute l'ID du document aux données
+              doc.data(); // Get the data from the document
+          data['notificationId'] = doc.id; // Add the document ID to the data
 
-          // Trie les notifications en fonction de leur type
+          // Sort notifications based on their type
           if (data['type'] == 'friendRequest') {
-            friendRequests.add(data); // Ajoute à la liste des demandes d'amis
+            friendRequests.add(data); // Add to the list of friend requests
           } else if (data['type'] == 'like') {
-            likes.add(data); // Ajoute à la liste des likes
+            likes.add(data); // Add to the list of likes
           }
         }
 
-        // Met à jour l'état avec les nouvelles listes de notifications
+        // Update the state with the new notification lists
         setState(() {
           _friendRequests = friendRequests;
           _likes = likes;
@@ -66,14 +64,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  // Méthode pour accepter une demande d'ami
+  // Method to accept a friend request
   void _acceptFriendRequest(String fromUserId, String notificationId) async {
     if (_user == null) {
-      return; // Si aucun utilisateur n'est connecté, on quitte la méthode
+      return; // If no user is logged in, exit the method
     }
 
     try {
-      // Ajouter l'ID de l'ami à la liste des amis de l'utilisateur actuel
+      // Add the friend's ID to the current user's friends list
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
@@ -81,7 +79,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         'friends': FieldValue.arrayUnion([fromUserId]),
       });
 
-      // Ajouter l'ID de l'utilisateur actuel à la liste des amis de l'ami
+      // Add the current user's ID to the friend's friends list
       await FirebaseFirestore.instance
           .collection('users')
           .doc(fromUserId)
@@ -89,7 +87,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         'friends': FieldValue.arrayUnion([_user!.uid]),
       });
 
-      // Supprimer la notification de demande d'ami de la collection des notifications de l'utilisateur actuel
+      // Delete the friend request notification from the current user's notifications
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
@@ -97,7 +95,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           .doc(notificationId)
           .delete();
 
-      // Supprimer la demande des demandes envoyées de l'expéditeur (ami)
+      // Remove the request from the sender's sentRequests
       await FirebaseFirestore.instance
           .collection('users')
           .doc(fromUserId)
@@ -105,32 +103,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
         'sentRequests': FieldValue.arrayRemove([_user!.uid]),
       });
 
-      // Afficher un message de succès à l'utilisateur
+      // Show a success message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Request accepted'),
+          content: Text('Friend request accepted'),
           backgroundColor: Colors.green,
         ),
       );
     } catch (e) {
-      // En cas d'erreur, afficher un message d'erreur
+      // In case of an error, display an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text('Error accepting friend request: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  // Méthode pour rejeter une demande d'ami
+  // Method to reject a friend request
   void _rejectFriendRequest(String fromUserId, String notificationId) async {
     if (_user == null) {
-      return; // Si aucun utilisateur n'est connecté, on quitte la méthode
+      return; // If no user is logged in, exit the method
     }
 
     try {
-      // Supprimer la notification de demande d'ami de la collection des notifications de l'utilisateur actuel
+      // Delete the friend request notification from the current user's notifications
       await FirebaseFirestore.instance
           .collection('users')
           .doc(_user!.uid)
@@ -138,7 +136,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           .doc(notificationId)
           .delete();
 
-      // Supprimer la demande des demandes envoyées de l'expéditeur (ami)
+      // Remove the request from the sender's sentRequests
       await FirebaseFirestore.instance
           .collection('users')
           .doc(fromUserId)
@@ -146,18 +144,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
         'sentRequests': FieldValue.arrayRemove([_user!.uid]),
       });
 
-      // Afficher un message de refus à l'utilisateur
+      // Show a message to the user
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Request refused'),
+          content: Text('Friend request declined'),
           backgroundColor: Colors.red,
         ),
       );
     } catch (e) {
-      // En cas d'erreur, afficher un message d'erreur
+      // In case of an error, display an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text('Error declining friend request: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -167,17 +165,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     if (_user == null) {
-      // Si aucun utilisateur n'est connecté, afficher un message
+      // If no user is logged in, display a message
       return const Center(child: Text('User offline'));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'), // Titre de la page
+        title: const Text('Notifications'), // Page title
       ),
       body: ListView(
         children: [
-          // Section des demandes d'amis
+          // Friend Requests section
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
@@ -185,33 +183,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          // Si la liste des demandes d'amis est vide, afficher un message
+          // If the list of friend requests is empty, display a message
           _friendRequests.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text('No friend requests'),
                 )
               : ListView.builder(
-                  shrinkWrap:
-                      true, // Pour que la liste prenne seulement l'espace nécessaire
+                  shrinkWrap: true, // Only take up necessary space
                   physics:
-                      const NeverScrollableScrollPhysics(), // Empêche le défilement indépendant
+                      const NeverScrollableScrollPhysics(), // Disable independent scrolling
                   itemCount:
-                      _friendRequests.length, // Nombre d'éléments dans la liste
+                      _friendRequests.length, // Number of items in the list
                   itemBuilder: (context, index) {
-                    // Construit chaque élément de la liste
+                    // Build each item in the list
                     Map<String, dynamic> notification = _friendRequests[index];
                     return Dismissible(
                       key: Key(notification[
-                          'notificationId']), // Clé unique pour chaque élément
+                          'notificationId']), // Unique key for each item
                       direction: DismissDirection
-                          .endToStart, // Direction du glissement pour supprimer
+                          .endToStart, // Swipe to delete direction
                       onDismissed: (direction) {
                         setState(() {
                           _friendRequests.removeAt(
-                              index); // Supprime l'élément de la liste locale
+                              index); // Remove the item from the local list
                         });
-                        // Supprimer la notification de Firestore
+                        // Delete the notification from Firestore
                         FirebaseFirestore.instance
                             .collection('users')
                             .doc(_user!.uid)
@@ -220,16 +217,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             .delete();
                       },
                       background: Container(
-                        color: Colors.red, // Couleur de fond lors du glissement
+                        color: Colors.red, // Background color when swiping
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: const Icon(Icons.delete,
-                            color: Colors.white), // Icône de suppression
+                            color: Colors.white), // Delete icon
                       ),
                       child: Card(
                         margin: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16), // Marges autour de la carte
+                            vertical: 8, horizontal: 16), // Card margins
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundImage: notification[
@@ -242,16 +238,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     notification['fromUserProfilePicture'])
                                 : const NetworkImage(
                                     'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg'),
-                          ), // Affiche la photo de profil de l'expéditeur
+                          ), // Display the sender's profile picture
                           title: Text(
-                              'Demande d\'ami de ${notification['fromUserName']}'), // Titre de la notification
+                              'Friend request from ${notification['fromUserName']}'), // Notification title
                           subtitle: const Text(
-                              'Souhaitez-vous accepter cette demande ?'), // Sous-titre ou message supplémentaire
+                              'Do you want to accept this request?'), // Additional message
                           trailing: Row(
                             mainAxisSize: MainAxisSize
-                                .min, // Taille minimale pour le contenu
+                                .min, // Minimize size to fit content
                             children: [
-                              // Bouton pour accepter la demande d'ami
+                              // Button to accept the friend request
                               IconButton(
                                 icon: const Icon(Icons.check,
                                     color: Colors.green),
@@ -259,7 +255,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     notification['fromUserId'],
                                     notification['notificationId']),
                               ),
-                              // Bouton pour rejeter la demande d'ami
+                              // Button to reject the friend request
                               IconButton(
                                 icon:
                                     const Icon(Icons.close, color: Colors.red),
@@ -274,7 +270,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     );
                   },
                 ),
-          // Section des likes
+          // Likes section
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
@@ -282,32 +278,31 @@ class _NotificationsPageState extends State<NotificationsPage> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          // Si la liste des likes est vide, afficher un message
+          // If the list of likes is empty, display a message
           _likes.isEmpty
               ? const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text('No like'),
+                  child: Text('No likes'),
                 )
               : ListView.builder(
-                  shrinkWrap:
-                      true, // Pour que la liste prenne seulement l'espace nécessaire
+                  shrinkWrap: true, // Only take up necessary space
                   physics:
-                      const NeverScrollableScrollPhysics(), // Empêche le défilement indépendant
-                  itemCount: _likes.length, // Nombre d'éléments dans la liste
+                      const NeverScrollableScrollPhysics(), // Disable independent scrolling
+                  itemCount: _likes.length, // Number of items in the list
                   itemBuilder: (context, index) {
-                    // Construit chaque élément de la liste
+                    // Build each item in the list
                     Map<String, dynamic> notification = _likes[index];
                     return Dismissible(
                       key: Key(notification[
-                          'notificationId']), // Clé unique pour chaque élément
+                          'notificationId']), // Unique key for each item
                       direction: DismissDirection
-                          .endToStart, // Direction du glissement pour supprimer
+                          .endToStart, // Swipe to delete direction
                       onDismissed: (direction) {
                         setState(() {
                           _likes.removeAt(
-                              index); // Supprime l'élément de la liste locale
+                              index); // Remove the item from the local list
                         });
-                        // Supprimer la notification de Firestore
+                        // Delete the notification from Firestore
                         FirebaseFirestore.instance
                             .collection('users')
                             .doc(_user!.uid)
@@ -316,16 +311,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             .delete();
                       },
                       background: Container(
-                        color: Colors.red, // Couleur de fond lors du glissement
+                        color: Colors.red, // Background color when swiping
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: const Icon(Icons.delete,
-                            color: Colors.white), // Icône de suppression
+                            color: Colors.white), // Delete icon
                       ),
                       child: Card(
                         margin: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 16), // Marges autour de la carte
+                            vertical: 8, horizontal: 16), // Card margins
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundImage: notification[
@@ -338,17 +332,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     notification['fromUserProfilePicture'])
                                 : const NetworkImage(
                                     'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg'),
-                          ), // Affiche la photo de profil de l'utilisateur qui a liké
+                          ), // Display the user's profile picture who liked
                           title: Text(
-                              '${notification['fromUserName']} a liké votre exploit'), // Titre de la notification
-                          subtitle: notification['exploitName'] != null &&
-                                  notification['exploitName']
+                              '${notification['fromUserName']} liked your activity'), // Notification title
+                          subtitle: notification['description'] != null &&
+                                  notification['description']
                                       .toString()
                                       .isNotEmpty
-                              ? Text(
-                                  '${notification['fromUserName']} a liké "${notification['exploitName']}"')
+                              ? Text(notification['description'])
                               : Text(
-                                  '${notification['fromUserName']} a liké une de vos activités'), // Message supplémentaire
+                                  '${notification['fromUserName']} liked one of your activities'), // Additional message
                         ),
                       ),
                     );

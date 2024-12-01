@@ -1,4 +1,5 @@
 // lib/statistics_page.dart
+//full english
 
 import 'package:flutter/cupertino.dart'; // To use Cupertino widgets
 import 'package:flutter/material.dart'; // Main Flutter widget library

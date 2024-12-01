@@ -1,26 +1,26 @@
 // main_page.dart
 
-// Importation des packages nécessaires pour Flutter et Firebase
-import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
-import 'package:firebase_auth/firebase_auth.dart'; // Pour l'authentification Firebase
-import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore
-import 'package:yellowmuscu/Screens/session_page.dart'; // Page de session de l'application YellowMuscu
-import 'package:yellowmuscu/main_page/streaks_widget.dart'; // Widget personnalisé pour afficher les séries (streaks)
-import 'package:yellowmuscu/screens/profile_page.dart'; // Page de profil utilisateur
-import 'package:yellowmuscu/screens/statistics_page.dart'; // Page de statistiques utilisateur
-import 'package:yellowmuscu/screens/exercises_page.dart'; // Page des exercices
-import 'package:yellowmuscu/Screens/app_bar_widget.dart'; // Widget personnalisé pour la barre d'application
-import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart'; // Widget personnalisé pour la barre de navigation inférieure
-import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Widget personnalisé pour afficher les éléments likés
-import 'dart:async'; // Pour utiliser les objets Timer et gérer l'asynchronisme
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
-import 'package:flutter/cupertino.dart'; // Pour utiliser CupertinoSegmentedControl
+// Import necessary packages for Flutter and Firebase
+import 'package:flutter/material.dart'; // Flutter material widgets library
+import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
+import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
+import 'package:yellowmuscu/Screens/session_page.dart'; // Session page of the YellowMuscu app
+import 'package:yellowmuscu/main_page/streaks_widget.dart'; // Custom widget to display streaks
+import 'package:yellowmuscu/screens/profile_page.dart'; // User profile page
+import 'package:yellowmuscu/screens/statistics_page.dart'; // User statistics page
+import 'package:yellowmuscu/screens/exercises_page.dart'; // Exercises page
+import 'package:yellowmuscu/Screens/app_bar_widget.dart'; // Custom widget for the app bar
+import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart'; // Custom widget for the bottom navigation bar
+import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Custom widget to display liked items
+import 'dart:async'; // For using Timer objects and handling asynchrony
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // For state management with Riverpod
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider to manage the theme (light/dark)
+import 'package:flutter/cupertino.dart'; // For using CupertinoSegmentedControl
 
-/// Énumération pour le menu des statistiques
-enum StatisticsMenu { amis, personnel }
+/// Enumeration for the statistics menu
+enum StatisticsMenu { friends, personal }
 
-/// Classe principale de la page, qui est un ConsumerStatefulWidget pour utiliser Riverpod
+/// Main class of the page, which is a ConsumerStatefulWidget to use Riverpod
 class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
@@ -28,18 +28,17 @@ class MainPage extends ConsumerStatefulWidget {
   MainPageState createState() => MainPageState();
 }
 
-/// État associé à la classe MainPage
+/// State associated with the MainPage class
 class MainPageState extends ConsumerState<MainPage> {
-  int _selectedIndex =
-      0; // Index de l'onglet sélectionné dans la barre de navigation
-  String? _userId; // Identifiant de l'utilisateur actuel
+  int _selectedIndex = 0; // Index of the selected tab in the navigation bar
+  String? _userId; // ID of the current user
 
-  List<Map<String, dynamic>> likesData = []; // Liste des données des likes
+  List<Map<String, dynamic>> likesData = []; // List of likes data
   List<Map<String, dynamic>> personalActivities =
-      []; // Liste des activités personnelles
-  List<String> hiddenEvents = []; // Liste des eventId des événements supprimés
+      []; // List of personal activities
+  List<String> hiddenEvents = []; // List of eventIds of deleted events
 
-  // Liste des jours de la semaine en français
+  // List of days of the week in English
   final List<String> _daysOfWeek = [
     'Monday',
     'Tuesday',
@@ -50,35 +49,36 @@ class MainPageState extends ConsumerState<MainPage> {
     'Sunday'
   ];
 
-  StatisticsMenu _selectedMenu = StatisticsMenu.amis; // Menu sélectionné
+  StatisticsMenu _selectedMenu = StatisticsMenu.friends; // Selected menu
+
+  Map<String, Map<String, dynamic>> friendsData = {}; // Cache for friends data
 
   @override
   void initState() {
     super.initState();
-    _getCurrentUser(); // Appel pour récupérer l'utilisateur actuel lors de l'initialisation
+    _getCurrentUser(); // Call to retrieve the current user during initialization
   }
 
-  /// Méthode pour obtenir l'utilisateur actuel connecté via Firebase Auth
+  /// Method to get the current user connected via Firebase Auth
   void _getCurrentUser() {
-    User? user =
-        FirebaseAuth.instance.currentUser; // Récupère l'utilisateur courant
+    User? user = FirebaseAuth.instance.currentUser; // Get the current user
     if (user != null) {
       setState(() {
-        _userId = user.uid; // Stocke l'ID de l'utilisateur
-        _fetchFriendsEvents(); // Récupère les événements des amis de l'utilisateur
-        _fetchPersonalActivities(); // Récupère les activités personnelles
+        _userId = user.uid; // Store the user's ID
+        _fetchFriendsEvents(); // Retrieve the user's friends' events
+        _fetchPersonalActivities(); // Retrieve personal activities
       });
     }
   }
 
-  /// Méthode pour récupérer les événements des amis de l'utilisateur
+  /// Method to retrieve the user's friends' events
   void _fetchFriendsEvents() async {
     if (_userId == null) {
-      return; // Si l'utilisateur n'est pas connecté, ne rien faire
+      return; // If the user is not connected, do nothing
     }
 
     try {
-      // Récupérer le document de l'utilisateur actuel depuis Firestore
+      // Retrieve the current user's document from Firestore
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(_userId)
@@ -86,13 +86,13 @@ class MainPageState extends ConsumerState<MainPage> {
 
       if (!mounted) return;
 
-      // Vérifier si le document existe
+      // Check if the document exists
       if (!userDoc.exists) {
-        // Afficher un message d'erreur si l'utilisateur n'existe pas
+        // Display an error message if the user does not exist
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Utilisateur non trouvé.'),
+              content: Text('User not found.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -100,33 +100,33 @@ class MainPageState extends ConsumerState<MainPage> {
         return;
       }
 
-      // Récupérer la liste des amis de l'utilisateur et les événements cachés
+      // Retrieve the user's friends list and hidden events
       List<dynamic> friends = [];
       if (userDoc.data() != null) {
         Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
         if (data.containsKey('friends') && data['friends'] is List) {
-          friends = data['friends']; // Liste des IDs des amis
+          friends = data['friends']; // List of friends' IDs
         }
         if (data.containsKey('hiddenEvents') && data['hiddenEvents'] is List) {
           hiddenEvents = List<String>.from(
-              data['hiddenEvents']); // Liste des eventId cachés
+              data['hiddenEvents']); // List of hidden eventIds
         }
       }
 
-      // Récupérer les données de chaque ami
-      Map<String, Map<String, dynamic>> friendsData = {};
+      // Retrieve data for each friend
+      friendsData = {};
 
       for (String friendId in friends) {
-        // Pour chaque ami, récupérer ses données
+        // For each friend, retrieve their data
         Map<String, dynamic> friendData = await _getUserData(friendId);
         friendsData[friendId] = friendData;
       }
 
-      // Récupérer les événements de chaque ami
+      // Retrieve events from each friend
       List<Map<String, dynamic>> events = [];
 
       for (String friendId in friends) {
-        // Récupérer les événements de l'ami depuis sa collection 'events' dans Firestore
+        // Retrieve the friend's events from their 'events' collection in Firestore
         QuerySnapshot<Map<String, dynamic>> eventsSnapshot =
             await FirebaseFirestore.instance
                 .collection('users')
@@ -138,16 +138,15 @@ class MainPageState extends ConsumerState<MainPage> {
           Map<String, dynamic> data = doc.data();
           String eventId = doc.id;
 
-          // Filtrer les événements cachés
+          // Filter out hidden events
           if (hiddenEvents.contains(eventId)) {
-            continue; // Ignorer cet événement
+            continue; // Skip this event
           }
 
-          // S'assurer que les champs nécessaires existent
+          // Check if necessary fields exist
+          String eventType = data['type'] ?? '';
           String profileImage = friendsData[friendId]?['profilePicture'] ??
               'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg';
-          String description =
-              data['description']?.toString() ?? 'Description non disponible.';
           Timestamp timestamp =
               data['timestamp'] ?? Timestamp.fromDate(DateTime(1970));
 
@@ -155,33 +154,61 @@ class MainPageState extends ConsumerState<MainPage> {
               '${friendsData[friendId]?['first_name'] ?? ''} ${friendsData[friendId]?['last_name'] ?? ''}'
                   .trim();
 
-          events.add({
-            'eventId': eventId,
-            'friendId': friendId,
-            'friendName': friendName,
-            'profileImage': profileImage,
-            'description': description,
-            'timestamp': timestamp,
-            'likes': data['likes'] ?? [],
-          });
+          String description = '';
+
+          if (eventType == 'program_creation') {
+            String programName = data['programName'] ?? 'Unknown Program';
+
+            // Construct the description message
+            description = '$friendName has created a program "$programName"';
+
+            events.add({
+              'eventId': eventId,
+              'friendId': friendId,
+              'friendName': friendName,
+              'profileImage': profileImage,
+              'description': description,
+              'timestamp': timestamp,
+              'likes': data['likes'] ?? [],
+              'programName': programName, // Add programName for notifications
+            });
+          } else if (eventType == 'program_completed') {
+            String programName = data['programName'] ?? 'Unknown Program';
+            double totalWeight = data['totalWeight'] ?? 0.0;
+
+            // Construct the description message
+            description =
+                '$friendName lifted ${totalWeight.toStringAsFixed(2)} kg during the session "$programName"';
+
+            events.add({
+              'eventId': eventId,
+              'friendId': friendId,
+              'friendName': friendName,
+              'profileImage': profileImage,
+              'description': description,
+              'timestamp': timestamp,
+              'likes': data['likes'] ?? [],
+              'programName': programName,
+            });
+          }
         }
       }
 
-      // Trier les événements par date décroissante (plus récents en premier)
+      // Sort events by decreasing date (most recent first)
       events.sort((a, b) =>
           (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
       if (!mounted) return;
 
       setState(() {
-        likesData = events; // Mettre à jour la liste des événements likés
+        likesData = events; // Update the list of liked events
       });
     } catch (e) {
-      // Gérer les erreurs en affichant un message à l'utilisateur
+      // Handle errors by displaying a message to the user
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la récupération des événements: $e'),
+            content: Text('Error retrieving events: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -189,7 +216,7 @@ class MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  /// Méthode pour récupérer les activités personnelles de l'utilisateur
+  /// Method to retrieve the user's personal activities
   void _fetchPersonalActivities() async {
     if (_userId == null) {
       return;
@@ -205,30 +232,57 @@ class MainPageState extends ConsumerState<MainPage> {
 
       List<Map<String, dynamic>> events = [];
 
+      // Retrieve the user's profile image
+      Map<String, dynamic> currentUserData = await _getUserData(_userId!);
+      String profileImage = currentUserData['profilePicture'] ??
+          'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg';
+
       for (var doc in eventsSnapshot.docs) {
         Map<String, dynamic> data = doc.data();
         String eventId = doc.id;
 
-        String profileImage =
-            'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg'; // Image par défaut
-        String description =
-            data['description']?.toString() ?? 'Description non disponible.';
+        String eventType = data['type'] ?? '';
+
         Timestamp timestamp =
             data['timestamp'] ?? Timestamp.fromDate(DateTime(1970));
 
-        // Récupérer les likes
+        // Retrieve likes
         List<dynamic> likes = data['likes'] ?? [];
 
-        events.add({
-          'eventId': eventId,
-          'profileImage': profileImage,
-          'description': description,
-          'timestamp': timestamp,
-          'likes': likes,
-        });
+        String description = '';
+
+        if (eventType == 'program_creation') {
+          String programName = data['programName'] ?? 'Unknown Program';
+
+          // Construct the description message
+          description = 'You have created a program "$programName"';
+
+          events.add({
+            'eventId': eventId,
+            'profileImage': profileImage, // Use the user's profile image
+            'description': description,
+            'timestamp': timestamp,
+            'likes': likes,
+          });
+        } else if (eventType == 'program_completed') {
+          String programName = data['programName'] ?? 'Unknown Program';
+          double totalWeight = data['totalWeight'] ?? 0.0;
+
+          // Construct the description message
+          description =
+              'You lifted ${totalWeight.toStringAsFixed(2)} kg during the session "$programName"';
+
+          events.add({
+            'eventId': eventId,
+            'profileImage': profileImage,
+            'description': description,
+            'timestamp': timestamp,
+            'likes': likes,
+          });
+        }
       }
 
-      // Trier les événements par date décroissante
+      // Sort events by decreasing date
       events.sort((a, b) =>
           (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
@@ -238,12 +292,11 @@ class MainPageState extends ConsumerState<MainPage> {
         personalActivities = events;
       });
     } catch (e) {
-      // Gérer les erreurs
+      // Handle errors
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Erreur lors de la récupération de vos activités: $e'),
+            content: Text('Error retrieving your activities: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -251,47 +304,47 @@ class MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  /// Fonction pour récupérer les données d'un utilisateur (nom complet et photo de profil)
+  /// Function to retrieve a user's data (full name and profile picture)
   Future<Map<String, dynamic>> _getUserData(String userId) async {
     DocumentSnapshot userDoc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
     if (userDoc.exists) {
       Map<String, dynamic> data = userDoc.data() as Map<String, dynamic>;
       return {
-        'last_name': data['last_name'] ?? 'Inconnu',
-        'first_name': data['first_name'] ?? 'Utilisateur',
+        'last_name': data['last_name'] ?? 'Unknown',
+        'first_name': data['first_name'] ?? 'User',
         'profilePicture': data['profilePicture'] ??
             'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg',
       };
     } else {
-      // Si l'utilisateur n'existe pas, retourner des valeurs par défaut
+      // If the user does not exist, return default values
       return {
-        'last_name': 'Inconnu',
-        'first_name': 'Utilisateur',
+        'last_name': 'Unknown',
+        'first_name': 'User',
         'profilePicture':
             'https://i.pinimg.com/736x/65/25/a0/6525a08f1df98a2e3a545fe2ace4be47.jpg',
       };
     }
   }
 
-  /// Méthode pour liker un événement
+  /// Method to like an event
   void _likeEvent(Map<String, dynamic> event) async {
     if (_userId == null) {
-      return; // Si l'utilisateur n'est pas connecté, ne rien faire
+      return; // If the user is not connected, do nothing
     }
 
     try {
-      // Récupérer les informations nécessaires de l'événement
+      // Retrieve necessary information from the event
       String friendId = event['friendId'] as String;
       String eventId = event['eventId'] as String;
 
-      // Vérifier si l'utilisateur a déjà liké l'événement
+      // Check if the user has already liked the event
       List<dynamic> currentLikes = event['likes'] as List<dynamic>? ?? [];
       if (currentLikes.contains(_userId)) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Vous avez déjà liké cet événement.'),
+              content: Text('You have already liked this event.'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -299,7 +352,7 @@ class MainPageState extends ConsumerState<MainPage> {
         return;
       }
 
-      // Ajouter un like à l'événement dans Firestore
+      // Add a like to the event in Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(friendId)
@@ -309,17 +362,16 @@ class MainPageState extends ConsumerState<MainPage> {
         'likes': FieldValue.arrayUnion([_userId])
       });
 
-      // Ajouter une notification à l'ami pour l'informer du like
+      // Add a notification to the friend to inform them of the like
       Map<String, dynamic> currentUserData = await _getUserData(_userId!);
       String fromUserName =
-          '${currentUserData['last_name']} ${currentUserData['first_name']}'
+          '${currentUserData['first_name']} ${currentUserData['last_name']}'
               .trim();
       String fromUserProfilePicture = currentUserData['profilePicture'];
 
-      String activityType = event['description'] ?? 'activité';
-
+      // Use the event description for the notification
       String notificationDescription =
-          '$fromUserName a liké votre activité: $activityType';
+          '$fromUserName liked your activity: ${event['description']}';
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -335,24 +387,24 @@ class MainPageState extends ConsumerState<MainPage> {
         'description': notificationDescription,
       });
 
-      // Mettre à jour l'interface utilisateur en rafraîchissant les événements
+      // Update the user interface by refreshing the events
       _fetchFriendsEvents();
 
-      // Afficher un message de succès
+      // Display a success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Vous avez liké une activité'),
+            content: Text('You liked an activity'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      // Gérer les erreurs en affichant un message à l'utilisateur
+      // Handle errors by displaying a message to the user
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -360,14 +412,14 @@ class MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  /// Méthode pour construire la section de résumé du programme
+  /// Method to build the program summary section
   Widget _buildProgramSummarySection() {
     if (_userId == null) {
-      // Si l'utilisateur n'est pas connecté, afficher un message
-      return const Text('Veuillez vous connecter pour voir vos programmes.');
+      // If the user is not connected, display a message
+      return const Text('Please sign in to see your programs.');
     }
 
-    // Utilise un StreamBuilder pour écouter les changements dans la collection 'programs' de l'utilisateur
+    // Use a StreamBuilder to listen for changes in the user's 'programs' collection
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -377,25 +429,25 @@ class MainPageState extends ConsumerState<MainPage> {
       builder: (BuildContext context,
           AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          // Affiche un indicateur de progression pendant le chargement
+          // Display a progress indicator while loading
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          // Affiche un message en cas d'erreur
-          return const Text('Erreur de chargement des programmes.');
+          // Display a message in case of error
+          return const Text('Error loading programs.');
         }
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          // Si aucun programme n'est disponible
-          return const Text('Aucun programme disponible.');
+          // If no program is available
+          return const Text('No program available.');
         }
 
-        // Convertir les documents en une liste de maps
+        // Convert documents into a list of maps
         List<Map<String, dynamic>> programs = snapshot.data!.docs.map((doc) {
           Map<String, dynamic> data = doc.data();
 
           return {
             'id': doc.id,
-            'name': data['name'] ?? 'Programme sans nom',
+            'name': data['name'] ?? 'Unnamed Program',
             'icon': data['icon'] ?? 'lib/data/icon_images/chest_part.png',
             'iconName': data['iconName'] ?? 'Chest part',
             'day': data['day'] ?? '',
@@ -404,14 +456,14 @@ class MainPageState extends ConsumerState<MainPage> {
           };
         }).toList();
 
-        // Déterminer le prochain programme à venir
+        // Determine the next upcoming program
         Map<String, dynamic>? nextProgram = _getNextProgram(programs);
 
         if (nextProgram == null) {
-          return const Text('Aucun programme programmé pour le moment.');
+          return const Text('No program scheduled at the moment.');
         }
 
-        // Retourne le widget affichant le résumé du prochain programme
+        // Return the widget displaying the summary of the next program
         return NextProgramSummary(
           program: nextProgram,
           daysOfWeek: _daysOfWeek,
@@ -420,19 +472,19 @@ class MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  /// Méthode pour trouver le prochain programme basé sur le jour actuel
+  /// Method to find the next program based on the current day
   Map<String, dynamic>? _getNextProgram(List<Map<String, dynamic>> programs) {
     DateTime now = DateTime.now();
-    int currentWeekday = now.weekday; // 1 = Lundi, 7 = Dimanche
+    int currentWeekday = now.weekday; // 1 = Monday, 7 = Sunday
 
-    // Filtrer les programmes dont le jour est après le jour actuel
+    // Filter programs whose day is after the current day
     List<Map<String, dynamic>> futurePrograms = programs.where((program) {
       int programDayIndex = _daysOfWeek.indexOf(program['day']) + 1; // 1-7
       return programDayIndex >= currentWeekday;
     }).toList();
 
     if (futurePrograms.isNotEmpty) {
-      // Trouver le programme avec le jour le plus proche après le jour actuel
+      // Find the program with the closest day after the current day
       futurePrograms.sort((a, b) {
         int dayA = _daysOfWeek.indexOf(a['day']) + 1;
         int dayB = _daysOfWeek.indexOf(b['day']) + 1;
@@ -440,17 +492,17 @@ class MainPageState extends ConsumerState<MainPage> {
       });
       return futurePrograms.first;
     } else if (programs.isNotEmpty) {
-      // Si aucun programme n'est après aujourd'hui, retourner le premier programme de la semaine suivante
+      // If no program is after today, return the first program of the next week
       return programs.first;
     } else {
-      return null; // Aucun programme disponible
+      return null; // No program available
     }
   }
 
-  /// Méthode pour construire la section des likes avec suppression permanente
+  /// Method to build the likes section with permanent deletion
   Widget _buildLikesSection() {
     final isDarkMode =
-        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Check if dark theme is enabled
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -467,10 +519,10 @@ class MainPageState extends ConsumerState<MainPage> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment
-            .stretch, // Assure que les enfants occupent toute la largeur
+        crossAxisAlignment:
+            CrossAxisAlignment.stretch, // Ensure children occupy full width
         children: [
-          // Titre de la section
+          // Section title
           const Text(
             'Activity',
             style: TextStyle(
@@ -480,43 +532,42 @@ class MainPageState extends ConsumerState<MainPage> {
             ),
           ),
           const SizedBox(height: 10),
-          // Container avec borderRadius pour le CupertinoSegmentedControl
+          // Container with borderRadius for the CupertinoSegmentedControl
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.0), // Rayon de la bordure
+              borderRadius: BorderRadius.circular(12.0), // Border radius
             ),
             child: CupertinoSegmentedControl<StatisticsMenu>(
-              padding:
-                  EdgeInsets.zero, // Supprime le padding interne par défaut
+              padding: EdgeInsets.zero, // Remove the default internal padding
               groupValue: _selectedMenu,
               children: {
-                StatisticsMenu.amis: Container(
+                StatisticsMenu.friends: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   alignment: Alignment.center,
                   child: Text(
                     'Friends activity',
                     style: TextStyle(
-                      color: _selectedMenu == StatisticsMenu.amis
+                      color: _selectedMenu == StatisticsMenu.friends
                           ? Colors.white
                           : Colors.black,
                       fontSize: 14,
-                      fontWeight: _selectedMenu == StatisticsMenu.amis
+                      fontWeight: _selectedMenu == StatisticsMenu.friends
                           ? FontWeight.bold
                           : FontWeight.normal,
                     ),
                   ),
                 ),
-                StatisticsMenu.personnel: Container(
+                StatisticsMenu.personal: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   alignment: Alignment.center,
                   child: Text(
                     'Your Activity',
                     style: TextStyle(
-                      color: _selectedMenu == StatisticsMenu.amis
+                      color: _selectedMenu == StatisticsMenu.friends
                           ? Colors.black
                           : Colors.white,
                       fontSize: 14,
-                      fontWeight: _selectedMenu == StatisticsMenu.amis
+                      fontWeight: _selectedMenu == StatisticsMenu.friends
                           ? FontWeight.normal
                           : FontWeight.bold,
                     ),
@@ -534,8 +585,8 @@ class MainPageState extends ConsumerState<MainPage> {
             ),
           ),
           const SizedBox(height: 16),
-          // Affichage des activités en fonction du menu sélectionné
-          _selectedMenu == StatisticsMenu.amis
+          // Display activities based on the selected menu
+          _selectedMenu == StatisticsMenu.friends
               ? _buildFriendsActivities(isDarkMode)
               : _buildPersonalActivities(isDarkMode),
         ],
@@ -543,7 +594,7 @@ class MainPageState extends ConsumerState<MainPage> {
     );
   }
 
-  /// Méthode pour construire la liste des activités des amis
+  /// Method to build the list of friends' activities
   Widget _buildFriendsActivities(bool isDarkMode) {
     return likesData.isEmpty
         ? const Center(
@@ -555,8 +606,8 @@ class MainPageState extends ConsumerState<MainPage> {
             ),
           )
         : Container(
-            padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
-            width: double.infinity, // Utiliser toute la largeur disponible
+            padding: const EdgeInsets.all(16.0), // Add internal padding
+            width: double.infinity, // Use full available width
             child: SizedBox(
               height: 300,
               child: ListView.builder(
@@ -566,8 +617,7 @@ class MainPageState extends ConsumerState<MainPage> {
                   bool isLiked =
                       (event['likes'] as List<dynamic>?)?.contains(_userId) ??
                           false;
-                  String activityType = event['description'];
-                  String formattedDescription = activityType;
+                  String description = event['description'];
 
                   return Dismissible(
                     key: Key(event['eventId']),
@@ -579,7 +629,7 @@ class MainPageState extends ConsumerState<MainPage> {
                         likesData.removeAt(index);
                       });
 
-                      // Ajouter l'eventId à hiddenEvents dans Firestore
+                      // Add the eventId to hiddenEvents in Firestore
                       try {
                         await FirebaseFirestore.instance
                             .collection('users')
@@ -592,19 +642,18 @@ class MainPageState extends ConsumerState<MainPage> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content:
-                                  Text('Erreur lors de la suppression: $e'),
+                              content: Text('Error deleting: $e'),
                               backgroundColor: Colors.red,
                             ),
                           );
                         }
                       }
 
-                      // Afficher un message de confirmation
+                      // Display a confirmation message
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Événement supprimé définitivement.'),
+                            content: Text('Event permanently deleted.'),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -618,7 +667,7 @@ class MainPageState extends ConsumerState<MainPage> {
                     ),
                     child: LikeItem(
                       profileImage: event['profileImage'] as String,
-                      description: formattedDescription,
+                      description: description,
                       onLike: () => _likeEvent(event),
                       isLiked: isLiked,
                     ),
@@ -629,11 +678,11 @@ class MainPageState extends ConsumerState<MainPage> {
           );
   }
 
-  /// Méthode pour construire la liste des activités personnelles
+  /// Method to build the list of personal activities
   Widget _buildPersonalActivities(bool isDarkMode) {
     return personalActivities.isEmpty
         ? Container(
-            width: double.infinity, // Assure une largeur constante
+            width: double.infinity, // Ensure consistent width
             child: const Center(
               child: Text(
                 'No recent activity',
@@ -644,8 +693,8 @@ class MainPageState extends ConsumerState<MainPage> {
             ),
           )
         : Container(
-            padding: const EdgeInsets.all(16.0), // Ajouter du padding interne
-            width: double.infinity, // Utiliser toute la largeur disponible
+            padding: const EdgeInsets.all(16.0), // Add internal padding
+            width: double.infinity, // Use full available width
             child: SizedBox(
               height: 300,
               child: ListView.builder(
@@ -670,7 +719,7 @@ class MainPageState extends ConsumerState<MainPage> {
           );
   }
 
-  /// Méthode pour liker une activité personnelle
+  /// Method to like a personal activity
   void _likePersonalEvent(Map<String, dynamic> event) async {
     if (_userId == null) return;
 
@@ -679,7 +728,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
       List<dynamic> currentLikes = event['likes'] as List<dynamic>? ?? [];
       if (currentLikes.contains(_userId)) {
-        // Si déjà liké, retirer le like
+        // If already liked, remove the like
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_userId)
@@ -689,7 +738,7 @@ class MainPageState extends ConsumerState<MainPage> {
           'likes': FieldValue.arrayRemove([_userId])
         });
       } else {
-        // Ajouter un like
+        // Add a like
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_userId)
@@ -700,14 +749,14 @@ class MainPageState extends ConsumerState<MainPage> {
         });
       }
 
-      // Rafraîchir les activités personnelles
+      // Refresh personal activities
       _fetchPersonalActivities();
     } catch (e) {
-      // Gérer les erreurs
+      // Handle errors
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -715,14 +764,14 @@ class MainPageState extends ConsumerState<MainPage> {
     }
   }
 
-  /// Méthode pour construire la page d'accueil avec le dégradé
+  /// Method to build the home page with the gradient
   Widget _buildHomePage() {
     final isDarkMode = ref.watch(themeModeProvider);
 
     return SizedBox.expand(
       child: Stack(
         children: [
-          // Dégradé de fond qui couvre tout l'écran
+          // Background gradient that covers the entire screen
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -737,20 +786,20 @@ class MainPageState extends ConsumerState<MainPage> {
               ),
             ),
           ),
-          // Contenu défilable au-dessus du dégradé
+          // Scrollable content above the gradient
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16.0),
               child: Column(
                 children: [
-                  _buildProgramSummarySection(), // Affiche le prochain programme
+                  _buildProgramSummarySection(), // Display the next program
                   const SizedBox(height: 16),
                   if (_userId != null)
                     StreaksWidget(
                         userId:
-                            _userId!), // Affiche le widget des séries si l'utilisateur est connecté
+                            _userId!), // Display the streaks widget if the user is connected
                   const SizedBox(height: 16),
-                  _buildLikesSection(), // Affiche la section des likes
+                  _buildLikesSection(), // Display the likes section
                   const SizedBox(height: 16),
                 ],
               ),
@@ -765,7 +814,7 @@ class MainPageState extends ConsumerState<MainPage> {
   Widget build(BuildContext context) {
     Widget currentPage;
 
-    // Détermine quelle page afficher en fonction de l'index sélectionné
+    // Determine which page to display based on the selected index
     switch (_selectedIndex) {
       case 0:
         currentPage = _buildHomePage();
@@ -791,17 +840,17 @@ class MainPageState extends ConsumerState<MainPage> {
     return Scaffold(
       backgroundColor: isDarkMode
           ? lightTop
-          : Colors.white, // Couleur de fond en fonction du thème
-      body: currentPage, // Affiche la page actuelle
-      appBar: const AppBarWidget(), // Barre d'application personnalisée
+          : Colors.white, // Background color based on the theme
+      body: currentPage, // Display the current page
+      appBar: const AppBarWidget(), // Custom app bar
       bottomNavigationBar: BottomNavBarWidget(
         selectedIndex: _selectedIndex,
         onItemTapped: (int index) {
           setState(() {
             _selectedIndex = index;
             if (_selectedIndex == 0) {
-              _fetchFriendsEvents(); // Rafraîchit les événements si l'onglet Accueil est sélectionné
-              _fetchPersonalActivities(); // Rafraîchit les activités personnelles
+              _fetchFriendsEvents(); // Refresh events if the Home tab is selected
+              _fetchPersonalActivities(); // Refresh personal activities
             }
           });
         },
@@ -810,10 +859,10 @@ class MainPageState extends ConsumerState<MainPage> {
   }
 }
 
-/// Widget pour afficher le résumé du prochain programme avec compte à rebours
+/// Widget to display the summary of the next program with countdown
 class NextProgramSummary extends ConsumerStatefulWidget {
-  final Map<String, dynamic> program; // Le programme à afficher
-  final List<String> daysOfWeek; // Liste des jours de la semaine
+  final Map<String, dynamic> program; // The program to display
+  final List<String> daysOfWeek; // List of days of the week
 
   const NextProgramSummary({
     super.key,
@@ -826,25 +875,25 @@ class NextProgramSummary extends ConsumerStatefulWidget {
 }
 
 class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
-  late DateTime _nextProgramDateTime; // Date et heure du prochain programme
-  late Duration _timeRemaining; // Temps restant avant le programme
-  Timer? _timer; // Timer pour le compte à rebours
+  late DateTime _nextProgramDateTime; // Date and time of the next program
+  late Duration _timeRemaining; // Time remaining before the program
+  Timer? _timer; // Timer for the countdown
 
   @override
   void initState() {
     super.initState();
     _nextProgramDateTime =
-        _calculateNextProgramDateTime(); // Calcule la date du prochain programme
+        _calculateNextProgramDateTime(); // Calculate the date of the next program
     _timeRemaining = _nextProgramDateTime
-        .difference(DateTime.now()); // Calcule le temps restant
-    _startCountdown(); // Démarre le compte à rebours
+        .difference(DateTime.now()); // Calculate the remaining time
+    _startCountdown(); // Start the countdown
   }
 
   @override
   void didUpdateWidget(covariant NextProgramSummary oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.program['day'] != widget.program['day']) {
-      // Si le jour du programme a changé, recalculer les dates
+      // If the program day has changed, recalculate the dates
       _nextProgramDateTime = _calculateNextProgramDateTime();
       _timeRemaining = _nextProgramDateTime.difference(DateTime.now());
       _timer?.cancel();
@@ -854,16 +903,16 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
 
   @override
   void dispose() {
-    _timer?.cancel(); // Annule le timer lors de la destruction du widget
+    _timer?.cancel(); // Cancel the timer when disposing the widget
     super.dispose();
   }
 
-  /// Méthode pour calculer la prochaine DateTime du programme basé sur le jour
+  /// Method to calculate the next DateTime of the program based on the day
   DateTime _calculateNextProgramDateTime() {
     String programDay =
-        widget.program['day']; // Exemple: 'Mercredi' ou 'Wednesday'
+        widget.program['day']; // Example: 'Wednesday' or 'Mercredi'
 
-    // Carte pour mapper les noms des jours en anglais et en français aux numéros de jour
+    // Map to associate day names in English and French to weekday numbers
     final Map<String, int> dayNameToWeekday = {
       'Monday': 1,
       'Tuesday': 2,
@@ -884,27 +933,27 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
     int programWeekday = dayNameToWeekday[programDay] ?? 0;
 
     if (programWeekday == 0) {
-      // Si le jour n'est pas trouvé, retourner une date lointaine
+      // If the day is not found, return a distant date
       return DateTime.now().add(const Duration(days: 365));
     }
 
     DateTime now = DateTime.now();
-    int currentWeekday = now.weekday; // 1 = Lundi, 7 = Dimanche
+    int currentWeekday = now.weekday; // 1 = Monday, 7 = Sunday
 
-    // Calculer le nombre de jours jusqu'au prochain jour du programme
+    // Calculate the number of days until the next program day
     int daysUntilNext = (programWeekday - currentWeekday + 7) % 7 + 1;
 
-    // Calculer la date du prochain programme
+    // Calculate the date of the next program
     DateTime nextProgramDate = DateTime(
       now.year,
       now.month,
       now.day,
-      8, // Heure spécifique pour le début du programme (8h00)
+      8, // Specific hour for the start of the program (8:00 AM)
       0,
       0,
     ).add(Duration(days: daysUntilNext));
 
-    // Si la date du prochain programme est déjà passée aujourd'hui, la planifier pour la semaine suivante
+    // If the date of the next program has already passed today, schedule it for the next week
     if (nextProgramDate.isBefore(now)) {
       nextProgramDate = nextProgramDate.add(const Duration(days: 7));
     }
@@ -912,7 +961,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
     return nextProgramDate;
   }
 
-  /// Méthode pour démarrer le compte à rebours
+  /// Method to start the countdown
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final now = DateTime.now();
@@ -930,11 +979,11 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   Widget build(BuildContext context) {
     final isDarkMode = ref.watch(themeModeProvider);
     String iconPath = widget.program['icon'] ??
-        'lib/data/icon_images/chest_part.png'; // Chemin par défaut
-    String programName = widget.program['name'] ?? 'Nom du Programme';
+        'lib/data/icon_images/chest_part.png'; // Default path
+    String programName = widget.program['name'] ?? 'Program Name';
     List<dynamic> exercises = widget.program['exercises'] ?? [];
 
-    // Format du compte à rebours
+    // Format of the countdown
     String countdownText = _formatDuration(_timeRemaining);
 
     return Container(
@@ -943,8 +992,8 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
       decoration: BoxDecoration(
         color: isDarkMode
             ? darkWidget
-            : lightWidget, // Couleur de fond en fonction du thème
-        borderRadius: BorderRadius.circular(16.0), // Bordures arrondies
+            : lightWidget, // Background color based on the theme
+        borderRadius: BorderRadius.circular(16.0), // Rounded borders
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -956,7 +1005,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Compte à rebours en haut
+          // Countdown at the top
           Text(
             'Next session in $countdownText',
             style: const TextStyle(
@@ -966,11 +1015,11 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
             ),
           ),
           const SizedBox(height: 16),
-          // Image et informations du programme
+          // Image and program information
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image de la catégorie
+              // Category image
               Column(
                 children: [
                   Image.asset(
@@ -988,24 +1037,24 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black, // Couleur dynamique
+                      color: Colors.black, // Dynamic color
                     ),
                   ),
                 ],
               ),
               const SizedBox(width: 16),
-              // Liste des exercices
+              // List of exercises
               Expanded(
                 child: exercises.isEmpty
                     ? const Text(
-                        'No exercice available',
+                        'No exercise available',
                         style: TextStyle(
                           color: Colors.black87,
                         ),
                       )
                     : Container(
                         constraints: const BoxConstraints(
-                          maxHeight: 300, // Hauteur maximale (en pixels)
+                          maxHeight: 300, // Maximum height (in pixels)
                         ),
                         child: ListView.builder(
                           shrinkWrap: true,
@@ -1014,7 +1063,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                           itemBuilder: (context, index) {
                             var exercise = exercises[index];
                             String exerciseName =
-                                exercise['name'] ?? 'Exercice';
+                                exercise['name'] ?? 'Exercise';
                             int sets = exercise['sets'] ?? 0;
                             int reps = exercise['reps'] ?? 0;
                             double weight =
@@ -1032,12 +1081,12 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.black, // Couleur dynamique
+                                      color: Colors.black, // Dynamic color
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Sets: $sets • Reps: $reps • Poids: ${weight}kg • Pause: ${rest}s',
+                                    'Sets: $sets • Reps: $reps • Weight: ${weight}kg • Rest: ${rest}s',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.black87,
@@ -1057,7 +1106,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
     );
   }
 
-  /// Méthode pour formater la durée en jours, heures, minutes, secondes
+  /// Method to format the duration into days, hours, minutes, seconds
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     if (duration.inDays > 1) {
@@ -1070,7 +1119,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
   }
 }
 
-/// Widget pour les activités personnelles avec le nombre de likes
+/// Widget for personal activities with the number of likes
 class PersonalActivityItem extends StatefulWidget {
   final String profileImage;
   final String description;
@@ -1151,7 +1200,7 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
 
   @override
   Widget build(BuildContext context) {
-    Brightness.dark; // Assure que le texte s'adapte au thème
+    Brightness.dark; // Ensure the text adapts to the theme
 
     return ListTile(
       leading: CircleAvatar(
@@ -1160,7 +1209,7 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
       title: Text(
         widget.description,
         style: const TextStyle(
-          color: Colors.black, // Couleur dynamique
+          color: Colors.black, // Dynamic color
         ),
       ),
       trailing: Row(
@@ -1181,7 +1230,7 @@ class PersonalActivityItemState extends State<PersonalActivityItem>
           Text(
             '${widget.likesCount}',
             style: const TextStyle(
-              color: Colors.black87, // Couleur dynamique
+              color: Colors.black87, // Dynamic color
             ),
           ),
         ],
