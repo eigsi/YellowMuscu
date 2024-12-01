@@ -450,7 +450,7 @@ class MainPageState extends ConsumerState<MainPage> {
   /// Méthode pour construire la section des likes avec suppression permanente
   Widget _buildLikesSection() {
     final isDarkMode =
-        ref.watch(themeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -717,7 +717,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
   /// Méthode pour construire la page d'accueil avec le dégradé
   Widget _buildHomePage() {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     return SizedBox.expand(
       child: Stack(
@@ -786,7 +786,7 @@ class MainPageState extends ConsumerState<MainPage> {
         currentPage = _buildHomePage();
     }
 
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       backgroundColor: isDarkMode
@@ -928,7 +928,7 @@ class NextProgramSummaryState extends ConsumerState<NextProgramSummary> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
     String iconPath = widget.program['icon'] ??
         'lib/data/icon_images/chest_part.png'; // Chemin par défaut
     String programName = widget.program['name'] ?? 'Nom du Programme';

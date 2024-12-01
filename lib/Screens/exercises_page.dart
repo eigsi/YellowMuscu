@@ -143,7 +143,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       exercises = []; // If the category is not recognized, empty list
     }
 
-    final isDarkMode = ref.watch(themeProvider); // Check the theme
+    final isDarkMode = ref.watch(themeModeProvider); // Check the theme
 
     // Add a controller for the search
     TextEditingController searchController = TextEditingController();
@@ -310,7 +310,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
   // Method to display detailed information of an exercise
   void _showExerciseInfo(Map<String, String> exercise) {
-    final isDarkMode = ref.watch(themeProvider); // Check the theme
+    final isDarkMode = ref.watch(themeModeProvider); // Check the theme
 
     // Display a dialog with exercise details
     showDialog(
@@ -390,7 +390,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
   // Method to select a program to which to add the exercise
   void _showProgramSelection(Map<String, String> exercise) {
-    final isDarkMode = ref.watch(themeProvider); // Check the theme
+    final isDarkMode = ref.watch(themeModeProvider); // Check the theme
 
     // Sort programs alphabetically
     List<Map<String, dynamic>> sortedPrograms = List.from(_programs);
@@ -483,7 +483,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final isDarkMode = ref.watch(themeProvider); // Check the theme
+        final isDarkMode = ref.watch(themeModeProvider); // Check the theme
         return AlertDialog(
           backgroundColor:
               isDarkMode ? darkWidget : Colors.white, // Background color
@@ -668,7 +668,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
       'Sunday'
     ];
 
-    final isDarkMode = ref.watch(themeProvider); // Check the theme
+    final isDarkMode = ref.watch(themeModeProvider); // Check the theme
 
     // Display a dialog to add a program
     showDialog(
@@ -910,7 +910,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
   // Method to build the visual element of a program in the list
   Widget _buildProgramItem(String programName, String iconPath, String day,
       bool isFavorite, VoidCallback onFavoriteToggle) {
-    final isDarkMode = ref.watch(themeProvider); // Check the theme
+    final isDarkMode = ref.watch(themeModeProvider); // Check the theme
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0), // External margins
@@ -1047,7 +1047,7 @@ class ExercisesPageState extends ConsumerState<ExercisesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     return Stack(
       children: [

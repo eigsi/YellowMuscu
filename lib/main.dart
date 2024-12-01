@@ -29,7 +29,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: 'YellowMuscu',

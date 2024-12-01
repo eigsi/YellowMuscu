@@ -128,7 +128,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     int currentMinutes = currentRestTime ~/ 60; // Calcule les minutes initiales
     int currentSeconds = currentRestTime % 60; // Calcule les secondes initiales
 
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     showModalBottomSheet(
       context: context,
@@ -198,7 +198,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       int minValue, int maxValue, int step, ValueChanged<int> onValueChanged) {
     int currentValue = initialValue; // Valeur courante initialisée
 
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     showModalBottomSheet(
       context: context,
@@ -258,7 +258,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       ValueChanged<double> onValueChanged) {
     double currentValue = initialValue; // Valeur courante initialisée
 
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     showModalBottomSheet(
       context: context,
@@ -327,7 +327,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         : [weight.toDouble()]; // Poids par série
 
     final isDarkMode =
-        ref.watch(themeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
 
     showDialog(
       context: context,
@@ -623,7 +623,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
 
   // Méthode pour afficher le menu des catégories d'exercices
   void _addNewExercises() {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
     final List<Map<String, dynamic>> categories = [
       {'name': 'Chest', 'icon': Icons.fitness_center},
       {'name': 'Back', 'icon': Icons.fitness_center},
@@ -704,7 +704,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       exercisesList = [];
     }
 
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     TextEditingController searchController = TextEditingController();
     List<Map<String, String>> filteredExercises = List.from(exercisesList);
@@ -872,7 +872,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
 
   // Méthode pour afficher les détails d'un exercice
   void _showExerciseInfo(Map<String, String> exercise) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     showDialog(
       context: context,
@@ -931,7 +931,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           ),
           actions: [
             TextButton(
-              child: const Text('Fermer'),
+              child: const Text('Close'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -948,7 +948,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final isDarkMode = ref.watch(themeProvider);
+        final isDarkMode = ref.watch(themeModeProvider);
         return AlertDialog(
           backgroundColor: isDarkMode ? Colors.black54 : Colors.white,
           title: Text(
@@ -1030,7 +1030,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode =
-        ref.watch(themeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
 
     return WillPopScope(
       onWillPop: () async {

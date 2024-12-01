@@ -13,15 +13,30 @@ const Color darkBottom = Color.fromRGBO(30, 30, 30, 1);
 const Color darkNavBar = Color.fromRGBO(20, 20, 20, 1);
 const Color darkWidget = Color.fromRGBO(255, 212, 41, 1);
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {
-  return ThemeNotifier();
+// Provider pour gérer l'état du mode sombre
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, bool>((ref) {
+  return ThemeModeNotifier();
 });
 
-// Classe qui gère l'état du thème
-class ThemeNotifier extends StateNotifier<bool> {
-  ThemeNotifier() : super(false);
+// Provider pour gérer l'état de l'affichage
+final displayProvider = StateNotifierProvider<DisplayNotifier, bool>((ref) {
+  return DisplayNotifier();
+});
+
+// Classe qui gère l'état du mode sombre
+class ThemeModeNotifier extends StateNotifier<bool> {
+  ThemeModeNotifier() : super(false);
 
   void toggleTheme(bool isDarkMode) {
     state = isDarkMode;
+  }
+}
+
+// Classe qui gère l'état d'affichage
+class DisplayNotifier extends StateNotifier<bool> {
+  DisplayNotifier() : super(true);
+
+  void toggleDisplay(bool isDisplay) {
+    state = isDisplay;
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yellowmuscu/Provider/theme_provider.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Assurez-vous que ce fichier contient 'themeModeProvider' et 'displayProvider'
 
 class ExerciseSessionPage extends ConsumerStatefulWidget {
   final Map<String, dynamic> program;
@@ -12,11 +12,11 @@ class ExerciseSessionPage extends ConsumerStatefulWidget {
   final VoidCallback onSessionComplete;
 
   const ExerciseSessionPage({
-    super.key,
+    Key? key,
     required this.program,
     required this.userId,
     required this.onSessionComplete,
-  });
+  }) : super(key: key);
 
   @override
   ExerciseSessionPageState createState() => ExerciseSessionPageState();
@@ -45,7 +45,10 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
         (_currentExercise['restBetweenExercises'] as int?) ?? 60;
     _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
     _timerSeconds = _restTimeBetweenSets;
-    _startTimer();
+    // Démarrer le minuteur si nécessaire
+    if (_isResting) {
+      _startTimer();
+    }
   }
 
   void _startTimer() {
@@ -86,6 +89,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
         _isResting = false;
         _timerSeconds = _restTimeBetweenSets;
         _bonusTime = 0; // Réinitialise le temps bonus
+        _currentSet++; // Incrémenter _currentSet ici
       });
     }
   }
@@ -93,7 +97,6 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
   void _completeSet() {
     if (_currentSet < (_currentExercise['sets']?.toInt() ?? 3) - 1) {
       setState(() {
-        _currentSet++;
         _isResting = true;
         _isTimerRunning = true;
         _timerSeconds = _restTimeBetweenSets;
@@ -104,16 +107,17 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
       if (_currentExerciseIndex <
           (widget.program['exercises']?.length ?? 0) - 1) {
         setState(() {
-          _currentSet = 0;
           _isResting = true;
           _isBetweenExercises = true;
           _isTimerRunning = true;
           _timerSeconds = _restTimeBetweenExercises;
           _bonusTime = 0; // Réinitialise le temps bonus
+          _currentSet =
+              0; // Réinitialiser _currentSet pour le prochain exercice
         });
         _startTimer();
       } else {
-        // Dernier exercice terminé, afficher l'écran "Des progrès ?"
+        // Dernier exercice terminé, afficher l'écran "Stronger?"
         _showProgressScreen();
       }
     }
@@ -122,15 +126,17 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
   void _moveToNextExercise() {
     setState(() {
       _currentExerciseIndex++;
-      _currentExercise = widget.program['exercises'][_currentExerciseIndex];
-      _restTimeBetweenExercises =
-          (_currentExercise['restBetweenExercises'] as int?) ?? 60;
-      _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
-      _currentSet = 0;
-      _isResting = false;
-      _isBetweenExercises = false;
-      _timerSeconds = _restTimeBetweenSets;
-      _bonusTime = 0; // Réinitialise le temps bonus
+      if (_currentExerciseIndex < widget.program['exercises'].length) {
+        _currentExercise = widget.program['exercises'][_currentExerciseIndex];
+        _restTimeBetweenExercises =
+            (_currentExercise['restBetweenExercises'] as int?) ?? 60;
+        _restTimeBetweenSets = (_currentExercise['restTime'] as int?) ?? 60;
+        _currentSet = 0;
+        _isResting = false;
+        _isBetweenExercises = false;
+        _timerSeconds = _restTimeBetweenSets;
+        _bonusTime = 0; // Réinitialise le temps bonus
+      }
     });
   }
 
@@ -146,12 +152,16 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     bool? success = await showDialog<bool>(
       context: context,
       barrierDismissible:
-          false, // L'utilisateur doit appuyer sur "Enregistrer" pour fermer
+          false, // L'utilisateur doit appuyer sur "Save" pour fermer
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setStateLocal) {
-            final isDarkMode = ref.watch(themeProvider);
+            final isDarkMode = ref.watch(themeModeProvider);
             return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(16.0), // Ajout du border radius
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -161,6 +171,8 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
+                  borderRadius: BorderRadius.circular(
+                      16.0), // Assurez-vous que le border radius est appliqué
                 ),
                 child: SingleChildScrollView(
                   child: Padding(
@@ -170,7 +182,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                       children: [
                         const SizedBox(height: 16),
                         Text(
-                          'Des progrès ?',
+                          'Stronger?',
                           style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -196,54 +208,107 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                               margin: const EdgeInsets.symmetric(
                                   vertical: 4, horizontal: 0),
                               padding: const EdgeInsets.all(8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                              child: Column(
                                 children: [
-                                  Expanded(
-                                    child: Text(
-                                      exercise['name'] ?? '',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: isDarkMode
-                                              ? Colors.white
-                                              : Colors.black),
-                                    ),
-                                  ),
                                   Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit),
-                                        color: isDarkMode
-                                            ? Colors.white
-                                            : Colors.black,
-                                        onPressed: () {
-                                          _showDecimalInputPicker(
-                                            context,
-                                            'Poids (kg)',
-                                            exercise['weight'].toDouble(),
-                                            0.0,
-                                            500.0,
-                                            0.5,
-                                            (newWeight) {
-                                              setStateLocal(() {
-                                                localExercises[index]
-                                                    ['weight'] = newWeight;
-                                              });
-                                            },
-                                          );
-                                        },
+                                      Expanded(
+                                        child: Text(
+                                          exercise['name'] ?? '',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                        ),
                                       ),
-                                      Text(
-                                        '${exercise['weight'].toStringAsFixed(1)} kg',
-                                        style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors.white
-                                                : Colors.black),
-                                      ),
+                                      if (exercise['multipleWeights'] == true &&
+                                          exercise['weightsPerSet'] != null)
+                                        SizedBox.shrink() // Pas d'icône
+                                      else
+                                        GestureDetector(
+                                          onTap: () {
+                                            _showDecimalInputPicker(
+                                              context,
+                                              'Weight (kg)',
+                                              exercise['weight'].toDouble(),
+                                              0.0,
+                                              500.0,
+                                              0.5,
+                                              (newWeight) {
+                                                setStateLocal(() {
+                                                  exercise['weight'] =
+                                                      newWeight;
+                                                });
+                                              },
+                                            );
+                                          },
+                                          child: Text(
+                                            '${exercise['weight'].toStringAsFixed(1)} kg',
+                                            style: TextStyle(
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                                decoration:
+                                                    TextDecoration.underline),
+                                          ),
+                                        ),
                                     ],
                                   ),
+                                  if (exercise['multipleWeights'] == true &&
+                                      exercise['weightsPerSet'] != null)
+                                    Column(
+                                      children: List<Widget>.generate(
+                                          exercise['weightsPerSet'].length,
+                                          (setIndex) {
+                                        return Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'Set ${setIndex + 1}',
+                                              style: TextStyle(
+                                                  color: isDarkMode
+                                                      ? Colors.white70
+                                                      : Colors.black87),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () {
+                                                _showDecimalInputPicker(
+                                                  context,
+                                                  'Weight (kg)',
+                                                  exercise['weightsPerSet']
+                                                          [setIndex]
+                                                      .toDouble(),
+                                                  0.0,
+                                                  500.0,
+                                                  0.5,
+                                                  (newWeight) {
+                                                    setStateLocal(() {
+                                                      exercise['weightsPerSet']
+                                                              [setIndex] =
+                                                          newWeight;
+                                                    });
+                                                  },
+                                                );
+                                              },
+                                              child: Text(
+                                                '${exercise['weightsPerSet'][setIndex].toStringAsFixed(1)} kg',
+                                                style: TextStyle(
+                                                    color: isDarkMode
+                                                        ? Colors.white
+                                                        : Colors.black,
+                                                    decoration: TextDecoration
+                                                        .underline),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }),
+                                    ),
                                 ],
                               ),
                             );
@@ -257,31 +322,26 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                                   setStateLocal, dialogContext, localExercises),
                           style: ElevatedButton.styleFrom(
                             minimumSize:
-                                const Size.fromHeight(50), // Hauteur du bouton
+                                const Size(100, 50), // Hauteur du bouton
                             backgroundColor:
                                 isDarkMode ? darkWidget : lightWidget,
-                            foregroundColor:
-                                isDarkMode ? Colors.black : Colors.white,
+                            foregroundColor: Colors.black, // Texte en noir
                           ),
                           child: _isSaving
-                              ? SizedBox(
+                              ? const SizedBox(
                                   width: 24,
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                        isDarkMode
-                                            ? Colors.black
-                                            : Colors.white),
+                                        Colors.black),
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : Text(
-                                  'Enregistrer',
+                              : const Text(
+                                  'Save',
                                   style: TextStyle(
                                       fontSize: 18,
-                                      color: isDarkMode
-                                          ? Colors.black
-                                          : Colors.white),
+                                      color: Colors.black), // Texte en noir
                                 ),
                         ),
                         const SizedBox(height: 16),
@@ -304,7 +364,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
       // Afficher un message de succès
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Séance terminée, félicitations!'),
+          content: Text('Session done, good job!'),
         ),
       );
 
@@ -324,6 +384,8 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     // Mettre à jour les poids dans le programme
     for (int i = 0; i < localExercises.length; i++) {
       widget.program['exercises'][i]['weight'] = localExercises[i]['weight'];
+      widget.program['exercises'][i]['weightsPerSet'] =
+          localExercises[i]['weightsPerSet'];
     }
 
     bool success = false; // Indicateur de succès
@@ -348,10 +410,9 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     } catch (e) {
       // Gérer les erreurs de mise à jour
       if (mounted) {
-        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -365,8 +426,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     }
 
     if (success && mounted) {
-      // Fermer le popup "Des progrès ?"
-      // ignore: use_build_context_synchronously
+      // Fermer le popup "Stronger?"
       Navigator.of(dialogContext)
           .pop(true); // Fermer le popup et retourner 'true'
     }
@@ -448,7 +508,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
       }
     } catch (e) {
       // Gérer les exceptions et les loguer si nécessaire
-      debugPrint('Erreur dans _checkAndUpdateStreak: $e');
+      debugPrint('Error in _checkAndUpdateStreak: $e');
     }
   }
 
@@ -470,7 +530,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
       double step,
       ValueChanged<double> onValueChanged) {
     double currentValue = initialValue; // Valeur courante initialisée
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     showModalBottomSheet(
       context: context,
@@ -526,210 +586,666 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     });
   }
 
-  Widget _buildExerciseView() {
-    final isDarkMode = ref.watch(themeProvider);
-    return SingleChildScrollView(
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDarkMode ? Colors.black : lightWidget, // Couleur de fond
-          borderRadius: BorderRadius.circular(16.0), // Coins arrondis
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _currentExercise['image'] != null &&
-                    (_currentExercise['image'] is String) &&
-                    (_currentExercise['image'] as String).isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16.0), // Coins arrondis
-                    child: Image.asset(
-                      _currentExercise['image'],
-                      height: 200,
-                      fit: BoxFit.cover, // Ajuste l'image à l'espace disponible
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.image_not_supported, size: 200);
-                      },
+  // Méthode pour éditer les poids par set
+  void _showWeightsPerSetEditor(BuildContext context,
+      Map<String, dynamic> exercise, Function setStateLocal) {
+    final isDarkMode = ref.watch(themeModeProvider);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          return Dialog(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDarkMode
+                      ? [darkTop, darkBottom]
+                      : [lightTop, lightBottom],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Edit weights per set',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black),
+                  ),
+                  const SizedBox(height: 16),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: exercise['weightsPerSet'].length,
+                    itemBuilder: (context, index) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Set ${index + 1}',
+                            style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black87),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                color: isDarkMode ? Colors.white : Colors.black,
+                                onPressed: () {
+                                  _showDecimalInputPicker(
+                                    context,
+                                    'Weight (kg)',
+                                    exercise['weightsPerSet'][index].toDouble(),
+                                    0.0,
+                                    500.0,
+                                    0.5,
+                                    (newWeight) {
+                                      setStateDialog(() {
+                                        exercise['weightsPerSet'][index] =
+                                            newWeight;
+                                      });
+                                      setStateLocal(() {
+                                        exercise['weightsPerSet'][index] =
+                                            newWeight;
+                                      });
+                                    },
+                                  );
+                                },
+                              ),
+                              Text(
+                                '${exercise['weightsPerSet'][index].toStringAsFixed(1)} kg',
+                                style: TextStyle(
+                                    color: isDarkMode
+                                        ? Colors.white
+                                        : Colors.black),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize:
+                          const Size.fromHeight(50), // Hauteur du bouton
+                      backgroundColor: isDarkMode ? darkWidget : lightWidget,
+                      foregroundColor: isDarkMode ? Colors.black : Colors.white,
                     ),
-                  )
-                : const Icon(Icons.image_not_supported, size: 200),
-            const SizedBox(height: 16),
-            Text(
-              _currentExercise['name'] ?? '',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
+                    child: Text(
+                      'Done',
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: isDarkMode ? Colors.black : Colors.white),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              _currentExercise['description'] ?? '',
-              style: TextStyle(
-                fontSize: 16,
-                color: isDarkMode ? Colors.white70 : Colors.black87,
-              ),
+          );
+        });
+      },
+    );
+  }
+
+  // Méthode pour obtenir le poids pour le set actuel
+  double _getWeightForSet(Map<String, dynamic> exercise, int setIndex) {
+    if (exercise['multipleWeights'] == true &&
+        exercise['weightsPerSet'] != null &&
+        exercise['weightsPerSet'].length > setIndex) {
+      return exercise['weightsPerSet'][setIndex] ?? 0.0;
+    } else {
+      return exercise['weight'] ?? 0.0;
+    }
+  }
+
+  Widget _buildExerciseView() {
+    final isDarkMode = ref.watch(themeModeProvider);
+    final isDisplay = ref.watch(displayProvider);
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Première case blanche avec les informations principales
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.black : lightWidget, // Couleur de fond
+              borderRadius: BorderRadius.circular(16.0), // Coins arrondis
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Objectifs:\n${_currentExercise['goals'] ?? ''}',
-              style: TextStyle(
-                fontSize: 16,
-                color: isDarkMode ? Colors.white70 : Colors.black87,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Alignement à gauche
+              children: [
+                // Titre "Set x/y" en haut de la case blanche
+                Text(
+                  'Set ${_currentSet + 1} / ${_currentExercise['sets']}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Toujours afficher le titre de l'exercice
+                Text(
+                  _currentExercise['name'] ?? '',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (isDisplay) ...[
+                  // Centrer l'image
+                  Center(
+                    child: _currentExercise['image'] != null &&
+                            (_currentExercise['image'] is String) &&
+                            (_currentExercise['image'] as String).isNotEmpty
+                        ? ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(16.0), // Coins arrondis
+                            child: Image.asset(
+                              _currentExercise['image'],
+                              height: 200,
+                              fit: BoxFit
+                                  .cover, // Ajuste l'image à l'espace disponible
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(Icons.image_not_supported,
+                                    size: 200);
+                              },
+                            ),
+                          )
+                        : const Icon(Icons.image_not_supported, size: 200),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _currentExercise['description'] ?? '',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Goals:\n${_currentExercise['goals'] ?? ''}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                // Checkbox pour cacher/afficher les informations de l'exercice
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: !isDisplay,
+                      onChanged: (bool? value) {
+                        ref
+                            .read(displayProvider.notifier)
+                            .toggleDisplay(!value!);
+                      },
+                      activeColor: isDarkMode ? darkWidget : Colors.black,
+                    ),
+                    Text(
+                      'Hide exercise information',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+                // Centrer le bouton
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _completeSet,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: darkWidget,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: Text(
+                      'Finish series ${_currentSet + 1}',
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _completeSet,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: darkWidget,
-                foregroundColor: Colors.black,
-              ),
-              child: Text(
-                'Terminer la série ${_currentSet + 1}',
-                style: const TextStyle(color: Colors.black),
-              ),
+          ),
+          // Nouvelle case blanche en dessous avec les informations de l'exercice
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.black : lightWidget, // Couleur de fond
+              borderRadius: BorderRadius.circular(16.0), // Coins arrondis
             ),
-          ],
-        ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Alignement à gauche
+              children: [
+                Text(
+                  'Current set',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.fitness_center,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Weight used: ${_getWeightForSet(_currentExercise, _currentSet).toStringAsFixed(1)} kg',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.repeat,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Sets: ${_currentSet + 1} / ${_currentExercise['sets']}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.fiber_manual_record,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Repetitions: ${_currentExercise['reps']}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildRestView() {
-    final isDarkMode = ref.watch(themeProvider);
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          _isBetweenExercises ? 'Repos entre exercices' : 'Repos entre séries',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '${(_timerSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timerSeconds % 60).toString().padLeft(2, '0')}',
-          style: TextStyle(
-            fontSize: 36,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-        const SizedBox(height: 8),
-        IconButton(
-          icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
-          iconSize: 48,
-          color: isDarkMode ? Colors.white : Colors.black,
-          onPressed: _toggleTimer,
-        ),
-        const SizedBox(height: 16),
-        if (_bonusTime > 0)
-          Text(
-            'Bonus temps ajouté: ${_bonusTime}s',
-            style: TextStyle(
-              fontSize: 16,
-              color: isDarkMode ? Colors.white70 : Colors.black87,
+    final isDarkMode = ref.watch(themeModeProvider);
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Boîte blanche pour le minuteur et les contrôles
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.black : lightWidget, // Couleur de fond
+              borderRadius: BorderRadius.circular(16.0), // Coins arrondis
             ),
-          ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: isDarkMode ? darkWidget : Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: CupertinoButton(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(
-                  '+10s',
+            child: Column(
+              children: [
+                Text(
+                  _isBetweenExercises
+                      ? 'Rest between exercises'
+                      : 'Rest between sets',
                   style: TextStyle(
-                    fontSize: 16,
-                    color: isDarkMode ? Colors.black : Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _timerSeconds += 10;
-                    _bonusTime += 10;
-                  });
-                },
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              decoration: BoxDecoration(
-                color: isDarkMode ? darkWidget : Colors.white,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: CupertinoButton(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Text(
-                  '+30s',
+                const SizedBox(height: 8),
+                Text(
+                  '${(_timerSeconds ~/ 60).toString().padLeft(2, '0')}:${(_timerSeconds % 60).toString().padLeft(2, '0')}',
                   style: TextStyle(
-                    fontSize: 16,
-                    color: isDarkMode ? Colors.black : Colors.black,
+                    fontSize: 36,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-                onPressed: () {
-                  setState(() {
-                    _timerSeconds += 30;
-                    _bonusTime += 30;
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _endRest,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isDarkMode ? darkWidget : lightWidget,
-            foregroundColor: isDarkMode ? Colors.black : Colors.white,
-          ),
-          child: const Text(
-            'Passer le repos',
-            style: TextStyle(
-              color: Colors.black,
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (!_isBetweenExercises)
-          Column(
-            children: [
-              Text(
-                'Séries complétées: $_currentSet / ${_currentExercise['sets']}',
-                style: TextStyle(
-                  fontSize: 18,
+                const SizedBox(height: 8),
+                IconButton(
+                  icon: Icon(_isTimerRunning ? Icons.pause : Icons.play_arrow),
+                  iconSize: 48,
                   color: isDarkMode ? Colors.white : Colors.black,
+                  onPressed: _toggleTimer,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Répétitions: ${_currentExercise['reps']}  Poids: ${_currentExercise['weight'].toStringAsFixed(1)} kg',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDarkMode ? Colors.white70 : Colors.black87,
+                const SizedBox(height: 16),
+                if (_bonusTime > 0)
+                  Text(
+                    'Bonus time added: ${_bonusTime}s',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: darkWidget,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        child: Text(
+                          '+10s',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDarkMode ? Colors.black : Colors.black,
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _timerSeconds += 10;
+                            _bonusTime += 10;
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: darkWidget,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: CupertinoButton(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        child: Text(
+                          '+30s',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: isDarkMode ? Colors.black : Colors.black,
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _timerSeconds += 30;
+                            _bonusTime += 30;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _endRest,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: darkWidget,
+                    foregroundColor: isDarkMode ? Colors.black : Colors.white,
+                  ),
+                  child: const Text(
+                    'Skip rest',
+                    style: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-      ],
+          // Boîte blanche pour les informations de la prochaine série ou exercice
+          if (_isBetweenExercises)
+            // Repos entre exercices
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.black : lightWidget,
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_currentExerciseIndex + 1 <
+                      widget.program['exercises'].length)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Next exercise',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        // Utiliser une variable locale pour le prochain exercice
+                        Builder(
+                          builder: (context) {
+                            final nextExercise = widget.program['exercises']
+                                [_currentExerciseIndex + 1];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.fitness_center,
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        nextExercise['name'] ?? '',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: isDarkMode
+                                              ? Colors.white70
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.repeat,
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Sets: ${nextExercise['sets']}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.fiber_manual_record,
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Repetitions: ${nextExercise['reps']}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.fitness_center,
+                                      color: isDarkMode
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Weight: ${_getWeightForSet(nextExercise, 0).toStringAsFixed(1)} kg',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: isDarkMode
+                                            ? Colors.white70
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    )
+                  else
+                    Center(
+                      child: Text(
+                        'This was the last exercise',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            )
+          else
+            // Repos entre séries
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.black : lightWidget,
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Upcoming set',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.fitness_center,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Weight: ${_getWeightForSet(_currentExercise, _currentSet + 1).toStringAsFixed(1)} kg',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.repeat,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Set: ${_currentSet + 2} / ${_currentExercise['sets']}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.fiber_manual_record,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Repetitions: ${_currentExercise['reps']}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(_currentExercise['name'] ?? ''),

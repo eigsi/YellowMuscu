@@ -35,7 +35,7 @@ class AppBarWidget extends ConsumerWidget implements PreferredSizeWidget {
       builder: (BuildContext context) {
         return Consumer(
           builder: (context, ref, child) {
-            final isDarkMode = ref.watch(themeProvider);
+            final isDarkMode = ref.watch(themeModeProvider);
             return AlertDialog(
               title: const Text('Settings'),
               content: Row(
@@ -46,7 +46,7 @@ class AppBarWidget extends ConsumerWidget implements PreferredSizeWidget {
                     value: isDarkMode,
                     activeColor: lightTop,
                     onChanged: (value) {
-                      ref.read(themeProvider.notifier).toggleTheme(value);
+                      ref.read(themeModeProvider.notifier).toggleTheme(value);
                     },
                   ),
                 ],
@@ -74,7 +74,7 @@ class AppBarWidget extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Récupérer l'état actuel du thème
-    final isDarkMode = ref.watch(themeProvider);
+    final isDarkMode = ref.watch(themeModeProvider);
 
     return AppBar(
       backgroundColor: isDarkMode ? darkTop : lightTop,
