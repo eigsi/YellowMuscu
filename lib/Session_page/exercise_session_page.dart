@@ -12,11 +12,11 @@ class ExerciseSessionPage extends ConsumerStatefulWidget {
   final VoidCallback onSessionComplete;
 
   const ExerciseSessionPage({
-    Key? key,
+    super.key,
     required this.program,
     required this.userId,
     required this.onSessionComplete,
-  }) : super(key: key);
+  });
 
   @override
   ExerciseSessionPageState createState() => ExerciseSessionPageState();
@@ -227,7 +227,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                                       ),
                                       if (exercise['multipleWeights'] == true &&
                                           exercise['weightsPerSet'] != null)
-                                        SizedBox.shrink() // Pas d'icône
+                                        const SizedBox.shrink() // Pas d'icône
                                       else
                                         GestureDetector(
                                           onTap: () {
@@ -428,6 +428,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
 
     if (success && mounted) {
       // Fermer le popup "Stronger?"
+      // ignore: use_build_context_synchronously
       Navigator.of(dialogContext)
           .pop(true); // Fermer le popup et retourner 'true'
     }
@@ -588,115 +589,6 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
   }
 
   // Méthode pour éditer les poids par set
-  void _showWeightsPerSetEditor(BuildContext context,
-      Map<String, dynamic> exercise, Function setStateLocal) {
-    final isDarkMode = ref.watch(themeModeProvider);
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(builder: (context, setStateDialog) {
-          return Dialog(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDarkMode
-                      ? [darkTop, darkBottom]
-                      : [lightTop, lightBottom],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Edit weights per set',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black),
-                  ),
-                  const SizedBox(height: 16),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: exercise['weightsPerSet'].length,
-                    itemBuilder: (context, index) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Set ${index + 1}',
-                            style: TextStyle(
-                                color: isDarkMode
-                                    ? Colors.white70
-                                    : Colors.black87),
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                color: isDarkMode ? Colors.white : Colors.black,
-                                onPressed: () {
-                                  _showDecimalInputPicker(
-                                    context,
-                                    'Weight (kg)',
-                                    exercise['weightsPerSet'][index].toDouble(),
-                                    0.0,
-                                    500.0,
-                                    0.5,
-                                    (newWeight) {
-                                      setStateDialog(() {
-                                        exercise['weightsPerSet'][index] =
-                                            newWeight;
-                                      });
-                                      setStateLocal(() {
-                                        exercise['weightsPerSet'][index] =
-                                            newWeight;
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                              Text(
-                                '${exercise['weightsPerSet'][index].toStringAsFixed(1)} kg',
-                                style: TextStyle(
-                                    color: isDarkMode
-                                        ? Colors.white
-                                        : Colors.black),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize:
-                          const Size.fromHeight(50), // Hauteur du bouton
-                      backgroundColor: isDarkMode ? darkWidget : lightWidget,
-                      foregroundColor: isDarkMode ? Colors.black : Colors.white,
-                    ),
-                    child: Text(
-                      'Done',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: isDarkMode ? Colors.black : Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-      },
-    );
-  }
 
   // Méthode pour obtenir le poids pour le set actuel
   double _getWeightForSet(Map<String, dynamic> exercise, int setIndex) {

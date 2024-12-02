@@ -7,7 +7,7 @@ import 'package:yellowmuscu/authentification/sign_in_page.dart';
 import 'package:yellowmuscu/authentification/sign_up_page.dart';
 import 'package:yellowmuscu/Screens/main_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import ThemeProvider
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import de ThemeProvider
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,10 +35,12 @@ class MyApp extends ConsumerWidget {
       title: 'YellowMuscu',
       theme: ThemeData(
         brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        primaryColor: isDarkMode ? darkTop : lightTop,
+        primaryColor: isDarkMode
+            ? Colors.grey[900]
+            : Colors.yellow, // Ajustez selon votre thème
         scaffoldBackgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
         appBarTheme: AppBarTheme(
-          backgroundColor: isDarkMode ? darkTop : lightTop,
+          backgroundColor: isDarkMode ? Colors.grey[900] : Colors.yellow,
           titleTextStyle: TextStyle(
             color: isDarkMode ? Colors.white : Colors.black,
             fontSize: 22,
@@ -50,37 +52,37 @@ class MyApp extends ConsumerWidget {
         ),
       ),
       home:
-          const AuthWrapper(), // Show SignIn or MainPage based on authentication
+          const AuthWrapper(), // Afficher SignIn ou MainPage selon l'authentification
       routes: {
         '/signIn': (context) => const SignInPage(),
-        '/signUp': (context) =>
-            const SignUpPage(), // Register the SignUpPage route
+        '/signUp': (context) => const SignUpPage(),
         '/mainPage': (context) => const MainPage(),
+        // Supprimez la route '/tutorial' pour éviter l'erreur
       },
     );
   }
 }
 
-class AuthWrapper extends ConsumerWidget {
-  // Convertir AuthWrapper en ConsumerWidget
+class AuthWrapper extends StatelessWidget {
+  // Convertir AuthWrapper en StatelessWidget
   const AuthWrapper({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // If the user is authenticated, go to the main page
+        // Si l'utilisateur est authentifié, afficher MainPage
         if (snapshot.connectionState == ConnectionState.active) {
           User? user = snapshot.data;
           if (user == null) {
-            return const SignInPage(); // Show SignInPage if not authenticated
+            return const SignInPage(); // Afficher SignInPage si non authentifié
           } else {
-            return const MainPage(); // Show MainPage if authenticated
+            return const MainPage(); // Afficher MainPage si authentifié
           }
         }
 
-        // Otherwise, show a loading spinner
+        // Sinon, afficher un indicateur de chargement
         return const Scaffold(
           body: Center(child: CircularProgressIndicator()),
         );

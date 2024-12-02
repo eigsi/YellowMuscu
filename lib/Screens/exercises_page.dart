@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Firebase authentication
 import 'package:cloud_firestore/cloud_firestore.dart'; // Cloud Firestore database
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // State management with Riverpod
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider for theme (light/dark mode)
-import 'package:yellowmuscu/Screens/ProgramDetailPage.dart'; // Program detail page
+import 'package:yellowmuscu/Screens/program_detail_page.dart'; // Program detail page
 
 // Declaration of the main class for the exercises page
 class ExercisesPage extends ConsumerStatefulWidget {

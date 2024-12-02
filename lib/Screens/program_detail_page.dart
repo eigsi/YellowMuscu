@@ -24,6 +24,7 @@ class ProgramDetailPage extends ConsumerStatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _ProgramDetailPageState createState() => _ProgramDetailPageState();
 }
 
@@ -106,6 +107,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           .onUpdate(); // Appelle la fonction de mise à jour pour notifier les changements
 
       // Affiche une confirmation visuelle que les exercices ont été sauvegardés
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Exercices saved'),
@@ -113,6 +115,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       );
     } catch (e) {
       // Gère les erreurs de Firestore
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error : $e'),
@@ -559,6 +562,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                         true; // Indique que des modifications ont été effectuées
                   });
 
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop(); // Ferme le dialogue
                 },
               ),
@@ -1032,6 +1036,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     final isDarkMode =
         ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // Gère le comportement lors du retour arrière

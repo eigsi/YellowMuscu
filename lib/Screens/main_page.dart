@@ -640,6 +640,7 @@ class MainPageState extends ConsumerState<MainPage> {
                         });
                       } catch (e) {
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Error deleting: $e'),
@@ -651,6 +652,7 @@ class MainPageState extends ConsumerState<MainPage> {
 
                       // Display a confirmation message
                       if (mounted) {
+                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Event permanently deleted.'),
@@ -681,9 +683,9 @@ class MainPageState extends ConsumerState<MainPage> {
   /// Method to build the list of personal activities
   Widget _buildPersonalActivities(bool isDarkMode) {
     return personalActivities.isEmpty
-        ? Container(
+        ? const SizedBox(
             width: double.infinity, // Ensure consistent width
-            child: const Center(
+            child: Center(
               child: Text(
                 'No recent activity',
                 style: TextStyle(

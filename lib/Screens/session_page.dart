@@ -244,7 +244,7 @@ class SessionPageState extends ConsumerState<SessionPage> {
       DateTime startOfWeek =
           now.subtract(Duration(days: now.weekday - 1)); // Start on Monday
       DateTime endOfWeek =
-          startOfWeek.add(Duration(days: 7)); // End on next Monday
+          startOfWeek.add(const Duration(days: 7)); // End on next Monday
 
       Timestamp startTimestamp = Timestamp.fromDate(DateTime(
           startOfWeek.year, startOfWeek.month, startOfWeek.day, 0, 0, 0));

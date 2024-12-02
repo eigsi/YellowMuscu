@@ -1,8 +1,10 @@
-// sign_up_page.dart
+// lib/authentification/sign_up_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yellowmuscu/tutorial/tutorial_page.dart'; // Import de la page de tutoriel
+// Import de la MainPage (assurez-vous que le chemin est correct)
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -24,9 +26,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
 
-  int _selectedProfileImageIndex = 0; // Index for selected profile image
+  int _selectedProfileImageIndex = 0; // Index de l'image de profil sélectionnée
 
-  // List of predefined profile image URLs
+  // Liste des URLs des images de profil prédéfinies
   final List<String> _profileImages = [
     'https://i.pinimg.com/564x/a4/54/16/a45416714096b6b224e939c2d1e6e842.jpg',
     'https://i.pinimg.com/564x/a0/02/78/a0027883fe995b3bf3b44d71b355f8a8.jpg',
@@ -78,8 +80,15 @@ class _SignUpPageState extends State<SignUpPage> {
         'completedSessions': [], // Initialiser la liste des séances complétées
       });
 
+      // Rediriger vers la page de tutoriel
       // ignore: use_build_context_synchronously
-      Navigator.pushReplacementNamed(context, '/mainPage');
+      Navigator.pushReplacement(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TutorialPage(),
+        ),
+      );
     } catch (e) {
       _showError('Erreur lors de la création du compte. Veuillez réessayer.');
     }
@@ -114,6 +123,19 @@ class _SignUpPageState extends State<SignUpPage> {
             '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // Libérer les contrôleurs lorsqu'ils ne sont plus nécessaires
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _weightController.dispose();
+    _heightController.dispose();
+    _dobController.dispose();
+    super.dispose();
   }
 
   @override

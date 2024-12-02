@@ -104,6 +104,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       });
 
       // Show a success message to the user
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Friend request accepted'),
@@ -112,6 +113,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       );
     } catch (e) {
       // In case of an error, display an error message
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error accepting friend request: $e'),
@@ -145,6 +147,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       });
 
       // Show a message to the user
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Friend request declined'),
@@ -153,6 +156,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       );
     } catch (e) {
       // In case of an error, display an error message
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error declining friend request: $e'),
