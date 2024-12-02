@@ -199,6 +199,24 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                             if (exercise['weight'] == null) {
                               exercise['weight'] = 0.0;
                             }
+                            // S'assurer que 'weight' est un double
+                            if (exercise['weight'] is int) {
+                              exercise['weight'] =
+                                  (exercise['weight'] as int).toDouble();
+                            } else if (exercise['weight'] is double) {
+                              // Rien à faire, déjà un double
+                            } else {
+                              // Si 'weight' est d'un autre type, le définir à 0.0
+                              exercise['weight'] = 0.0;
+                            }
+                            // S'assurer que 'weightsPerSet' est une liste de doubles
+                            if (exercise['weightsPerSet'] != null) {
+                              exercise['weightsPerSet'] =
+                                  (exercise['weightsPerSet'] as List)
+                                      .map<double>((weight) =>
+                                          (weight as num).toDouble())
+                                      .toList();
+                            }
                             return Container(
                               decoration: BoxDecoration(
                                 color: isDarkMode ? darkBottom : Colors.white,
@@ -234,7 +252,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                                             _showDecimalInputPicker(
                                               context,
                                               'Weight (kg)',
-                                              exercise['weight'].toDouble(),
+                                              exercise['weight'],
                                               0.0,
                                               500.0,
                                               0.5,
@@ -281,8 +299,7 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                                                   context,
                                                   'Weight (kg)',
                                                   exercise['weightsPerSet']
-                                                          [setIndex]
-                                                      .toDouble(),
+                                                      [setIndex],
                                                   0.0,
                                                   500.0,
                                                   0.5,
@@ -558,11 +575,13 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) / step)
                         .round()
-                        .clamp(0, ((maxValue - minValue) / step).round()),
+                        .clamp(0, ((maxValue - minValue) / step).round())
+                        .toInt(), // Assurez-vous que c'est un int
                   ),
                   onSelectedItemChanged: (int value) {
-                    currentValue = minValue +
-                        value * step; // Met à jour la valeur sélectionnée
+                    setState(() {
+                      currentValue = minValue + value * step;
+                    });
                   },
                   children: List<Widget>.generate(
                     ((maxValue - minValue) / step).round() +
@@ -588,16 +607,28 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
     });
   }
 
-  // Méthode pour éditer les poids par set
-
   // Méthode pour obtenir le poids pour le set actuel
   double _getWeightForSet(Map<String, dynamic> exercise, int setIndex) {
     if (exercise['multipleWeights'] == true &&
         exercise['weightsPerSet'] != null &&
         exercise['weightsPerSet'].length > setIndex) {
-      return exercise['weightsPerSet'][setIndex] ?? 0.0;
+      var weight = exercise['weightsPerSet'][setIndex];
+      if (weight is int) {
+        return weight.toDouble();
+      } else if (weight is double) {
+        return weight;
+      } else {
+        return 0.0;
+      }
     } else {
-      return exercise['weight'] ?? 0.0;
+      var weight = exercise['weight'];
+      if (weight is int) {
+        return weight.toDouble();
+      } else if (weight is double) {
+        return weight;
+      } else {
+        return 0.0;
+      }
     }
   }
 
@@ -1067,7 +1098,8 @@ class ExerciseSessionPageState extends ConsumerState<ExerciseSessionPage> {
                 borderRadius: BorderRadius.circular(16.0),
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start, // Alignement à gauche
                 children: [
                   Text(
                     'Upcoming set',
