@@ -77,28 +77,27 @@ flutter:
     - lib/data/yellowMuscu_Pictures/abs/
     - lib/data/yellowMuscu_Pictures/stretching/
 
-    - lib\data\tutorial\add_program.png
-    - lib\data\tutorial\error.png
-    - lib\data\tutorial\exercise_page.png
-    - lib\data\tutorial\exercise_screen.png
-    - lib\data\tutorial\friend_activity.jpg
-    - lib\data\tutorial\general_stats.png
-    - lib\data\tutorial\library_detail.png
-    - lib\data\tutorial\library.png
-    - lib\data\tutorial\log_out.png
-    - lib\data\tutorial\main_page.png
-    - lib\data\tutorial\my_programs.png
-    - lib\data\tutorial\next_session.png
-    - lib\data\tutorial\profile_page.png
-    - lib\data\tutorial\program_detail.png
-    - lib\data\tutorial\rest_screen.png
-    - lib\data\tutorial\search_friends.jpg
-    - lib\data\tutorial\session_page.png
-    - lib\data\tutorial\streaks.png
-    - lib\data\tutorial\stronger.png
-    - lib\data\tutorial\week_stats.png
-    - lib\data\tutorial\your_activity.png
-    
+    - lib/data/tutorial/add_program.png
+    - lib/data/tutorial/error.png
+    - lib/data/tutorial/exercise_page.png
+    - lib/data/tutorial/exercise_screen.png
+    - lib/data/tutorial/friend_activity.jpg
+    - lib/data/tutorial/general_stats.png
+    - lib/data/tutorial/library_detail.png
+    - lib/data/tutorial/library.png
+    - lib/data/tutorial/log_out.png
+    - lib/data/tutorial/main_page.png
+    - lib/data/tutorial/my_programs.png
+    - lib/data/tutorial/next_session.png
+    - lib/data/tutorial/profile_page.png
+    - lib/data/tutorial/program_detail.png
+    - lib/data/tutorial/rest_screen.png
+    - lib/data/tutorial/search_friends.jpg
+    - lib/data/tutorial/session_page.png
+    - lib/data/tutorial/streaks.png
+    - lib/data/tutorial/stronger.png
+    - lib/data/tutorial/week_stats.png
+    - lib/data/tutorial/your_activity.png
     
 
   # The following line ensures that the Material Icons font is
