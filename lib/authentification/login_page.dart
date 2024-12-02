@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('mdp ou mail incorrect, veuillez ressayer'),
+          content: Text('password or mail error, try again'),
           backgroundColor: Colors.red,
         ),
       );
@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Inscription échouée, veuillez réessayer'),
+          content: Text('Inscription failed, retry'),
           backgroundColor: Colors.red,
         ),
       );

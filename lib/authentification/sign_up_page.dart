@@ -1,10 +1,9 @@
-// lib/authentification/sign_up_page.dart
+// lib/authentication/sign_up_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:yellowmuscu/tutorial/tutorial_page.dart'; // Import de la page de tutoriel
-// Import de la MainPage (assurez-vous que le chemin est correct)
+import 'package:yellowmuscu/tutorial/tutorial_page.dart'; // Import the TutorialPage
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -26,9 +25,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
 
-  int _selectedProfileImageIndex = 0; // Index de l'image de profil sélectionnée
+  int _selectedProfileImageIndex = 0; // Index of the selected profile image
 
-  // Liste des URLs des images de profil prédéfinies
+  // List of predefined profile image URLs
   final List<String> _profileImages = [
     'https://i.pinimg.com/564x/a4/54/16/a45416714096b6b224e939c2d1e6e842.jpg',
     'https://i.pinimg.com/564x/a0/02/78/a0027883fe995b3bf3b44d71b355f8a8.jpg',
@@ -40,7 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
   DateTime? _selectedBirthdate;
 
   void _signUp() async {
-    // Validation des champs
+    // Validate all fields
     if (_firstNameController.text.isEmpty ||
         _lastNameController.text.isEmpty ||
         _emailController.text.isEmpty ||
@@ -48,7 +47,7 @@ class _SignUpPageState extends State<SignUpPage> {
         _weightController.text.isEmpty ||
         _heightController.text.isEmpty ||
         _dobController.text.isEmpty) {
-      _showError('Veuillez remplir tous les champs.');
+      _showError('Please fill in all the fields.');
       return;
     }
 
@@ -61,26 +60,26 @@ class _SignUpPageState extends State<SignUpPage> {
 
       String uid = userCredential.user!.uid;
 
-      // Stocker les données utilisateur dans Firestore
+      // Store user data in Firestore
       await _firestore.collection('users').doc(uid).set({
         'first_name': _firstNameController.text.trim(),
         'last_name': _lastNameController.text.trim(),
         'email': _emailController.text.trim(),
-        'weight': _weightController.text.trim(),
-        'height': _heightController.text.trim(),
+        'weight': double.parse(_weightController.text.trim()),
+        'height': double.parse(_heightController.text.trim()),
         'birthdate': _selectedBirthdate?.toIso8601String() ?? '',
         'profilePicture': _profileImages[
-            _selectedProfileImageIndex], // URL de la photo de profil sélectionnée
+            _selectedProfileImageIndex], // URL of the selected profile picture
         'created_at': Timestamp.now(),
-        'friends': [], // Initialiser la liste des amis
-        'sentRequests': [], // Initialiser la liste des demandes envoyées
-        'streakCount': 0, // Initialiser le streak count
-        'lastStreakDate': Timestamp.fromDate(
-            DateTime(1970)), // Initialiser la dernière date de streak
-        'completedSessions': [], // Initialiser la liste des séances complétées
+        'friends': [], // Initialize friends list
+        'sentRequests': [], // Initialize sent requests list
+        'streakCount': 0, // Initialize streak count
+        'lastStreakDate':
+            Timestamp.fromDate(DateTime(1970)), // Initialize last streak date
+        'completedSessions': [], // Initialize completed sessions list
       });
 
-      // Rediriger vers la page de tutoriel
+      // Redirect to the TutorialPage
       // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         // ignore: use_build_context_synchronously
@@ -90,7 +89,7 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       );
     } catch (e) {
-      _showError('Erreur lors de la création du compte. Veuillez réessayer.');
+      _showError('Error while creating the account. Please try again.');
     }
   }
 
@@ -127,7 +126,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void dispose() {
-    // Libérer les contrôleurs lorsqu'ils ne sont plus nécessaires
+    // Dispose controllers when no longer needed
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
@@ -141,67 +140,67 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Créer un Compte')),
+      appBar: AppBar(title: const Text('Create an Account')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Champ du prénom
+              // First Name Field
               TextField(
                 controller: _firstNameController,
-                decoration: const InputDecoration(labelText: 'Prénom'),
+                decoration: const InputDecoration(labelText: 'First Name'),
               ),
-              // Champ du nom
+              // Last Name Field
               TextField(
                 controller: _lastNameController,
-                decoration: const InputDecoration(labelText: 'Nom'),
+                decoration: const InputDecoration(labelText: 'Last Name'),
               ),
-              // Champ de l'email
+              // Email Field
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
                 keyboardType: TextInputType.emailAddress,
               ),
-              // Champ du mot de passe
+              // Password Field
               TextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Mot de passe'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
               ),
-              // Champ du poids
+              // Weight Field
               TextField(
                 controller: _weightController,
-                decoration: const InputDecoration(labelText: 'Poids (kg)'),
+                decoration: const InputDecoration(labelText: 'Weight (kg)'),
                 keyboardType: TextInputType.number,
               ),
-              // Champ de la taille
+              // Height Field
               TextField(
                 controller: _heightController,
-                decoration: const InputDecoration(labelText: 'Taille (cm)'),
+                decoration: const InputDecoration(labelText: 'Height (cm)'),
                 keyboardType: TextInputType.number,
               ),
-              // Champ de la date de naissance avec calendrier
+              // Birthdate Field with Calendar
               GestureDetector(
                 onTap: () => _selectBirthdate(context),
                 child: AbsorbPointer(
                   child: TextField(
                     controller: _dobController,
                     decoration: const InputDecoration(
-                      labelText: 'Date de naissance',
-                      hintText: 'JJ/MM/AAAA',
+                      labelText: 'Birthdate',
+                      hintText: 'DD/MM/YYYY',
                     ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Section de sélection de la photo de profil
-              const Text('Sélectionnez une photo de profil',
+              // Profile Picture Selection Section
+              const Text('Select a Profile Picture',
                   style: TextStyle(fontSize: 16)),
               const SizedBox(height: 10),
 
-              // Images défilantes horizontalement
+              // Horizontally scrollable profile images
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -236,7 +235,7 @@ class _SignUpPageState extends State<SignUpPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _signUp,
-                child: const Text('Créer un Compte'),
+                child: const Text('Create Account'),
               ),
             ],
           ),

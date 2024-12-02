@@ -14,8 +14,8 @@ import 'package:yellowmuscu/Screens/bottom_nav_bar_widget.dart'; // Custom widge
 import 'package:yellowmuscu/main_page/like_item_widget.dart'; // Custom widget to display liked items
 import 'dart:async'; // For using Timer objects and handling asynchrony
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // For state management with Riverpod
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider to manage the theme (light/dark)
 import 'package:flutter/cupertino.dart'; // For using CupertinoSegmentedControl
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 /// Enumeration for the statistics menu
 enum StatisticsMenu { friends, personal }

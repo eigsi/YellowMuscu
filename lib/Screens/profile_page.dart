@@ -1,17 +1,16 @@
-// profile_page.dart
+// lib/profile_page.dart
 
 // Import necessary packages for Flutter and Firebase
 import 'package:flutter/material.dart'; // Flutter material widgets library
 import 'package:firebase_auth/firebase_auth.dart'; // For Firebase authentication
 import 'package:cloud_firestore/cloud_firestore.dart'; // For interacting with Firestore database
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import your theme provider
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 // Define the ProfilePage class, a StatefulWidget to display and edit user profiles
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  // Create the state associated with the ProfilePage class
   ProfilePageState createState() => ProfilePageState();
 }
 
@@ -40,11 +39,13 @@ class ProfilePageState extends State<ProfilePage> {
   String _selectedProfilePicture = ''; // URL of the selected profile picture
   String _searchQuery = ''; // Search query for filtering friends
 
-  // Lists to store user data, friends, and friend requests
+  // Lists to store user data, friends, friend requests, and completed sessions
   List<Map<String, dynamic>> _allUsers = []; // List of all users
   List<dynamic> _friends = []; // List of user's friends
   List<dynamic> _sentRequests = []; // List of sent friend requests
   List<String> _receivedRequests = []; // List of received friend requests
+  List<Map<String, dynamic>> _completedSessions =
+      []; // List of completed sessions
 
   @override
   void initState() {
@@ -53,6 +54,7 @@ class ProfilePageState extends State<ProfilePage> {
     if (_user != null) {
       _fetchUserData(); // Fetch user data from Firestore
       _fetchReceivedFriendRequests(); // Fetch received friend requests
+      _fetchCompletedSessions(); // Fetch completed sessions
     }
 
     // Listen to changes in the search bar
@@ -103,8 +105,8 @@ class ProfilePageState extends State<ProfilePage> {
           // Update controllers with retrieved data
           _lastNameController.text = data['last_name'] ?? '';
           _firstNameController.text = data['first_name'] ?? '';
-          _weightController.text = data['weight'] ?? '';
-          _heightController.text = data['height'] ?? '';
+          _weightController.text = data['weight']?.toString() ?? '';
+          _heightController.text = data['height']?.toString() ?? '';
           _selectedProfilePicture = data['profilePicture'] ?? '';
 
           // Handle birthdate
@@ -145,6 +147,35 @@ class ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() {
         _receivedRequests = receivedRequests;
+      });
+    }
+  }
+
+  // Method to fetch completed sessions
+  void _fetchCompletedSessions() async {
+    if (_user == null) return;
+
+    QuerySnapshot sessionsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('completedSessions')
+        .orderBy('created_at', descending: true)
+        .get();
+
+    List<Map<String, dynamic>> sessions = sessionsSnapshot.docs.map((doc) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return {
+        'created_at': data['created_at']?.toDate() ?? DateTime.now(),
+        'email': data['email'] ?? '',
+        'first_name': data['first_name'] ?? '',
+        'last_name': data['last_name'] ?? '',
+        // Add other session-specific fields here
+      };
+    }).toList();
+
+    if (mounted) {
+      setState(() {
+        _completedSessions = sessions;
       });
     }
   }
@@ -246,8 +277,8 @@ class ProfilePageState extends State<ProfilePage> {
     // Retrieve and validate field values
     String lastName = _lastNameController.text.trim();
     String firstName = _firstNameController.text.trim();
-    int? weight = int.tryParse(_weightController.text.trim());
-    int? height = int.tryParse(_heightController.text.trim());
+    double? weight = double.tryParse(_weightController.text.trim());
+    double? height = double.tryParse(_heightController.text.trim());
 
     // Field validations
     if (lastName.length > 15) {
@@ -260,13 +291,13 @@ class ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    if (weight == null || weight < 0 || weight > 200) {
-      _showError('Weight must be an integer between 0 and 200.');
+    if (weight == null || weight <= 0 || weight > 200) {
+      _showError('Weight must be a number between 0 and 200.');
       return;
     }
 
-    if (height == null || height < 0 || height > 250) {
-      _showError('Height must be an integer between 0 and 250.');
+    if (height == null || height <= 0 || height > 250) {
+      _showError('Height must be a number between 0 and 250.');
       return;
     }
 
@@ -275,11 +306,11 @@ class ProfilePageState extends State<ProfilePage> {
       await FirebaseFirestore.instance.collection('users').doc(_user!.uid).set({
         'last_name': lastName,
         'first_name': firstName,
-        'weight': weight.toString(),
-        'height': height.toString(),
+        'weight': weight,
+        'height': height,
         'birthdate': _selectedBirthdate?.toIso8601String() ?? '',
         'profilePicture': _selectedProfilePicture,
-        'email': _user!.email,
+        // 'email': _user!.email, // Email is typically not editable
       }, SetOptions(merge: true));
 
       if (mounted) {
@@ -456,6 +487,7 @@ class ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (context) {
         String passwordInput = '';
+        bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
         return AlertDialog(
           title: const Text('Confirm Password'),
           content: TextField(
@@ -472,14 +504,21 @@ class ProfilePageState extends State<ProfilePage> {
               onPressed: () {
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style:
+                    TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+              ),
             ),
             TextButton(
               onPressed: () {
                 password = passwordInput;
                 Navigator.of(context).pop(); // Close the dialog
               },
-              child: const Text('Submit'),
+              child: const Text(
+                'Submit',
+                style: TextStyle(color: Colors.blue),
+              ),
             ),
           ],
         );
@@ -530,6 +569,19 @@ class ProfilePageState extends State<ProfilePage> {
       DocumentReference docRef = doc.reference;
       batch.update(docRef, {
         'sentRequests': FieldValue.arrayRemove([_user!.uid])
+      });
+    }
+
+    // Remove the user from other users' received requests
+    QuerySnapshot receivedRequestsSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('receivedRequests', arrayContains: _user!.uid)
+        .get();
+
+    for (var doc in receivedRequestsSnapshot.docs) {
+      DocumentReference docRef = doc.reference;
+      batch.update(docRef, {
+        'receivedRequests': FieldValue.arrayRemove([_user!.uid])
       });
     }
 
@@ -700,14 +752,14 @@ class ProfilePageState extends State<ProfilePage> {
               TextField(
                 controller: _weightController,
                 decoration: const InputDecoration(
-                  labelText: 'Weight',
+                  labelText: 'Weight (kg)',
                 ),
                 keyboardType: TextInputType.number,
               ),
               TextField(
                 controller: _heightController,
                 decoration: const InputDecoration(
-                  labelText: 'Height',
+                  labelText: 'Height (cm)',
                 ),
                 keyboardType: TextInputType.number,
               ),
@@ -718,6 +770,7 @@ class ProfilePageState extends State<ProfilePage> {
                     controller: _birthdateController,
                     decoration: const InputDecoration(
                       labelText: 'Birthdate',
+                      hintText: 'DD/MM/YYYY',
                     ),
                   ),
                 ),
@@ -747,6 +800,12 @@ class ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               // Weight, height, and birthdate in a styled container
               _buildStatsSection(),
+              const SizedBox(height: 16),
+              // Streak information
+              _buildStreakSection(),
+              const SizedBox(height: 16),
+              // Completed Sessions
+              _buildCompletedSessionsSection(),
             ],
           ),
         const SizedBox(height: 20),
@@ -816,7 +875,7 @@ class ProfilePageState extends State<ProfilePage> {
                             'Sign Out',
                             style: TextStyle(
                               fontSize: 14,
-                              color: lightWidget,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -827,7 +886,7 @@ class ProfilePageState extends State<ProfilePage> {
                     child: ElevatedButton(
                       onPressed: _deleteAccount,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
+                        backgroundColor: Colors.red,
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -840,7 +899,7 @@ class ProfilePageState extends State<ProfilePage> {
                         'Delete Account',
                         style: TextStyle(
                           fontSize: 14,
-                          color: lightWidget,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -868,7 +927,7 @@ class ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(16.0), // Rounded corners
         ),
         child: Text(
-          '${_weightController.text.isNotEmpty ? '${_weightController.text} Kg' : '-'} ·  '
+          '${_weightController.text.isNotEmpty ? '${_weightController.text} kg' : '-'} ·  '
           '${_heightController.text.isNotEmpty ? '${_heightController.text} cm' : '-'} ·  '
           '${_birthdateController.text.isNotEmpty ? _birthdateController.text : '-'}',
           style: TextStyle(
@@ -879,6 +938,120 @@ class ProfilePageState extends State<ProfilePage> {
           textAlign: TextAlign.center, // Centered text
         ),
       ),
+    );
+  }
+
+  // Widget to display the streak section
+  Widget _buildStreakSection() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    int streakCount = 0;
+    DateTime lastStreakDate = DateTime.fromMillisecondsSinceEpoch(0);
+
+    if (_user != null) {
+      // Fetch streak data from Firestore
+      // This assumes that _fetchUserData has already been called and data is loaded
+      // Otherwise, consider using a FutureBuilder or StreamBuilder
+      // For simplicity, it's assumed here that data is already fetched
+      // and _friends and other fields are already populated
+      // You might need to adjust this based on your actual data fetching implementation
+    }
+
+    return FutureBuilder<DocumentSnapshot>(
+      future:
+          FirebaseFirestore.instance.collection('users').doc(_user!.uid).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.data!.exists) {
+          Map<String, dynamic> data =
+              snapshot.data!.data() as Map<String, dynamic>;
+          streakCount = data['streakCount'] ?? 0;
+          Timestamp? lastStreakTimestamp = data['lastStreakDate'];
+          if (lastStreakTimestamp != null) {
+            lastStreakDate = lastStreakTimestamp.toDate();
+          }
+
+          return Center(
+            child: Column(
+              children: [
+                Text(
+                  'Streak: $streakCount days',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Last Streak Date: ${lastStreakDate.day}/${lastStreakDate.month}/${lastStreakDate.year}',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDarkMode ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return const Center(child: Text('No streak data available.'));
+        }
+      },
+    );
+  }
+
+  // Widget to display the completed sessions section
+  Widget _buildCompletedSessionsSection() {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    if (_completedSessions.isEmpty) {
+      return Center(
+        child: Text(
+          'No completed sessions yet.',
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode ? Colors.white70 : Colors.black87,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Divider(),
+        const SizedBox(height: 16),
+        const Text(
+          'Completed Sessions',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _completedSessions.length,
+          itemBuilder: (context, index) {
+            final session = _completedSessions[index];
+            return Card(
+              color: isDarkMode ? darkWidget : lightWidget,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ListTile(
+                leading: const Icon(Icons.fitness_center),
+                title: Text(
+                  '${session['first_name']} ${session['last_name']}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Email: ${session['email']}\nDate: ${session['created_at'] != null ? '${session['created_at'].day}/${session['created_at'].month}/${session['created_at'].year}' : 'N/A'}',
+                ),
+                // You can add more details about the session here
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
