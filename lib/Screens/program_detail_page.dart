@@ -1,21 +1,21 @@
-// Importation des packages nécessaires
-import 'package:flutter/material.dart'; // Bibliothèque de widgets matériels de Flutter
-import 'package:cloud_firestore/cloud_firestore.dart'; // Pour interagir avec la base de données Firestore de Firebase
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Pour la gestion de l'état avec Riverpod
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider pour gérer le thème (clair/sombre)
-import 'package:flutter/cupertino.dart'; // Widgets Cupertino pour le style iOS
-import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Widget pour la liste des catégories
-import 'package:yellowmuscu/data/exercises_data.dart'; // Données des exercices
+// Import necessary packages
+//full english
+import 'package:flutter/material.dart'; // Flutter material widgets library
+import 'package:cloud_firestore/cloud_firestore.dart'; // To interact with Firebase Firestore database
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // For state management with Riverpod
+import 'package:yellowmuscu/Provider/theme_provider.dart'; // Provider to manage theme (light/dark)
+import 'package:flutter/cupertino.dart'; // Cupertino widgets for iOS style
+import 'package:yellowmuscu/Exercise/exercise_category_list.dart'; // Widget for the category list
+import 'package:yellowmuscu/data/exercises_data.dart'; // Exercise data
 
-// Définition de la classe ProgramDetailPage, un ConsumerStatefulWidget pour intégrer Riverpod
+// Definition of the ProgramDetailPage class, a ConsumerStatefulWidget to integrate Riverpod
 class ProgramDetailPage extends ConsumerStatefulWidget {
-  // Variables finales pour stocker le programme, l'ID utilisateur et une fonction de mise à jour
-  final Map<String, dynamic> program; // Le programme d'exercices
-  final String userId; // L'identifiant de l'utilisateur actuel
-  final VoidCallback
-      onUpdate; // Fonction de rappel pour notifier les mises à jour
+  // Final variables to store the program, user ID, and an update callback function
+  final Map<String, dynamic> program; // The exercise program
+  final String userId; // The current user's ID
+  final VoidCallback onUpdate; // Callback function to notify updates
 
-  // Constructeur de la classe avec paramètres requis
+  // Constructor of the class with required parameters
   const ProgramDetailPage({
     super.key,
     required this.program,
@@ -28,44 +28,40 @@ class ProgramDetailPage extends ConsumerStatefulWidget {
   _ProgramDetailPageState createState() => _ProgramDetailPageState();
 }
 
-// État associé à la classe ProgramDetailPage
+// State associated with the ProgramDetailPage class
 class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
-  late List<Map<String, dynamic>> exercises; // Liste des exercices du programme
+  late List<Map<String, dynamic>> exercises; // List of exercises in the program
   bool _isEditingOrder =
-      false; // Indique si l'utilisateur est en mode d'édition de l'ordre des exercices
-  bool _hasChanges = false; // Indique si des modifications ont été apportées
+      false; // Indicates if the user is in exercise order editing mode
+  bool _hasChanges = false; // Indicates if any modifications have been made
 
   @override
   void initState() {
     super.initState();
-    // Initialise la liste des exercices en copiant depuis le programme fourni
-    // Si 'exercises' est absent ou null, initialise à une liste vide
+    // Initialize the exercises list by copying from the provided program
+    // If 'exercises' is absent or null, initialize as an empty list
     exercises = widget.program['exercises'] != null
         ? List<Map<String, dynamic>>.from(widget.program['exercises'])
         : [];
 
-    // Parcourt chaque exercice pour s'assurer que certaines clés existent
+    // Iterate through each exercise to ensure certain keys exist
     for (var exercise in exercises) {
-      exercise['restBetweenExercises'] = exercise['restBetweenExercises'] ??
-          60; // Définit une valeur par défaut de 60 secondes
-      exercise['restTime'] = exercise['restTime'] ??
-          60; // Définit une valeur par défaut de 60 secondes
-      exercise['sets'] =
-          exercise['sets'] ?? 3; // Définit une valeur par défaut de 3 séries
-      exercise['reps'] = exercise['reps'] ??
-          10; // Définit une valeur par défaut de 10 répétitions
-      exercise['weight'] = exercise['weight']?.toDouble() ??
-          0.0; // Définit une valeur par défaut de 0.0 kg
+      exercise['restBetweenExercises'] =
+          exercise['restBetweenExercises'] ?? 60; // Default 60 seconds
+      exercise['restTime'] = exercise['restTime'] ?? 60; // Default 60 seconds
+      exercise['sets'] = exercise['sets'] ?? 3; // Default 3 sets
+      exercise['reps'] = exercise['reps'] ?? 10; // Default 10 reps
+      exercise['weight'] =
+          exercise['weight']?.toDouble() ?? 0.0; // Default 0.0 kg
       exercise['image'] = exercise['image'] ??
-          'assets/images/default_exercise.png'; // Définit une image par défaut
-      exercise['name'] =
-          exercise['name'] ?? 'Exercice'; // Définit un nom par défaut
+          'assets/images/default_exercise.png'; // Default image
+      exercise['name'] = exercise['name'] ?? 'Exercise'; // Default name
       exercise['id'] = exercise['id'] ??
-          UniqueKey().toString(); // Génère un identifiant unique si absent
+          UniqueKey().toString(); // Generate unique ID if absent
       exercise['multipleWeights'] =
-          exercise['multipleWeights'] ?? false; // Définit par défaut à false
+          exercise['multipleWeights'] ?? false; // Default to false
       if (exercise['multipleWeights']) {
-        // Si multipleWeights est activé, initialise weightsPerSet
+        // If multipleWeights is enabled, initialize weightsPerSet
         exercise['weightsPerSet'] = exercise['weightsPerSet'] != null
             ? List<double>.from(
                 exercise['weightsPerSet'].map((w) => w.toDouble()))
@@ -75,18 +71,18 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     }
   }
 
-  // Méthode asynchrone pour sauvegarder les exercices modifiés dans Firestore
+  // Asynchronous method to save modified exercises to Firestore
   Future<void> _saveExercises() async {
     try {
-      // Vérifie si le programme a un identifiant unique
+      // Check if the program has a unique ID
       String programId = widget.program['id'];
       if (programId.isEmpty) {
-        // Si 'id' est absent, génère un nouvel identifiant et crée le document
+        // If 'id' is absent, generate a new ID and create the document
         DocumentReference newProgramRef = FirebaseFirestore.instance
             .collection('users')
             .doc(widget.userId)
             .collection('programs')
-            .doc(); // Génère un nouvel identifiant
+            .doc(); // Generates a new ID
         programId = newProgramRef.id;
         await newProgramRef.set({
           'id': programId,
@@ -94,7 +90,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           'exercises': exercises,
         });
       } else {
-        // Si 'id' existe, met à jour le document existant avec 'set' et 'merge: true'
+        // If 'id' exists, update the existing document with 'set' and 'merge: true'
         await FirebaseFirestore.instance
             .collection('users')
             .doc(widget.userId)
@@ -103,33 +99,32 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
             .set({'exercises': exercises}, SetOptions(merge: true));
       }
 
-      widget
-          .onUpdate(); // Appelle la fonction de mise à jour pour notifier les changements
+      widget.onUpdate(); // Calls the update callback to notify changes
 
-      // Affiche une confirmation visuelle que les exercices ont été sauvegardés
+      // Displays a visual confirmation that the exercises have been saved
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Exercices saved'),
+          content: Text('Exercises saved'),
         ),
       );
     } catch (e) {
-      // Gère les erreurs de Firestore
+      // Handles Firestore errors
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error : $e'),
+          content: Text('Error: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  // Méthode pour afficher un sélecteur de temps de repos (style iOS)
+  // Asynchronous method to display a rest time picker (iOS style)
   void _showRestTimePicker(BuildContext context, int currentRestTime,
       ValueChanged<int> onRestTimeChanged) {
-    int currentMinutes = currentRestTime ~/ 60; // Calcule les minutes initiales
-    int currentSeconds = currentRestTime % 60; // Calcule les secondes initiales
+    int currentMinutes = currentRestTime ~/ 60; // Calculate initial minutes
+    int currentSeconds = currentRestTime % 60; // Calculate initial seconds
 
     final isDarkMode = ref.watch(themeModeProvider);
 
@@ -137,49 +132,46 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 250, // Hauteur du modal
-          color: isDarkMode ? Colors.black : Colors.white, // Couleur de fond
+          height: 250, // Modal height
+          color: isDarkMode ? Colors.black : Colors.white, // Background color
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Picker pour les minutes
+              // Minutes picker
               Expanded(
                 child: CupertinoPicker(
                   backgroundColor: isDarkMode ? Colors.black : Colors.white,
-                  itemExtent: 32.0, // Hauteur de chaque élément
+                  itemExtent: 32.0, // Height of each item
                   scrollController: FixedExtentScrollController(
-                    initialItem: currentMinutes, // Valeur initiale en minutes
+                    initialItem: currentMinutes, // Initial minutes value
                   ),
                   onSelectedItemChanged: (int value) {
-                    currentMinutes =
-                        value; // Met à jour les minutes sélectionnées
+                    currentMinutes = value; // Update selected minutes
                   },
                   children: List<Widget>.generate(
-                    61, // Génère des minutes de 0 à 60
+                    61, // Generates minutes from 0 to 60
                     (int index) {
-                      return Text('$index min'); // Affiche le texte des minutes
+                      return Text('$index min'); // Displays minutes text
                     },
                   ),
                 ),
               ),
-              // Picker pour les secondes
+              // Seconds picker
               Expanded(
                 child: CupertinoPicker(
                   backgroundColor: isDarkMode ? Colors.black : Colors.white,
-                  itemExtent: 32.0, // Hauteur de chaque élément
+                  itemExtent: 32.0, // Height of each item
                   scrollController: FixedExtentScrollController(
                     initialItem: (currentSeconds / 10)
-                        .floor(), // Valeur initiale en secondes (par tranche de 10)
+                        .floor(), // Initial seconds value (in 10s)
                   ),
                   onSelectedItemChanged: (int value) {
-                    currentSeconds =
-                        value * 10; // Met à jour les secondes sélectionnées
+                    currentSeconds = value * 10; // Update selected seconds
                   },
                   children: List<Widget>.generate(
-                    6, // Génère des secondes de 0 à 50 (par tranches de 10)
+                    6, // Generates seconds from 0 to 50 (in 10s)
                     (int index) {
-                      return Text(
-                          '${index * 10} sec'); // Affiche le texte des secondes
+                      return Text('${index * 10} sec'); // Displays seconds text
                     },
                   ),
                 ),
@@ -189,17 +181,17 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         );
       },
     ).whenComplete(() {
-      // Lorsque le picker est fermé, calcule le temps total en secondes
+      // When the picker is closed, calculate the total time in seconds
       int totalTimeInSeconds = (currentMinutes * 60) + currentSeconds;
       onRestTimeChanged(
-          totalTimeInSeconds); // Appelle la fonction de rappel avec la nouvelle valeur
+          totalTimeInSeconds); // Calls the callback function with the new value
     });
   }
 
-  // Méthode pour afficher un sélecteur numérique générique
+  // Method to display a generic numeric picker
   void _showInputPicker(BuildContext context, String title, int initialValue,
       int minValue, int maxValue, int step, ValueChanged<int> onValueChanged) {
-    int currentValue = initialValue; // Valeur courante initialisée
+    int currentValue = initialValue; // Initialize current value
 
     final isDarkMode = ref.watch(themeModeProvider);
 
@@ -207,11 +199,11 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 250, // Hauteur du modal
-          color: isDarkMode ? Colors.black : Colors.white, // Couleur de fond
+          height: 250, // Modal height
+          color: isDarkMode ? Colors.black : Colors.white, // Background color
           child: Column(
             children: [
-              // Titre du picker
+              // Picker title
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(title,
@@ -221,21 +213,21 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               Expanded(
                 child: CupertinoPicker(
                   backgroundColor: isDarkMode ? Colors.black : Colors.white,
-                  itemExtent: 32.0, // Hauteur de chaque élément
+                  itemExtent: 32.0, // Height of each item
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) ~/ step)
                         .clamp(0, ((maxValue - minValue) ~/ step)),
                   ),
                   onSelectedItemChanged: (int value) {
-                    currentValue = minValue +
-                        value * step; // Met à jour la valeur sélectionnée
+                    currentValue =
+                        minValue + value * step; // Update the selected value
                   },
                   children: List<Widget>.generate(
                     ((maxValue - minValue) ~/ step) +
-                        1, // Nombre d'éléments à générer
+                        1, // Number of items to generate
                     (int index) {
                       return Text(
-                          '${minValue + index * step}'); // Affiche chaque valeur
+                          '${minValue + index * step}'); // Displays each value
                     },
                   ),
                 ),
@@ -245,12 +237,12 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         );
       },
     ).whenComplete(() {
-      // Lorsque le picker est fermé, appelle la fonction de rappel avec la nouvelle valeur
+      // When the picker is closed, call the callback function with the new value
       onValueChanged(currentValue);
     });
   }
 
-  // Méthode pour afficher un sélecteur numérique avec des demi-unités (par exemple, 0.5 kg)
+  // Method to display a numeric picker with decimal steps (e.g., 0.5 kg)
   void _showDecimalInputPicker(
       BuildContext context,
       String title,
@@ -259,7 +251,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       double maxValue,
       double step,
       ValueChanged<double> onValueChanged) {
-    double currentValue = initialValue; // Valeur courante initialisée
+    double currentValue = initialValue; // Initialize current value
 
     final isDarkMode = ref.watch(themeModeProvider);
 
@@ -267,11 +259,11 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       context: context,
       builder: (BuildContext builder) {
         return Container(
-          height: 250, // Hauteur du modal
+          height: 250, // Modal height
           color: isDarkMode ? Colors.black : Colors.white,
           child: Column(
             children: [
-              // Titre du picker
+              // Picker title
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(title,
@@ -281,23 +273,23 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               Expanded(
                 child: CupertinoPicker(
                   backgroundColor: isDarkMode ? Colors.black : Colors.white,
-                  itemExtent: 32.0, // Hauteur de chaque élément
+                  itemExtent: 32.0, // Height of each item
                   scrollController: FixedExtentScrollController(
                     initialItem: ((currentValue - minValue) / step)
                         .round()
                         .clamp(0, ((maxValue - minValue) / step).round()),
                   ),
                   onSelectedItemChanged: (int value) {
-                    currentValue = minValue +
-                        value * step; // Met à jour la valeur sélectionnée
+                    currentValue =
+                        minValue + value * step; // Update the selected value
                   },
                   children: List<Widget>.generate(
                     ((maxValue - minValue) / step).round() +
-                        1, // Nombre d'éléments à générer
+                        1, // Number of items to generate
                     (int index) {
                       double value = minValue + index * step;
                       return Text(
-                          '${value.toStringAsFixed(1)} kg'); // Affiche chaque valeur
+                          '${value.toStringAsFixed(1)} kg'); // Displays each value with one decimal
                     },
                   ),
                 ),
@@ -307,68 +299,68 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
         );
       },
     ).whenComplete(() {
-      // Lorsque le picker est fermé, appelle la fonction de rappel avec la nouvelle valeur
+      // When the picker is closed, call the callback function with the new value
       onValueChanged(currentValue);
     });
   }
 
-  // Méthode pour éditer un exercice spécifique
+  // Method to edit a specific exercise
   void _editExercise(int index) {
-    final exercise = exercises[index]; // Récupère l'exercice à l'index donné
-    int sets = exercise['sets']; // Nombre de séries
-    int reps = exercise['reps']; // Nombre de répétitions
+    final exercise =
+        exercises[index]; // Retrieve the exercise at the given index
+    int sets = exercise['sets']; // Number of sets
+    int reps = exercise['reps']; // Number of reps
     double weight =
-        exercise['weight']?.toDouble() ?? 0.0; // Poids, par défaut 0.0
+        exercise['weight']?.toDouble() ?? 0.0; // Weight, default 0.0
     int restTime = exercise['restTime']?.toInt() ??
-        60; // Temps de repos entre séries, par défaut 60 secondes
+        60; // Rest time between sets, default 60 seconds
     bool multipleWeights =
-        exercise['multipleWeights'] ?? false; // Poids multiples
+        exercise['multipleWeights'] ?? false; // Multiple weights
     List<double> weightsPerSet = multipleWeights
         ? List<double>.from(
             exercise['weightsPerSet']?.map((w) => w.toDouble()) ??
                 List<double>.filled(sets, weight))
-        : [weight.toDouble()]; // Poids par série
+        : [weight.toDouble()]; // Weights per set
 
     final isDarkMode =
-        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Check if dark mode is enabled
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setStateDialog) {
-          // Utilise un StatefulBuilder pour gérer l'état local dans le dialogue
+          // Use a StatefulBuilder to manage local state within the dialog
           return AlertDialog(
             backgroundColor: isDarkMode
                 ? Colors.black
-                : Colors.white, // Couleur de fond selon le thème
+                : Colors.white, // Background color based on theme
             title: Text(
-              'Modifier ${exercise['name']}', // Titre du dialogue
+              'Edit ${exercise['name']}', // Dialog title
               style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
             ),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Modification du nombre de séries
+                  // Editing the number of sets
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Séries:'), // Libellé
+                      const Text('Sets:'), // Label
                       GestureDetector(
                         onTap: () {
                           _showInputPicker(
                             context,
-                            'Séries', // Titre du picker
-                            sets, // Valeur initiale
-                            1, // Valeur minimale
-                            99, // Valeur maximale
-                            1, // Pas
+                            'Sets', // Picker title
+                            sets, // Initial value
+                            1, // Minimum value
+                            99, // Maximum value
+                            1, // Step
                             (newSets) {
                               setStateDialog(() {
-                                sets =
-                                    newSets; // Met à jour le nombre de séries
+                                sets = newSets; // Update the number of sets
                                 if (multipleWeights) {
-                                  // Ajuste la liste des poids par série
+                                  // Adjust the weightsPerSet list
                                   if (newSets > weightsPerSet.length) {
                                     weightsPerSet.addAll(List<double>.filled(
                                         newSets - weightsPerSet.length,
@@ -382,22 +374,21 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                             },
                           );
                         },
-                        child:
-                            Text('$sets séries'), // Affiche la valeur actuelle
+                        child: Text('$sets sets'), // Displays the current value
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16), // Espace entre les champs
-                  // Modification du nombre de répétitions
+                  const SizedBox(height: 16), // Space between fields
+                  // Editing the number of reps
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Répétitions:'),
+                      const Text('Repetitions:'),
                       GestureDetector(
                         onTap: () {
                           _showInputPicker(
                             context,
-                            'Répétitions',
+                            'Repetitions',
                             reps,
                             1,
                             99,
@@ -405,40 +396,40 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                             (newReps) {
                               setStateDialog(() {
                                 reps =
-                                    newReps; // Met à jour le nombre de répétitions
+                                    newReps; // Update the number of repetitions
                               });
                             },
                           );
                         },
-                        child: Text('$reps répétitions'),
+                        child: Text('$reps repetitions'),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Modification du poids
+                  // Editing the weight
                   if (!multipleWeights)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Poids (kg):'),
+                        const Text('Weight (kg):'),
                         GestureDetector(
                           onTap: () {
                             _showDecimalInputPicker(
                               context,
-                              'Poids (kg)',
+                              'Weight (kg)',
                               weight,
                               0.0,
                               500.0,
                               0.5,
                               (newWeight) {
                                 setStateDialog(() {
-                                  weight = newWeight; // Met à jour le poids
+                                  weight = newWeight; // Update the weight
                                 });
                               },
                             );
                           },
                           child: Text(
-                              '${weight.toStringAsFixed(1)} kg'), // Affiche la valeur actuelle avec une décimale
+                              '${weight.toStringAsFixed(1)} kg'), // Displays the current value with one decimal
                         ),
                       ],
                     ),
@@ -448,12 +439,12 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Poids série ${s + 1}:'),
+                            Text('Weight set ${s + 1}:'),
                             GestureDetector(
                               onTap: () {
                                 _showDecimalInputPicker(
                                   context,
-                                  'Poids série ${s + 1}',
+                                  'Weight set ${s + 1}',
                                   weightsPerSet[s],
                                   0.0,
                                   500.0,
@@ -461,54 +452,53 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                   (newWeight) {
                                     setStateDialog(() {
                                       weightsPerSet[s] =
-                                          newWeight; // Met à jour le poids de la série
+                                          newWeight; // Update the set's weight
                                     });
                                   },
                                 );
                               },
                               child: Text(
-                                  '${weightsPerSet[s].toStringAsFixed(1)} kg'), // Affiche le poids de la série
+                                  '${weightsPerSet[s].toStringAsFixed(1)} kg'), // Displays the set's weight
                             ),
                           ],
                         );
                       }),
                     ),
                   const SizedBox(height: 16),
-                  // Modification du temps de repos entre séries
+                  // Editing the rest time between sets
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Repos entre séries:'),
+                      const Text('Rest between sets:'),
                       GestureDetector(
                         onTap: () {
                           _showRestTimePicker(context, restTime, (newRestTime) {
                             setStateDialog(() {
-                              restTime =
-                                  newRestTime; // Met à jour le temps de repos
+                              restTime = newRestTime; // Update the rest time
                             });
                           });
                         },
                         child: Text(_formatDuration(
-                            restTime)), // Affiche le temps de repos formaté
+                            restTime)), // Displays the formatted rest time
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Bouton pour activer/désactiver les poids multiples
+                  // Button to toggle multiple weights
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Poids multiples:'),
+                      const Text('Multiple Weights:'),
                       CupertinoSwitch(
                         value: multipleWeights,
                         onChanged: (bool value) {
                           setStateDialog(() {
                             multipleWeights = value;
                             if (value) {
-                              // Initialiser weightsPerSet si activé
+                              // Initialize weightsPerSet if enabled
                               weightsPerSet = List<double>.filled(sets, weight);
                             } else {
-                              // Réinitialiser weight si désactivé
+                              // Reset weight if disabled
                               weight = weightsPerSet.isNotEmpty
                                   ? weightsPerSet[0]
                                   : 0.0;
@@ -523,7 +513,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               ),
             ),
             actions: [
-              // Bouton pour annuler les modifications
+              // Button to cancel modifications
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: isDarkMode ? Colors.white : Colors.black,
@@ -531,7 +521,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                 child: const Text('Cancel'),
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              // Bouton pour enregistrer les modifications
+              // Button to save modifications
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: isDarkMode ? Colors.white : Colors.black,
@@ -539,7 +529,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                 child: const Text('Save'),
                 onPressed: () async {
                   setState(() {
-                    // Met à jour les valeurs de l'exercice dans la liste
+                    // Update the exercise values in the list
                     exercises[index]['sets'] = sets;
                     exercises[index]['reps'] = reps;
                     exercises[index]['restTime'] = restTime;
@@ -554,16 +544,16 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                     }
                   });
 
-                  // Sauvegarde les modifications dans Firestore
+                  // Save the modifications to Firestore
                   await _saveExercises();
 
                   setState(() {
                     _hasChanges =
-                        true; // Indique que des modifications ont été effectuées
+                        true; // Indicates that modifications have been made
                   });
 
                   // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop(); // Ferme le dialogue
+                  Navigator.of(context).pop(); // Closes the dialog
                 },
               ),
             ],
@@ -573,59 +563,59 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     );
   }
 
-  // Méthode pour modifier le temps de repos entre les exercices
+  // Method to modify the rest time between exercises
   void _changeRestBetweenExercises(int index, int change) {
     setState(() {
       int newRest = (exercises[index]['restBetweenExercises'] + change)
-          .clamp(0, 3600); // Limite entre 0 et 3600 secondes
+          .clamp(0, 3600); // Limits between 0 and 3600 seconds
       exercises[index]['restBetweenExercises'] =
-          newRest; // Met à jour le temps de repos
-      _hasChanges = true; // Indique que des modifications ont été effectuées
+          newRest; // Updates the rest time
+      _hasChanges = true; // Indicates that modifications have been made
     });
-    _saveExercises(); // Sauvegarde les modifications
+    _saveExercises(); // Saves the modifications
   }
 
-  // Méthode pour réordonner les exercices dans la liste
+  // Method to reorder exercises in the list
   void _reorderExercises(int oldIndex, int newIndex) {
     setState(() {
-      if (newIndex > oldIndex) newIndex -= 1; // Ajuste l'index si nécessaire
+      if (newIndex > oldIndex) newIndex -= 1; // Adjusts the index if necessary
       final item = exercises
-          .removeAt(oldIndex); // Supprime l'exercice de sa position actuelle
+          .removeAt(oldIndex); // Removes the exercise from its current position
       exercises.insert(
-          newIndex, item); // Insère l'exercice à la nouvelle position
-      _hasChanges = true; // Indique que des modifications ont été effectuées
+          newIndex, item); // Inserts the exercise at the new position
+      _hasChanges = true; // Indicates that modifications have been made
     });
-    _saveExercises(); // Sauvegarde les modifications
+    _saveExercises(); // Saves the modifications
   }
 
-  // Méthode pour basculer le mode d'édition de l'ordre des exercices
+  // Method to toggle the exercise order editing mode
   void _toggleEditingOrder() {
     setState(() {
-      _isEditingOrder = !_isEditingOrder; // Inverse la valeur booléenne
+      _isEditingOrder = !_isEditingOrder; // Toggles the boolean value
       if (!_isEditingOrder) {
-        _saveExercises(); // Sauvegarde les modifications si on quitte le mode édition
+        _saveExercises(); // Saves the modifications if exiting edit mode
       }
     });
   }
 
-  // Méthode pour formater la durée en minutes et secondes
+  // Method to format the duration into minutes and seconds
   String _formatDuration(int totalSeconds) {
     if (totalSeconds < 60) {
-      return '$totalSeconds sec'; // Si moins d'une minute, affiche les secondes
+      return '$totalSeconds sec'; // If less than a minute, display seconds
     } else {
-      int minutes = totalSeconds ~/ 60; // Calcule les minutes
-      int seconds = totalSeconds % 60; // Calcule les secondes restantes
+      int minutes = totalSeconds ~/ 60; // Calculates minutes
+      int seconds = totalSeconds % 60; // Calculates remaining seconds
       String minutesPart =
-          '$minutes min${minutes > 1 ? 's' : ''}'; // Gère le pluriel
+          '$minutes min${minutes > 1 ? 's' : ''}'; // Handles plural
       String secondsPart =
-          seconds > 0 ? ' $seconds sec' : ''; // Affiche les secondes si > 0
+          seconds > 0 ? ' $seconds sec' : ''; // Displays seconds if > 0
       return secondsPart.isNotEmpty
           ? '$minutesPart $secondsPart'
-          : minutesPart; // Combine les deux
+          : minutesPart; // Combines both
     }
   }
 
-  // Méthode pour afficher le menu des catégories d'exercices
+  // Method to display the exercise categories menu
   void _addNewExercises() {
     final isDarkMode = ref.watch(themeModeProvider);
     final List<Map<String, dynamic>> categories = [
@@ -646,20 +636,19 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      isScrollControlled:
-          true, // Les modales prennent toute la hauteur de la page
+      isScrollControlled: true, // Modals take up the entire height of the page
       builder: (BuildContext context) {
         return Padding(
           padding: const EdgeInsets.only(top: 16.0),
           child: Column(
             children: [
-              // Petite croix en haut à gauche
+              // Small close icon at the top left
               Align(
                 alignment: Alignment.topLeft,
                 child: IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: () {
-                    Navigator.of(context).pop(); // Ferme le modal
+                    Navigator.of(context).pop(); // Closes the modal
                   },
                 ),
               ),
@@ -667,8 +656,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                 child: ExerciseCategoryList(
                   categories: categories,
                   onCategoryTap: (category) {
-                    Navigator.of(context)
-                        .pop(); // Ferme le modal des catégories
+                    Navigator.of(context).pop(); // Closes the category modal
                     _showExercises(category);
                   },
                   isDarkMode: isDarkMode,
@@ -681,11 +669,11 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     );
   }
 
-  // Méthode pour afficher la liste des exercices d'une catégorie
+  // Method to display the list of exercises for a category
   void _showExercises(String category) {
     List<Map<String, String>> exercisesList;
 
-    // Sélection des exercices en fonction de la catégorie
+    // Selects exercises based on the category
     if (category == 'Biceps') {
       exercisesList = ExercisesData.bicepsExercises;
     } else if (category == 'Abs') {
@@ -719,8 +707,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      isScrollControlled:
-          true, // Les modales prennent toute la hauteur de la page
+      isScrollControlled: true, // Modals take up the entire height of the page
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setStateModal) {
@@ -728,17 +715,17 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
               padding: const EdgeInsets.only(top: 16.0),
               child: Column(
                 children: [
-                  // Petite croix en haut à gauche
+                  // Small close icon at the top left
                   Align(
                     alignment: Alignment.topLeft,
                     child: IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () {
-                        Navigator.of(context).pop(); // Ferme le modal
+                        Navigator.of(context).pop(); // Closes the modal
                       },
                     ),
                   ),
-                  // Titre de la catégorie
+                  // Category title
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
@@ -751,13 +738,13 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Barre de recherche
+                  // Search bar
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: TextField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        hintText: 'Rechercher un exercice',
+                        hintText: 'Search for an exercise',
                         hintStyle: TextStyle(
                             color:
                                 isDarkMode ? Colors.white70 : Colors.grey[600]),
@@ -794,7 +781,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                     child: filteredExercises.isEmpty
                         ? Center(
                             child: Text(
-                              'Aucun exercice trouvé.',
+                              'No exercises found.',
                               style: TextStyle(
                                   color: isDarkMode
                                       ? Colors.white70
@@ -855,7 +842,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                               : Colors.black),
                                       onPressed: () {
                                         Navigator.of(context)
-                                            .pop(); // Ferme le modal des exercices
+                                            .pop(); // Closes the exercises modal
                                         _showRestTimePopup(exercise);
                                       },
                                     ),
@@ -874,7 +861,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     );
   }
 
-  // Méthode pour afficher les détails d'un exercice
+  // Method to display exercise details
   void _showExerciseInfo(Map<String, String> exercise) {
     final isDarkMode = ref.watch(themeModeProvider);
 
@@ -917,7 +904,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Objectifs',
+                  'Goals',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -946,7 +933,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     );
   }
 
-  // Méthode pour afficher le popup de temps de repos entre exercices
+  // Method to display the rest time popup between exercises
   void _showRestTimePopup(Map<String, String> exercise) {
     int restBetweenExercises = 60;
     showDialog(
@@ -993,9 +980,9 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
           ),
           actions: [
             TextButton(
-              child: const Text('Ajouter'),
+              child: const Text('Add'),
               onPressed: () async {
-                Navigator.of(context).pop(); // Ferme le dialogue
+                Navigator.of(context).pop(); // Closes the dialog
                 _addExerciseToProgramWithRest(exercise, restBetweenExercises);
               },
             ),
@@ -1005,10 +992,10 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
     );
   }
 
-  // Méthode pour ajouter un exercice au programme avec le temps de repos
+  // Method to add an exercise to the program with rest time
   void _addExerciseToProgramWithRest(
       Map<String, String> exercise, int restBetweenExercises) async {
-    // Ajout des valeurs par défaut à l'exercice
+    // Add default values to the exercise
     Map<String, dynamic> newExercise = {
       'name': exercise['name'],
       'image': exercise['image'],
@@ -1034,42 +1021,39 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode =
-        ref.watch(themeModeProvider); // Vérifie si le thème sombre est activé
+        ref.watch(themeModeProvider); // Checks if dark mode is enabled
 
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        // Gère le comportement lors du retour arrière
+        // Handles back button behavior
         Navigator.of(context).pop(
-            _hasChanges); // Retourne à la page précédente en passant l'indicateur de changements
-        return false; // Empêche la fermeture automatique
+            _hasChanges); // Returns to the previous page with the changes indicator
+        return false; // Prevents automatic closure
       },
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: isDarkMode
               ? Colors.black54
-              : null, // Couleur de fond selon le thème
+              : null, // Background color based on theme
           title: Text(widget.program['name'] ??
-              'Programme'), // Affiche le nom du programme dans la barre d'applications
+              'Program'), // Displays the program name in the app bar
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back), // Icône de retour
+            icon: const Icon(Icons.arrow_back), // Back icon
             onPressed: () {
               Navigator.of(context).pop(
-                  _hasChanges); // Retourne à la page précédente en passant l'indicateur de changements
+                  _hasChanges); // Returns to the previous page with the changes indicator
             },
-            tooltip: 'Retour',
+            tooltip: 'Back',
           ),
           actions: [
-            // Bouton pour basculer le mode d'édition de l'ordre
+            // Button to toggle exercise order editing mode
             IconButton(
               icon: Icon(_isEditingOrder
                   ? Icons.check
-                  : Icons.reorder), // Icône changeante
-              onPressed:
-                  _toggleEditingOrder, // Appelle la méthode pour basculer le mode
-              tooltip: _isEditingOrder
-                  ? 'Terminer l\'édition'
-                  : 'Réorganiser les exercices',
+                  : Icons.reorder), // Changing icon
+              onPressed: _toggleEditingOrder, // Calls the method to toggle mode
+              tooltip: _isEditingOrder ? 'Finish Editing' : 'Reorder Exercises',
             ),
           ],
         ),
@@ -1078,9 +1062,9 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
             Expanded(
               child: exercises.isEmpty
                   ? Center(
-                      // Si la liste des exercices est vide, affiche un message
+                      // If the exercises list is empty, display a message
                       child: Text(
-                        'Aucun exercice ajouté au programme',
+                        'No exercises added to the program',
                         style: TextStyle(
                             fontSize: 18,
                             color:
@@ -1107,7 +1091,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                            '${removedItem['name']} supprimé'),
+                                            '${removedItem['name']} removed'),
                                       ),
                                     );
                                   });
@@ -1122,14 +1106,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                 child: ListTile(
                                   leading: Semantics(
                                     label:
-                                        'Image de l\'exercice ${exercises[index]['name']}',
+                                        'Exercise image ${exercises[index]['name']}',
                                     child: CircleAvatar(
                                       backgroundImage:
                                           AssetImage(exercises[index]['image']),
                                     ),
                                   ),
                                   title: Text(
-                                    exercises[index]['name'] ?? 'Exercice',
+                                    exercises[index]['name'] ?? 'Exercise',
                                     style: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
@@ -1138,7 +1122,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                   trailing: ReorderableDragStartListener(
                                     index: index,
                                     child: Semantics(
-                                      label: 'Déplacer l\'exercice',
+                                      label: 'Move exercise',
                                       child: const Icon(Icons.drag_handle),
                                     ),
                                   ),
@@ -1154,8 +1138,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                               children: [
                                 ListTile(
                                   leading: Semantics(
-                                    label:
-                                        'Image de l\'exercice ${exercise['name']}',
+                                    label: 'Exercise image ${exercise['name']}',
                                     child: CircleAvatar(
                                       backgroundImage: AssetImage(
                                         exercise['image'],
@@ -1163,7 +1146,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                     ),
                                   ),
                                   title: Text(
-                                    exercise['name'] ?? 'Exercice',
+                                    exercise['name'] ?? 'Exercise',
                                     style: TextStyle(
                                         color: isDarkMode
                                             ? Colors.white
@@ -1175,9 +1158,9 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                     children: [
                                       if (!exercise['multipleWeights'])
                                         Text(
-                                          '${exercise['sets']} séries x ${exercise['reps']} répétitions\n'
-                                          'Poids: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
-                                          'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                          '${exercise['sets']} sets x ${exercise['reps']} reps\n'
+                                          'Weight: ${exercise['weight']?.toStringAsFixed(1) ?? '0.0'} kg\n'
+                                          'Rest between sets: ${_formatDuration(exercise['restTime'] ?? 60)}',
                                           style: TextStyle(
                                               color: isDarkMode
                                                   ? Colors.white70
@@ -1189,14 +1172,14 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              '${exercise['sets']} séries x ${exercise['reps']} répétitions',
+                                              '${exercise['sets']} sets x ${exercise['reps']} reps',
                                               style: TextStyle(
                                                   color: isDarkMode
                                                       ? Colors.white70
                                                       : Colors.black87),
                                             ),
                                             Text(
-                                              'Poids par série:',
+                                              'Weight per set:',
                                               style: TextStyle(
                                                   color: isDarkMode
                                                       ? Colors.white70
@@ -1207,7 +1190,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                                       as List<dynamic>)
                                                   .length,
                                               (s) => Text(
-                                                '  Série ${s + 1}: ${((exercise['weightsPerSet'] as List<dynamic>)[s] as double).toStringAsFixed(1)} kg',
+                                                '  Set ${s + 1}: ${((exercise['weightsPerSet'] as List<dynamic>)[s] as double).toStringAsFixed(1)} kg',
                                                 style: TextStyle(
                                                     color: isDarkMode
                                                         ? Colors.white70
@@ -1215,7 +1198,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                               ),
                                             ),
                                             Text(
-                                              'Repos entre séries: ${_formatDuration(exercise['restTime'] ?? 60)}',
+                                              'Rest between sets: ${_formatDuration(exercise['restTime'] ?? 60)}',
                                               style: TextStyle(
                                                   color: isDarkMode
                                                       ? Colors.white70
@@ -1228,11 +1211,11 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                   trailing: IconButton(
                                     icon: const Icon(Icons.edit),
                                     onPressed: () => _editExercise(index),
-                                    tooltip: 'Modifier l\'exercice',
+                                    tooltip: 'Edit Exercise',
                                   ),
                                 ),
                                 if (index < exercises.length - 1)
-                                  // Si ce n'est pas le dernier exercice, affiche le temps de repos entre exercices
+                                  // If not the last exercise, display rest time between exercises
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 16.0),
@@ -1261,7 +1244,7 @@ class _ProgramDetailPageState extends ConsumerState<ProgramDetailPage> {
                                               _changeRestBetweenExercises(
                                                   index, 10),
                                           tooltip:
-                                              'Augmenter le temps de repos entre les exercices',
+                                              'Increase rest time between exercises',
                                         ),
                                       ],
                                     ),

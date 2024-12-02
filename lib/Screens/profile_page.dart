@@ -39,13 +39,11 @@ class ProfilePageState extends State<ProfilePage> {
   String _selectedProfilePicture = ''; // URL of the selected profile picture
   String _searchQuery = ''; // Search query for filtering friends
 
-  // Lists to store user data, friends, friend requests, and completed sessions
+  // Lists to store user data, friends, and friend requests
   List<Map<String, dynamic>> _allUsers = []; // List of all users
   List<dynamic> _friends = []; // List of user's friends
   List<dynamic> _sentRequests = []; // List of sent friend requests
   List<String> _receivedRequests = []; // List of received friend requests
-  List<Map<String, dynamic>> _completedSessions =
-      []; // List of completed sessions
 
   @override
   void initState() {
@@ -54,7 +52,7 @@ class ProfilePageState extends State<ProfilePage> {
     if (_user != null) {
       _fetchUserData(); // Fetch user data from Firestore
       _fetchReceivedFriendRequests(); // Fetch received friend requests
-      _fetchCompletedSessions(); // Fetch completed sessions
+      // _fetchCompletedSessions(); // Removed as per request
     }
 
     // Listen to changes in the search bar
@@ -147,35 +145,6 @@ class ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() {
         _receivedRequests = receivedRequests;
-      });
-    }
-  }
-
-  // Method to fetch completed sessions
-  void _fetchCompletedSessions() async {
-    if (_user == null) return;
-
-    QuerySnapshot sessionsSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.uid)
-        .collection('completedSessions')
-        .orderBy('created_at', descending: true)
-        .get();
-
-    List<Map<String, dynamic>> sessions = sessionsSnapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      return {
-        'created_at': data['created_at']?.toDate() ?? DateTime.now(),
-        'email': data['email'] ?? '',
-        'first_name': data['first_name'] ?? '',
-        'last_name': data['last_name'] ?? '',
-        // Add other session-specific fields here
-      };
-    }).toList();
-
-    if (mounted) {
-      setState(() {
-        _completedSessions = sessions;
       });
     }
   }
@@ -356,7 +325,7 @@ class ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  // Modified Method to delete the user account
+  // Method to delete the user account
   void _deleteAccount() async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     // Display a confirmation dialog
@@ -801,11 +770,11 @@ class ProfilePageState extends State<ProfilePage> {
               // Weight, height, and birthdate in a styled container
               _buildStatsSection(),
               const SizedBox(height: 16),
-              // Streak information
-              _buildStreakSection(),
-              const SizedBox(height: 16),
-              // Completed Sessions
-              _buildCompletedSessionsSection(),
+              // Removed Streak information
+              // _buildStreakSection(),
+              // const SizedBox(height: 16),
+              // Removed Completed Sessions
+              // _buildCompletedSessionsSection(),
             ],
           ),
         const SizedBox(height: 20),
@@ -820,7 +789,9 @@ class ProfilePageState extends State<ProfilePage> {
                   child: ElevatedButton(
                     onPressed: _toggleEditing,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: lightWidget,
+                      backgroundColor: isDarkMode
+                          ? darkWidget
+                          : lightWidget, // Use theme-based color
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -867,7 +838,9 @@ class ProfilePageState extends State<ProfilePage> {
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             side: BorderSide(
-                              color: Colors.white,
+                              color: isDarkMode
+                                  ? Colors.white
+                                  : Colors.transparent,
                               width: isDarkMode ? 1.5 : 0,
                             ),
                           ),
@@ -891,7 +864,7 @@ class ProfilePageState extends State<ProfilePage> {
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         side: BorderSide(
-                          color: Colors.white,
+                          color: isDarkMode ? Colors.white : Colors.transparent,
                           width: isDarkMode ? 1.5 : 0,
                         ),
                       ),
@@ -941,119 +914,21 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Widget to display the streak section
-  Widget _buildStreakSection() {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    int streakCount = 0;
-    DateTime lastStreakDate = DateTime.fromMillisecondsSinceEpoch(0);
-
-    if (_user != null) {
-      // Fetch streak data from Firestore
-      // This assumes that _fetchUserData has already been called and data is loaded
-      // Otherwise, consider using a FutureBuilder or StreamBuilder
-      // For simplicity, it's assumed here that data is already fetched
-      // and _friends and other fields are already populated
-      // You might need to adjust this based on your actual data fetching implementation
-    }
-
-    return FutureBuilder<DocumentSnapshot>(
-      future:
-          FirebaseFirestore.instance.collection('users').doc(_user!.uid).get(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.data!.exists) {
-          Map<String, dynamic> data =
-              snapshot.data!.data() as Map<String, dynamic>;
-          streakCount = data['streakCount'] ?? 0;
-          Timestamp? lastStreakTimestamp = data['lastStreakDate'];
-          if (lastStreakTimestamp != null) {
-            lastStreakDate = lastStreakTimestamp.toDate();
-          }
-
-          return Center(
-            child: Column(
-              children: [
-                Text(
-                  'Streak: $streakCount days',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Last Streak Date: ${lastStreakDate.day}/${lastStreakDate.month}/${lastStreakDate.year}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDarkMode ? Colors.white70 : Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          );
-        } else {
-          return const Center(child: Text('No streak data available.'));
-        }
-      },
-    );
-  }
-
   // Widget to display the completed sessions section
+  // Removed as per request
+  /*
   Widget _buildCompletedSessionsSection() {
-    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    if (_completedSessions.isEmpty) {
-      return Center(
-        child: Text(
-          'No completed sessions yet.',
-          style: TextStyle(
-            fontSize: 16,
-            color: isDarkMode ? Colors.white70 : Colors.black87,
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Divider(),
-        const SizedBox(height: 16),
-        const Text(
-          'Completed Sessions',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: _completedSessions.length,
-          itemBuilder: (context, index) {
-            final session = _completedSessions[index];
-            return Card(
-              color: isDarkMode ? darkWidget : lightWidget,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ListTile(
-                leading: const Icon(Icons.fitness_center),
-                title: Text(
-                  '${session['first_name']} ${session['last_name']}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Email: ${session['email']}\nDate: ${session['created_at'] != null ? '${session['created_at'].day}/${session['created_at'].month}/${session['created_at'].year}' : 'N/A'}',
-                ),
-                // You can add more details about the session here
-              ),
-            );
-          },
-        ),
-      ],
-    );
+    // Original code for completed sessions
   }
+  */
+
+  // Widget to display the streak section
+  // Removed as per request
+  /*
+  Widget _buildStreakSection() {
+    // Original code for streak information
+  }
+  */
 
   // Widget to display the sign-in screen if the user is not logged in
   Widget _buildSignIn() {
