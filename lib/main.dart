@@ -3,8 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yellowmuscu/authentification/sign_in_page.dart';
-import 'package:yellowmuscu/authentification/sign_up_page.dart';
+import 'package:yellowmuscu/authentification/login_page.dart'; // Met à jour l'import pour LoginPage
 import 'package:yellowmuscu/Screens/main_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import de ThemeProvider
@@ -52,19 +51,17 @@ class MyApp extends ConsumerWidget {
         ),
       ),
       home:
-          const AuthWrapper(), // Afficher SignIn ou MainPage selon l'authentification
+          const AuthWrapper(), // Afficher LoginPage ou MainPage selon l'authentification
       routes: {
-        '/signIn': (context) => const SignInPage(),
-        '/signUp': (context) => const SignUpPage(),
+        '/login': (context) =>
+            const LoginPage(), // Met à jour la route pour LoginPage
         '/mainPage': (context) => const MainPage(),
-        // Supprimez la route '/tutorial' pour éviter l'erreur
       },
     );
   }
 }
 
 class AuthWrapper extends StatelessWidget {
-  // Convertir AuthWrapper en StatelessWidget
   const AuthWrapper({super.key});
 
   @override
@@ -72,19 +69,18 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Si l'utilisateur est authentifié, afficher MainPage
         if (snapshot.connectionState == ConnectionState.active) {
-          User? user = snapshot.data;
+          final user = snapshot.data;
           if (user == null) {
-            return const SignInPage(); // Afficher SignInPage si non authentifié
+            return const LoginPage(); // Remplace SignInPage par LoginPage
           } else {
-            return const MainPage(); // Afficher MainPage si authentifié
+            return const MainPage(); // Redirige vers la page principale
           }
         }
-
-        // Sinon, afficher un indicateur de chargement
         return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(
+              child:
+                  CircularProgressIndicator()), // Affiche un indicateur de chargement
         );
       },
     );

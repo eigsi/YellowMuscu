@@ -314,7 +314,7 @@ class ProfilePageState extends State<ProfilePage> {
   void _signOut() async {
     await _auth.signOut();
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/signIn');
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
@@ -394,7 +394,7 @@ class ProfilePageState extends State<ProfilePage> {
                   onPressed: () {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.of(context)
-                        .pushReplacementNamed('/signIn'); // Navigate to sign in
+                        .pushReplacementNamed('/login'); // Navigate to sign in
                   },
                   child: const Text('Sign In'),
                 ),
@@ -418,7 +418,7 @@ class ProfilePageState extends State<ProfilePage> {
         _showError(
             'Account deletion failed. Please log in again and try again.');
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/signIn');
+          Navigator.of(context).pushReplacementNamed('/login');
         }
       } else {
         _showError('Account deletion failed: ${e.message}');
@@ -942,7 +942,7 @@ class ProfilePageState extends State<ProfilePage> {
             height: 36,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/signIn');
+                Navigator.pushNamed(context, '/login');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: isDarkMode ? darkWidget : Colors.white,
