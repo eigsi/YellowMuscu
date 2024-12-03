@@ -1,140 +1,8 @@
-// // login_page.dart
-
-// // Importing necessary packages for Flutter and Firebase functionalities
-// import 'package:flutter/material.dart'; // Flutter's material design widgets
-// import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication package
-// import '../Screens/profile_page.dart'; // Importing the ProfilePage screen
-
-// // Defining the LoginPage as a StatefulWidget to manage dynamic state changes
-// class LoginPage extends StatefulWidget {
-//   const LoginPage({super.key});
-
-//   @override
-//   // Creating the mutable state for this widget
-//   // ignore: library_private_types_in_public_api
-//   _LoginPageState createState() => _LoginPageState();
-// }
-
-// // The state class associated with LoginPage
-// class _LoginPageState extends State<LoginPage> {
-//   // Controllers to capture user input from TextFields
-//   final TextEditingController emailController =
-//       TextEditingController(); // Controller for email input
-//   final TextEditingController passwordController =
-//       TextEditingController(); // Controller for password input
-
-//   // Asynchronous method to handle user login
-//   Future<void> _login() async {
-//     try {
-//       // Attempting to sign in with the provided email and password
-//       await FirebaseAuth.instance.signInWithEmailAndPassword(
-//         email:
-//             emailController.text.trim(), // Trimming whitespace from email input
-//         password: passwordController.text
-//             .trim(), // Trimming whitespace from password input
-//       );
-
-//       // If sign-in is successful, navigate to the ProfilePage and replace the current page
-//       Navigator.pushReplacement(
-//         // ignore: use_build_context_synchronously
-//         context, // Current BuildContext
-//         MaterialPageRoute(
-//             builder: (context) => const ProfilePage()), // Route to ProfilePage
-//       );
-//     } catch (e) {
-//       // If an error occurs during sign-in, display a SnackBar with an error message
-//       // ignore: use_build_context_synchronously
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text('Password or email error, try again'), // Error message
-//           backgroundColor: Colors.red, // Red background to indicate error
-//         ),
-//       );
-//     }
-//   }
-
-//   // Asynchronous method to handle user sign-up (account creation)
-//   Future<void> _signUp() async {
-//     try {
-//       // Attempting to create a new user with the provided email and password
-//       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-//         email:
-//             emailController.text.trim(), // Trimming whitespace from email input
-//         password: passwordController.text
-//             .trim(), // Trimming whitespace from password input
-//       );
-
-//       // If sign-up is successful, navigate to the ProfilePage and replace the current page
-//       Navigator.pushReplacement(
-//         // ignore: use_build_context_synchronously
-//         context, // Current BuildContext
-//         MaterialPageRoute(
-//             builder: (context) => const ProfilePage()), // Route to ProfilePage
-//       );
-//     } catch (e) {
-//       // If an error occurs during sign-up, display a SnackBar with an error message
-//       // ignore: use_build_context_synchronously
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(
-//           content: Text(
-//               'Sign-up failed, please retry'), // Error message (translated to English)
-//           backgroundColor: Colors.red, // Red background to indicate error
-//         ),
-//       );
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // Building the UI of the LoginPage
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Login'), // App bar title
-//       ),
-//       body: Padding(
-//         padding: const EdgeInsets.all(16.0), // Adding padding around the body
-//         child: Column(
-//           children: [
-//             // TextField for user to input their email
-//             TextField(
-//               controller: emailController, // Linking to emailController
-//               decoration: const InputDecoration(
-//                   labelText: 'Email'), // Placeholder label
-//               keyboardType: TextInputType
-//                   .emailAddress, // Optimizing keyboard for email input
-//             ),
-//             // TextField for user to input their password
-//             TextField(
-//               controller: passwordController, // Linking to passwordController
-//               obscureText: true, // Hiding the password input for security
-//               decoration: const InputDecoration(
-//                   labelText: 'Password'), // Placeholder label
-//             ),
-//             const SizedBox(
-//                 height: 20), // Adding vertical space between fields and buttons
-//             // ElevatedButton for user to initiate login
-//             ElevatedButton(
-//               onPressed: _login, // Calling the _login method when pressed
-//               child: const Text('Login'), // Button label
-//             ),
-//             const SizedBox(height: 10), // Adding vertical space between buttons
-//             // ElevatedButton for user to initiate sign-up (create a new account)
-//             ElevatedButton(
-//               onPressed: _signUp, // Calling the _signUp method when pressed
-//               child: const Text('Create Account'), // Button label
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 // login_page.dart
 
 // Importing necessary packages for Flutter and Firebase functionalities
-import 'package:flutter/material.dart'; // Flutter's material design widgets
-import 'package:firebase_auth/firebase_auth.dart'; // Firebase Authentication package
+import 'package:flutter/material.dart'; // Provides Flutter's Material Design widgets
+import 'package:firebase_auth/firebase_auth.dart'; // Provides Firebase Authentication functionalities
 
 // Defining the LoginPage as a StatefulWidget to manage dynamic state changes
 class LoginPage extends StatefulWidget {
@@ -142,105 +10,123 @@ class LoginPage extends StatefulWidget {
 
   @override
   // ignore: library_private_types_in_public_api
-  _LoginPageState createState() => _LoginPageState();
+  _LoginPageState createState() =>
+      _LoginPageState(); // Creates the mutable state for LoginPage
 }
 
 // The state class associated with LoginPage
 class _LoginPageState extends State<LoginPage> {
   // Controllers to capture user input from TextFields
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController =
+      TextEditingController(); // Controller for email input
+  final TextEditingController passwordController =
+      TextEditingController(); // Controller for password input
 
-  // Variable to track loading state
+  // Variable to track loading state (used to show a spinner while authenticating)
   bool _isLoading = false;
 
-  // Method to validate input fields
+  // Method to validate input fields before performing login or sign-up
   bool _validateFields() {
+    // Check if either email or password field is empty
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in all fields'),
-          backgroundColor: Colors.red,
+          content: Text('Please fill in all fields'), // Error message
+          backgroundColor: Colors.red, // Red background for error
         ),
       );
-      return false;
+      return false; // Validation failed
     }
+
+    // Check if email format is valid
     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(emailController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter a valid email'),
+          content: Text('Please enter a valid email'), // Error message
           backgroundColor: Colors.red,
         ),
       );
-      return false;
+      return false; // Validation failed
     }
+
+    // Check if password length is at least 6 characters
     if (passwordController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Password must be at least 6 characters'),
+          content:
+              Text('Password must be at least 6 characters'), // Error message
           backgroundColor: Colors.red,
         ),
       );
-      return false;
+      return false; // Validation failed
     }
-    return true;
+
+    return true; // Validation passed
   }
 
-  // Combined method for login and signup
+  // Combined method for login and sign-up functionalities
   Future<void> _authenticate({required bool isSignUp}) async {
+    // Validate input fields
     if (!_validateFields()) return;
 
+    // Show loading spinner
     setState(() {
       _isLoading = true;
     });
 
     try {
       if (isSignUp) {
-        // Create a new user
+        // Create a new user with Firebase Authentication
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
       } else {
-        // Sign in an existing user
+        // Log in an existing user with Firebase Authentication
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: emailController.text.trim(),
           password: passwordController.text.trim(),
         );
       }
 
-      // Navigate to the main page after success
+      // Navigate to the main page after successful authentication
       // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, '/mainPage');
     } catch (e) {
-      // Handle errors and display specific messages
-      String errorMessage = 'An error occurred';
+      // Handle errors and display specific error messages
+      String errorMessage = 'An error occurred'; // Default error message
       if (e is FirebaseAuthException) {
         switch (e.code) {
           case 'user-not-found':
-            errorMessage = 'No user found with this email.';
+            errorMessage =
+                'No user found with this email.'; // Error message for non-existent user
             break;
           case 'wrong-password':
-            errorMessage = 'Incorrect password.';
+            errorMessage =
+                'Incorrect password.'; // Error message for wrong password
             break;
           case 'email-already-in-use':
-            errorMessage = 'This email is already in use.';
+            errorMessage =
+                'This email is already in use.'; // Error message for email already registered
             break;
           case 'weak-password':
-            errorMessage = 'Password is too weak.';
+            errorMessage =
+                'Password is too weak.'; // Error message for weak password
             break;
           default:
-            errorMessage = e.message ?? 'Authentication error';
+            errorMessage =
+                e.message ?? 'Authentication error'; // Fallback error message
         }
       }
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
+          content: Text(errorMessage), // Display the error message
+          backgroundColor: Colors.red, // Red background for error
         ),
       );
     } finally {
+      // Hide loading spinner
       setState(() {
         _isLoading = false;
       });
@@ -252,42 +138,48 @@ class _LoginPageState extends State<LoginPage> {
     // Building the UI of the LoginPage
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'), // App bar title
+        title: const Text('Login'), // Title displayed in the app bar
       ),
       body: _isLoading
           ? const Center(
               child:
-                  CircularProgressIndicator()) // Show loading spinner when authenticating
+                  CircularProgressIndicator(), // Show loading spinner if authenticating
+            )
           : Padding(
               padding:
-                  const EdgeInsets.all(16.0), // Adding padding around the body
+                  const EdgeInsets.all(16.0), // Add padding around the body
               child: Column(
                 children: [
-                  // TextField for user to input their email
+                  // TextField for email input
                   TextField(
                     controller: emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                        labelText: 'Email'), // Label for the email field
+                    keyboardType:
+                        TextInputType.emailAddress, // Show email keyboard
                   ),
-                  // TextField for user to input their password
+                  // TextField for password input
                   TextField(
                     controller: passwordController,
-                    obscureText: true, // Hiding the password input for security
-                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true, // Hide the password input for security
+                    decoration: const InputDecoration(
+                        labelText: 'Password'), // Label for the password field
                   ),
                   const SizedBox(
                       height:
-                          20), // Adding vertical space between fields and buttons
-                  // ElevatedButton for user to initiate login
+                          20), // Add vertical space between fields and buttons
+                  // Button to initiate login
                   ElevatedButton(
-                    onPressed: () => _authenticate(isSignUp: false),
+                    onPressed: () =>
+                        _authenticate(isSignUp: false), // Trigger login
                     child: const Text('Login'),
                   ),
                   const SizedBox(
-                      height: 10), // Adding vertical space between buttons
-                  // ElevatedButton for user to initiate sign-up
+                      height: 10), // Add vertical space between buttons
+                  // Button to initiate sign-up
                   ElevatedButton(
-                    onPressed: () => _authenticate(isSignUp: true),
+                    onPressed: () =>
+                        _authenticate(isSignUp: true), // Trigger sign-up
                     child: const Text('Create Account'),
                   ),
                 ],
@@ -298,9 +190,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    // Dispose all controllers to free up resources
+    // Dispose all controllers to free up resources when the widget is removed
     emailController.dispose();
     passwordController.dispose();
-    super.dispose();
+    super.dispose(); // Call the superclass's dispose method
   }
 }
