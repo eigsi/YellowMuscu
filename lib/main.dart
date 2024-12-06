@@ -36,9 +36,7 @@ class MyApp extends ConsumerWidget {
     final ThemeData currentTheme = ThemeData(
       brightness:
           isDarkMode ? Brightness.dark : Brightness.light, // Set brightness
-      scaffoldBackgroundColor: isDarkMode
-          ? darkBottom
-          : lightBottom, // Set scaffold background color
+      scaffoldBackgroundColor: Colors.white, // Set scaffold background color
       appBarTheme: AppBarTheme(
         backgroundColor:
             isDarkMode ? darkTop : lightTop, // AppBar background color
