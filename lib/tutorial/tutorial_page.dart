@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // Assurez-vous d'importer votre page principale
 import 'package:yellowmuscu/Screens/main_page.dart';
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
@@ -156,11 +157,11 @@ class TutorialPage extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.yellow, // Fond jaune
+      backgroundColor: darkWidget, // Fond jaune
       appBar: AppBar(
         title: const Text('Tutorial'),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.yellow,
+        backgroundColor: darkWidget,
         elevation: 0,
       ),
       body: PageView.builder(
