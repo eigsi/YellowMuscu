@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yellowmuscu/authentification/login_page.dart'; // Met à jour l'import pour LoginPage
+import 'package:yellowmuscu/authentification/login_page.dart';
 import 'package:yellowmuscu/Screens/main_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yellowmuscu/Provider/theme_provider.dart'; // Import de ThemeProvider
+import 'package:yellowmuscu/Provider/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,38 +23,41 @@ void main() async {
 }
 
 class MyApp extends ConsumerWidget {
-  // Convertir MyApp en ConsumerWidget
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDarkMode = ref.watch(themeModeProvider);
+    final isDarkMode =
+        ref.watch(themeModeProvider); // Obtenir l'état du mode sombre
+
+    // Définition des thèmes en fonction de l'état du mode sombre
+    final ThemeData currentTheme = ThemeData(
+      brightness: isDarkMode ? Brightness.dark : Brightness.light,
+      scaffoldBackgroundColor: isDarkMode ? darkBottom : lightBottom,
+      appBarTheme: AppBarTheme(
+        backgroundColor: isDarkMode ? darkTop : lightTop,
+        titleTextStyle: TextStyle(
+          color: isDarkMode ? Colors.white : Colors.black,
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+        ),
+        iconTheme: IconThemeData(
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: isDarkMode ? darkNavBar : lightNavBar,
+        selectedItemColor: isDarkMode ? darkWidget : lightWidget,
+        unselectedItemColor: isDarkMode ? Colors.grey : Colors.black54,
+      ),
+    );
 
     return MaterialApp(
       title: 'YellowMuscu',
-      theme: ThemeData(
-        brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        primaryColor: isDarkMode
-            ? Colors.grey[900]
-            : Colors.yellow, // Ajustez selon votre thème
-        scaffoldBackgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-        appBarTheme: AppBarTheme(
-          backgroundColor: isDarkMode ? Colors.grey[900] : Colors.yellow,
-          titleTextStyle: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-          iconTheme: IconThemeData(
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-      home:
-          const AuthWrapper(), // Afficher LoginPage ou MainPage selon l'authentification
+      theme: currentTheme, // Applique le thème courant
+      home: const AuthWrapper(),
       routes: {
-        '/login': (context) =>
-            const LoginPage(), // Met à jour la route pour LoginPage
+        '/login': (context) => const LoginPage(),
         '/mainPage': (context) => const MainPage(),
       },
     );
@@ -72,15 +75,15 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user == null) {
-            return const LoginPage(); // Remplace SignInPage par LoginPage
+            return const LoginPage();
           } else {
-            return const MainPage(); // Redirige vers la page principale
+            return const MainPage();
           }
         }
         return const Scaffold(
           body: Center(
-              child:
-                  CircularProgressIndicator()), // Affiche un indicateur de chargement
+            child: CircularProgressIndicator(),
+          ),
         );
       },
     );
